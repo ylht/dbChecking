@@ -1,5 +1,6 @@
 package ecnu.db.scheme;
 
+
 /**
  * @author wangqingshuai
  * double的tuple相关类

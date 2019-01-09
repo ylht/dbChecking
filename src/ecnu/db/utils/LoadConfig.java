@@ -1,4 +1,5 @@
 package ecnu.db.utils;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -47,4 +48,5 @@ public class LoadConfig {
 //            System.out.println(l.valueOf("min"));
 //        }
 //    }
+
 }

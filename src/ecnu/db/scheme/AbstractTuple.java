@@ -1,5 +1,6 @@
 package ecnu.db.scheme;
 
+
 import ecnu.db.utils.LoadConfig;
 
 import java.util.Random;

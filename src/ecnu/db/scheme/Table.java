@@ -3,6 +3,7 @@ package ecnu.db.scheme;
 import ecnu.db.scheme.AbstractTuple;
 import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.scheme.IntTuple;
+
 import ecnu.db.utils.LoadConfig;
 import org.dom4j.Node;
 
@@ -10,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Table {
+
     private ArrayList<AbstractTuple> tuples=new ArrayList<>();
+
     private int tableIndex;
 
 
