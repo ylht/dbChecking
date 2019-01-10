@@ -7,12 +7,8 @@
     <table>
         <tableSize>100000</tableSize>
         <tuple>
-            <type>int</type>
-            <min>0</min>
-            <range>100000</range>
-        </tuple>
-        <tuple>
-            <type>int</type>
+            <work id="3">in</work>
+            <type>double</type>
             <min>0</min>
             <range>100000</range>
         </tuple>
@@ -20,15 +16,19 @@
     <table>
         <tableSize>100000</tableSize>
         <tuple>
-            <type>int</type>
+            <work id="3">in</work>
+            <type>double</type>
             <min>0</min>
             <range>100000</range>
         </tuple>
-    </table>
-    <table>
-        <tableSize>100000</tableSize>
         <tuple>
-            <type>int</type>
+            <type>double</type>
+            <min>0</min>
+            <range>100000</range>
+        </tuple>
+        <tuple>
+            <work id="3">inout</work>
+            <type>double</type>
             <min>0</min>
             <range>100000</range>
         </tuple>
