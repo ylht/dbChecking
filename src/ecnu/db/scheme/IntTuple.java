@@ -10,22 +10,22 @@ public class IntTuple extends AbstractTuple {
     private int tupleRange;
 
     public IntTuple(int tupleIndex, int min, int tupleRange) {
-        this.tupleIndex=tupleIndex;
+        this.tupleIndex = tupleIndex;
         this.min = min;
         this.tupleRange = tupleRange;
     }
 
     @Override
     public String getTableSQL() {
-        return  "tp"+ tupleIndex +" INT,";
+        return "tp" + tupleIndex + " INT,";
     }
 
     @Override
     public Object getValue(boolean processingTableData) {
-        if(processingTableData){
-            return R.nextInt(tupleRange)+min;
-        }else{
-            return R.nextInt(tupleRange/RANGE_RANDOM_COUNT);
+        if (processingTableData) {
+            return R.nextInt(tupleRange) + min;
+        } else {
+            return R.nextInt(tupleRange / RANGE_RANDOM_COUNT);
         }
     }
 }

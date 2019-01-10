@@ -5,13 +5,17 @@ import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author wangqingshuai
+ * 读取配置文件的类
+ */
 public class LoadConfig {
+    private static LoadConfig instance;
     private Document document;
 
-    private LoadConfig(){
+    private LoadConfig() {
         try {
             SAXReader reader = new SAXReader();
             document = reader.read("config/SingelTableCheckConfig.xml");
@@ -20,7 +24,6 @@ public class LoadConfig {
         }
     }
 
-    private static LoadConfig instance;
     public synchronized static LoadConfig getConfig() {
         if (instance == null) {
             instance = new LoadConfig();
@@ -30,23 +33,29 @@ public class LoadConfig {
 
 
     public Integer getRangeRandomCount() {
-        return Integer.valueOf(document.valueOf("//generator/table/rangeRandomCount"));
+        return Integer.valueOf(document.valueOf("//generator/rangeRandomCount"));
     }
 
-    public List<Node> getTableIntTupleInfo(int tableIndex){
+    public int getTableNum() {
+        return document.selectNodes("//generator/table").size();
+    }
+
+    public List<Node> getTableTupleInfo(int tableIndex) {
         String xpath = "//generator/table";
         List<Node> list = document.selectNodes(xpath);
-        Node table=list.get(tableIndex);
+        Node table = list.get(tableIndex);
         return table.selectNodes("tuple");
     }
 
-//    public static void main(String[] args) {
-//        Document dc = LoadConfig.getConfig();
-//        String xpath = "//generator/table/scheme";
-//        List<Node> list = dc.selectNodes(xpath);
-//        for (Node l : list) {
-//            System.out.println(l.valueOf("min"));
-//        }
-//    }
+    public int[] getTableSize() {
+        String xpath = "//generator/table";
+        List<Node> list = document.selectNodes(xpath);
+        int[] tableSizes = new int[list.size()];
+        int i = 0;
+        for (Node l : list) {
+            tableSizes[i++] = Integer.valueOf(l.valueOf("tableSize"));
+        }
+        return tableSizes;
+    }
 
 }

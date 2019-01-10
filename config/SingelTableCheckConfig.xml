@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <generator>
-    <tableNum>1</tableNum>
 
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
     <rangeRandomCount>1000</rangeRandomCount>
 
     <table>
+        <tableSize>100000</tableSize>
+        <tuple>
+            <type>int</type>
+            <min>0</min>
+            <range>100000</range>
+        </tuple>
+        <tuple>
+            <type>int</type>
+            <min>0</min>
+            <range>100000</range>
+        </tuple>
+    </table>
+    <table>
+        <tableSize>100000</tableSize>
+        <tuple>
+            <type>int</type>
+            <min>0</min>
+            <range>100000</range>
+        </tuple>
+    </table>
+    <table>
+        <tableSize>100000</tableSize>
         <tuple>
             <type>int</type>
             <min>0</min>
