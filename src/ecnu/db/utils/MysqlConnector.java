@@ -1,12 +1,9 @@
 package ecnu.db.utils;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
- * @author wangqingshuai 
+ * @author wangqingshuai
  * 数据库驱动连接器
  */
 public class MysqlConnector {
@@ -35,7 +32,7 @@ public class MysqlConnector {
 
     public static void main(String[] args) {
         MysqlConnector mysqlConnector = new MysqlConnector();
-        mysqlConnector.loadData(0);
+        System.out.println(mysqlConnector.sumColumn(0,1));
     }
 
     public void excuteSql(String sql) {
@@ -75,5 +72,24 @@ public class MysqlConnector {
             System.exit(-1);
         }
         return conn;
+    }
+
+    public Double sumColumn(int tableIndex,int tupleIndex){
+        String sql="select sum(tp"+tupleIndex+") from t"+tableIndex;
+        try {
+            ResultSet rs= stmt.executeQuery(sql);
+            rs.next();
+            return rs.getDouble(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public void close(){
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

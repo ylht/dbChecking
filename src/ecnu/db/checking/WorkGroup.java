@@ -36,4 +36,20 @@ public class WorkGroup {
        return  "第"+workId+"工作组的数据为\n"+ "In:"+ Arrays.toString(in.toArray())+"\n"+
        "Out:"+Arrays.toString(out.toArray())+"\n"+ "Inout:"+Arrays.toString(inout.toArray());
     }
+
+    /**
+     * 检查是否只有in或者只有out
+     * @return workGroup合法时返回true，否则返回false
+     */
+    Boolean check(){
+        return !inout.isEmpty() || !in.isEmpty() && !out.isEmpty() ;
+    }
+
+    public ArrayList<WorkNode> getAllNode(){
+        ArrayList<WorkNode> allNode=new ArrayList<>();
+        allNode.addAll(in);
+        allNode.addAll(out);
+        allNode.addAll(inout);
+        return allNode;
+    }
 }
