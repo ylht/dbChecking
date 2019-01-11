@@ -61,51 +61,51 @@ public class LoadConfig {
         return tableSizes;
     }
 
-    public ArrayList<WorkGroup>getWorkNode() {
-        ArrayList<WorkGroup>resultNodes=new ArrayList<>();
+    public ArrayList<WorkGroup> getWorkNode() {
+        ArrayList<WorkGroup> resultNodes = new ArrayList<>();
         String xpath = "//generator/table";
         List<Node> list = document.selectNodes(xpath);
-        int tableIndex=0;
+        int tableIndex = 0;
         for (Node table : list) {
-            List<Node> tupleList=table.selectNodes("tuple");
-            int tupleIndex=1;
-            for(Node tuple:tupleList){
-                if(!"".equals(tuple.valueOf("work"))){
-                    int workId=Integer.valueOf(tuple.valueOf("work/@id"));
-                    boolean hasWorkGroup=false;
-                    for(WorkGroup workGroup:resultNodes){
-                        if(workGroup.getWorkId()==workId){
-                            switch (tuple.valueOf("work")){
+            List<Node> tupleList = table.selectNodes("tuple");
+            int tupleIndex = 1;
+            for (Node tuple : tupleList) {
+                if (!"".equals(tuple.valueOf("work"))) {
+                    int workId = Integer.valueOf(tuple.valueOf("work/@id"));
+                    boolean hasWorkGroup = false;
+                    for (WorkGroup workGroup : resultNodes) {
+                        if (workGroup.getWorkId() == workId) {
+                            switch (tuple.valueOf("work")) {
                                 case "in":
-                                    workGroup.addInTuple(new WorkNode(tableIndex,tupleIndex));
+                                    workGroup.addInTuple(new WorkNode(tableIndex, tupleIndex));
                                     break;
                                 case "out":
-                                    workGroup.addOutTuple(new WorkNode(tableIndex,tupleIndex));
+                                    workGroup.addOutTuple(new WorkNode(tableIndex, tupleIndex));
                                     break;
                                 case "inout":
-                                    workGroup.addInoutTuple(new WorkNode(tableIndex,tupleIndex));
+                                    workGroup.addInoutTuple(new WorkNode(tableIndex, tupleIndex));
                                     break;
                                 default:
                                     System.out.println("没有匹配到work类型，请检查配置文件");
                                     System.exit(-1);
                             }
-                            hasWorkGroup=true;
+                            hasWorkGroup = true;
                         }
                     }
-                    if(!hasWorkGroup){
+                    if (!hasWorkGroup) {
                         resultNodes.add(new WorkGroup(workId));
-                        switch (tuple.valueOf("work")){
+                        switch (tuple.valueOf("work")) {
                             case "in":
-                                resultNodes.get(resultNodes.size()-1)
-                                        .addInTuple(new WorkNode(tableIndex,tupleIndex));
+                                resultNodes.get(resultNodes.size() - 1)
+                                        .addInTuple(new WorkNode(tableIndex, tupleIndex));
                                 break;
                             case "out":
-                                resultNodes.get(resultNodes.size()-1)
-                                        .addOutTuple(new WorkNode(tableIndex,tupleIndex));
+                                resultNodes.get(resultNodes.size() - 1)
+                                        .addOutTuple(new WorkNode(tableIndex, tupleIndex));
                                 break;
                             case "inout":
-                                resultNodes.get(resultNodes.size()-1)
-                                        .addInoutTuple(new WorkNode(tableIndex,tupleIndex));
+                                resultNodes.get(resultNodes.size() - 1)
+                                        .addInoutTuple(new WorkNode(tableIndex, tupleIndex));
                                 break;
                             default:
                                 System.out.println("没有匹配到work类型，请检查配置文件");

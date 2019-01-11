@@ -32,7 +32,7 @@ public class MysqlConnector {
 
     public static void main(String[] args) {
         MysqlConnector mysqlConnector = new MysqlConnector();
-        System.out.println(mysqlConnector.sumColumn(0,1));
+        System.out.println(mysqlConnector.sumColumn(0, 1));
     }
 
     public void excuteSql(String sql) {
@@ -74,10 +74,10 @@ public class MysqlConnector {
         return conn;
     }
 
-    public Double sumColumn(int tableIndex,int tupleIndex){
-        String sql="select sum(tp"+tupleIndex+") from t"+tableIndex;
+    public Double sumColumn(int tableIndex, int tupleIndex) {
+        String sql = "select sum(tp" + tupleIndex + ") from t" + tableIndex;
         try {
-            ResultSet rs= stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery(sql);
             rs.next();
             return rs.getDouble(1);
         } catch (SQLException e) {
@@ -85,7 +85,8 @@ public class MysqlConnector {
             return null;
         }
     }
-    public void close(){
+
+    public void close() {
         try {
             conn.close();
         } catch (SQLException e) {
