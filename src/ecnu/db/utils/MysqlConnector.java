@@ -15,7 +15,7 @@ public class MysqlConnector {
 
     public MysqlConnector() {
         try {
-            String dbUrl = "jdbc:mysql://10.11.1.193:13306/qswang_dbchecking?useSSL=false";
+            String dbUrl = "jdbc:mysql://10.11.1.193:13306/databaseChecking?useSSL=false";
 
             // 数据库的用户名与密码，需要根据自己的设置
             String user = "root";
@@ -38,7 +38,7 @@ public class MysqlConnector {
         return conn;
     }
 
-    public void excuteSql(String sql) {
+    public void executeSql(String sql) {
         try {
             stmt.execute(sql);
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public class MysqlConnector {
     public void dropTables(int num) {
         String sql = "DROP TABLE IF EXISTS t";
         for (int i = 0; i < num; i++) {
-            excuteSql(sql + i);
+            executeSql(sql + i);
         }
     }
 
@@ -87,7 +87,7 @@ public class MysqlConnector {
     public void loadData(int tableIndex) {
         String sql = "load data local infile 'randomData/t" + tableIndex +
                 "' replace into table t" + tableIndex + " columns terminated by ',' ";
-        excuteSql(sql);
+        executeSql(sql);
     }
 
     public Double sumColumn(int tableIndex, int tupleIndex) {

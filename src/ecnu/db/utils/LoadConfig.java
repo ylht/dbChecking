@@ -21,7 +21,7 @@ public class LoadConfig {
     private LoadConfig() {
         try {
             SAXReader reader = new SAXReader();
-            document = reader.read("config/SingelTableCheckConfig.xml");
+            document = reader.read("config/SingleTableCheckConfig.xml");
         } catch (DocumentException e) {
             e.printStackTrace();
         }

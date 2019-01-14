@@ -26,9 +26,9 @@ public class DataOutputToFile {
         }
     }
 
-    public void write(Object[] datas) {
+    public void write(Object[] dataObjects) {
         StringBuilder line = new StringBuilder();
-        for (Object data : datas) {
+        for (Object data : dataObjects) {
             line.append(data.toString()).append(',');
         }
         try {

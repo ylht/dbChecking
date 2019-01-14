@@ -66,7 +66,7 @@ public class DbChecking {
         mysqlConnector.dropTables(tables.length);
         //为每张新表重建scheme
         for (Table table : tables) {
-            mysqlConnector.excuteSql(table.getSQL());
+            mysqlConnector.executeSql(table.getSQL());
         }
         System.out.println("数据库scheme重建成功！");
         mysqlConnector.close();
@@ -97,6 +97,7 @@ public class DbChecking {
         checkCorrectness.work(tables);
         checkCorrectness.computeEndSum();
         checkCorrectness.printWorkGroup();
+        checkCorrectness.checkCorrect();
     }
 
     private void closeThreadPoolExecutor() {

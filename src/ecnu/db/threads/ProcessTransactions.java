@@ -60,7 +60,7 @@ public class ProcessTransactions implements Runnable {
             WorkNode workOut = outNode.get(randomOutIndex);
             Double subNum = tables[workOut.getTableIndex()].getTransactionValue(workOut.getTupleIndex());
             PreparedStatement preparedOutStatement = subStatement.get(randomOutIndex);
-            int randomInIndex=r.nextInt(inNode.size());
+            int randomInIndex = r.nextInt(inNode.size());
             WorkNode workIn = inNode.get(randomInIndex);
             PreparedStatement preparedInStatement = addStatement.get(randomInIndex);
             try {

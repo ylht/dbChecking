@@ -86,4 +86,10 @@ public class CheckCorrectness {
             e.printStackTrace();
         }
     }
+
+    public void checkCorrect(){
+        for(WorkGroup workGroup:workGroups){
+            workGroup.checkCorrect();
+        }
+    }
 }

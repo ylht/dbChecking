@@ -40,7 +40,7 @@ public class WorkNode {
         return subValueList;
     }
 
-    public Double getBeginSum() {
+    Double getBeginSum() {
         return beginSum;
     }
 
@@ -48,7 +48,7 @@ public class WorkNode {
         this.beginSum = beginSum;
     }
 
-    public Double getEndSum() {
+    Double getEndSum() {
         return endSum;
     }
 
