@@ -1,5 +1,7 @@
 package ecnu.db.checking;
 
+import ecnu.db.utils.MysqlConnector;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -10,6 +12,7 @@ import java.util.Arrays;
 public class WorkGroup {
 
     private int workId;
+    private int threadsNum;
     private ArrayList<WorkNode> in = new ArrayList<>();
     private ArrayList<WorkNode> out = new ArrayList<>();
     private ArrayList<WorkNode> inout = new ArrayList<>();
@@ -40,6 +43,18 @@ public class WorkGroup {
                 "Out:" + Arrays.toString(out.toArray()) + "\n" + "Inout:" + Arrays.toString(inout.toArray());
     }
 
+    public ArrayList<WorkNode> getIn() {
+        ArrayList<WorkNode> result = new ArrayList<>(in);
+        result.addAll(inout);
+        return result;
+    }
+
+    public ArrayList<WorkNode> getOut() {
+        ArrayList<WorkNode> result = new ArrayList<>(out);
+        result.addAll(inout);
+        return result;
+    }
+
     /**
      * 检查是否只有in或者只有out
      *
@@ -49,11 +64,20 @@ public class WorkGroup {
         return !inout.isEmpty() || !in.isEmpty() && !out.isEmpty();
     }
 
-    public ArrayList<WorkNode> getAllNode() {
+    public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) {
         ArrayList<WorkNode> allNode = new ArrayList<>();
         allNode.addAll(in);
         allNode.addAll(out);
         allNode.addAll(inout);
-        return allNode;
+        if (isBegin) {
+            for (WorkNode node : allNode) {
+                node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getTupleIndex()));
+            }
+        } else {
+            for (WorkNode node : allNode) {
+                node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getTupleIndex()));
+            }
+        }
     }
+
 }

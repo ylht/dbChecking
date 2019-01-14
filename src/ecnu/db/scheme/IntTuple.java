@@ -9,7 +9,7 @@ public class IntTuple extends AbstractTuple {
     private int min;
     private int tupleRange;
 
-    public IntTuple(int tupleIndex, int min, int tupleRange) {
+    IntTuple(int tupleIndex, int min, int tupleRange) {
         this.tupleIndex = tupleIndex;
         this.min = min;
         this.tupleRange = tupleRange;
@@ -27,5 +27,10 @@ public class IntTuple extends AbstractTuple {
         } else {
             return R.nextInt(tupleRange / RANGE_RANDOM_COUNT);
         }
+    }
+
+    @Override
+    public Object getMaxValue() {
+        return min + tupleRange;
     }
 }

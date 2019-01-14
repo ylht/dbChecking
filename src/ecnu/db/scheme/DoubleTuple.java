@@ -9,7 +9,7 @@ public class DoubleTuple extends AbstractTuple {
     private double min;
     private double tupleRange;
 
-    public DoubleTuple(int tupleIndex, double min, double tupleRange) {
+    DoubleTuple(int tupleIndex, double min, double tupleRange) {
         this.tupleIndex = tupleIndex;
         this.min = min;
         this.tupleRange = tupleRange;
@@ -17,7 +17,8 @@ public class DoubleTuple extends AbstractTuple {
 
     @Override
     public String getTableSQL() {
-        return "tp" + tupleIndex + " DOUBLE,";
+        int decimalLength = String.valueOf(min + tupleRange).length() + 2;
+        return "tp" + tupleIndex + " DECIMAL (" + decimalLength + ",2),";
     }
 
     @Override
@@ -27,5 +28,10 @@ public class DoubleTuple extends AbstractTuple {
         } else {
             return R.nextDouble() * tupleRange / RANGE_RANDOM_COUNT;
         }
+    }
+
+    @Override
+    public Object getMaxValue() {
+        return min + tupleRange;
     }
 }

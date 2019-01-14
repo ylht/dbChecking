@@ -72,4 +72,12 @@ public class Table {
             return lineRecord;
         }
     }
+
+    public Double getTransactionValue(int tupleIndex) {
+        return Double.valueOf(tuples.get(tupleIndex - 1).getValue(false).toString());
+    }
+
+    public Double getMaxValue(int tupleIndex) {
+        return Double.valueOf(tuples.get(tupleIndex - 1).getMaxValue().toString());
+    }
 }

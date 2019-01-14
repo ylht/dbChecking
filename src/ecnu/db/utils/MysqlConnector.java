@@ -11,7 +11,6 @@ public class MysqlConnector {
      * JDBC 驱动名及数据库 URL
      */
     private Connection conn;
-
     private Statement stmt;
 
     public MysqlConnector() {
@@ -33,6 +32,10 @@ public class MysqlConnector {
     public static void main(String[] args) {
         MysqlConnector mysqlConnector = new MysqlConnector();
         System.out.println(mysqlConnector.sumColumn(0, 1));
+    }
+
+    public Connection getConn() {
+        return conn;
     }
 
     public void excuteSql(String sql) {
@@ -58,24 +61,39 @@ public class MysqlConnector {
         }
     }
 
+    public PreparedStatement getPrepareUpdate(boolean add, int tableIndex, int tupleIndex) {
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String sql = "update " + tableName + " set " + tupleName + "=" + tupleName;
+        if (add) {
+            sql += "+";
+        } else {
+            sql += "-";
+        }
+        sql += " ? where tp0 = ? and tp" + tupleIndex;
+        if (add) {
+            sql += " < ?";
+        } else {
+            sql += " > ?";
+        }
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public void loadData(int tableIndex) {
         String sql = "load data local infile 'randomData/t" + tableIndex +
                 "' replace into table t" + tableIndex + " columns terminated by ',' ";
         excuteSql(sql);
     }
 
-    public Connection getConn() {
-        try {
-            conn.setAutoCommit(false);
-        } catch (SQLException se) {
-            System.out.println(se.getErrorCode());
-            System.exit(-1);
-        }
-        return conn;
-    }
-
     public Double sumColumn(int tableIndex, int tupleIndex) {
-        String sql = "select sum(tp" + tupleIndex + ") from t" + tableIndex;
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String sql = "select sum(" + tupleName + ") from " + tableName;
         try {
             ResultSet rs = stmt.executeQuery(sql);
             rs.next();

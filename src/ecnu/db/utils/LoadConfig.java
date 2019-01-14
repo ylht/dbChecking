@@ -34,6 +34,15 @@ public class LoadConfig {
         return instance;
     }
 
+    public static void main(String[] args) {
+        System.out.println(LoadConfig.getConfig().getThreadNum(0));
+    }
+
+    public int getRunCount() {
+        String xpath = "//generator/threads/runCount";
+        Node list = document.selectNodes(xpath).get(0);
+        return Integer.valueOf(list.getText());
+    }
 
     public Integer getRangeRandomCount() {
         return Integer.valueOf(document.valueOf("//generator/rangeRandomCount"));
@@ -59,6 +68,12 @@ public class LoadConfig {
             tableSizes[i++] = Integer.valueOf(l.valueOf("tableSize"));
         }
         return tableSizes;
+    }
+
+    public int getThreadNum(int workGroupNum) {
+        String xpath = "//generator/threads/work[@id='" + workGroupNum + "']";
+        Node list = document.selectNodes(xpath).get(0);
+        return Integer.valueOf(list.getText());
     }
 
     public ArrayList<WorkGroup> getWorkNode() {
@@ -119,5 +134,4 @@ public class LoadConfig {
         }
         return resultNodes;
     }
-
 }

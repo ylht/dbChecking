@@ -46,4 +46,11 @@ public abstract class AbstractTuple {
      */
     public abstract Object getValue(boolean processingTableData);
 
+    /**
+     * 返回该tuple的上界限
+     *
+     * @return min+tupleRange
+     */
+    public abstract Object getMaxValue();
+
 }

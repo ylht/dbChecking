@@ -2,19 +2,24 @@
 <generator>
 
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
-    <rangeRandomCount>1000</rangeRandomCount>
-
+    <rangeRandomCount>100000</rangeRandomCount>
+    <threads>
+        <runCount>1000</runCount>
+        <work id="0">10</work>
+        <work id="1">10</work>
+        <work id="2">3</work>
+    </threads>
     <table>
-        <tableSize>100000</tableSize>
+        <tableSize>1000</tableSize>
         <tuple>
-            <work id="1">in</work>
+            <work id="1">inout</work>
             <type>int</type>
             <min>0</min>
             <range>100000</range>
         </tuple>
     </table>
     <table>
-        <tableSize>100000</tableSize>
+        <tableSize>1000</tableSize>
         <tuple>
             <work id="1">inout</work>
             <type>double</type>
@@ -27,7 +32,7 @@
             <range>100000</range>
         </tuple>
         <tuple>
-            <work id="1">in</work>
+            <work id="0">inout</work>
             <type>double</type>
             <min>0</min>
             <range>100000</range>

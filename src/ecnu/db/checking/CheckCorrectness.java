@@ -1,9 +1,12 @@
 package ecnu.db.checking;
 
+import ecnu.db.scheme.Table;
 import ecnu.db.threads.ComputeSum;
+import ecnu.db.threads.ProcessTransactions;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -16,6 +19,11 @@ public class CheckCorrectness {
     private ArrayList<WorkGroup> workGroups;
     private ThreadPoolExecutor threadPoolExecutor;
 
+    /**
+     * 按照配置文件生成转账组
+     *
+     * @param threadPoolExecutor 全局线程池
+     */
     public CheckCorrectness(ThreadPoolExecutor threadPoolExecutor) {
         workGroups = LoadConfig.getConfig().getWorkNode();
         for (WorkGroup workGroup : workGroups) {
@@ -26,6 +34,29 @@ public class CheckCorrectness {
             }
         }
         this.threadPoolExecutor = threadPoolExecutor;
+    }
+
+    public void work(Table[] tables) {
+        int runCount = LoadConfig.getConfig().getRunCount();
+        int[] threadsNum = new int[workGroups.size()];
+        for (int i = 0; i < workGroups.size(); i++) {
+            threadsNum[i] = LoadConfig.getConfig().getThreadNum(workGroups.get(i).getWorkId());
+        }
+        int totalNum = Arrays.stream(threadsNum).sum();
+        CountDownLatch count = new CountDownLatch(totalNum);
+        for (int i = 0; i < workGroups.size(); i++) {
+            for (int j = 0; j < threadsNum[i]; j++) {
+                ProcessTransactions processTransactions = new ProcessTransactions(
+                        tables, workGroups.get(i), runCount, count);
+                threadPoolExecutor.submit(processTransactions);
+            }
+        }
+        try {
+            count.await();
+            System.out.println("全部事务执行完毕！");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void printWorkGroup() {
