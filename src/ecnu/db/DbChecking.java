@@ -27,7 +27,9 @@ public class DbChecking {
      */
     private ThreadPoolExecutor threadPoolExecutor;
 
-    private DbChecking() {
+    private DbChecking(String configFile) {
+        //载入配置文件
+        LoadConfig.fileName=configFile;
         //初始化数据表
         tables = new Table[LoadConfig.getConfig().getTableNum()];
         int[] tableSizes = LoadConfig.getConfig().getTableSize();
@@ -48,7 +50,8 @@ public class DbChecking {
     }
 
     public static void main(String[] args) {
-        DbChecking dbChecking = new DbChecking();
+        //DbChecking dbChecking = new DbChecking("config/SingleTableCheckConfig.xml");
+        DbChecking dbChecking = new DbChecking("");
         dbChecking.createScheme();
         dbChecking.loadData();
         dbChecking.work();

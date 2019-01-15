@@ -2,13 +2,12 @@ package ecnu.db.utils;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Node;
+import org.dom4j.*;
 import org.dom4j.io.SAXReader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author wangqingshuai
@@ -17,13 +16,56 @@ import java.util.List;
 public class LoadConfig {
     private static LoadConfig instance;
     private Document document;
+    public static String fileName;
 
     private LoadConfig() {
         try {
             SAXReader reader = new SAXReader();
-            document = reader.read("config/SingleTableCheckConfig.xml");
+            if(!"".equals(fileName)){
+                document = reader.read(fileName);
+            } else {
+                //随机一个配置文件
+                getRandomDocument();
+            }
         } catch (DocumentException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void getRandomDocument(){
+        Random r=new Random();
+        document = DocumentHelper.createDocument();
+        Element generator = document.addElement("generator");
+        Element rangeRandomCount = generator.addElement("rangeRandomCount");
+        rangeRandomCount.setText("1000");
+
+        int tableNum=r.nextInt(10)+2;
+        int workNum=r.nextInt(5)+5;
+
+        for(int i=0;i<tableNum;i++) {
+            Element table = generator.addElement("table");
+            Element tableSize = table.addElement("tableSize");
+            tableSize.setText("100000");
+            int tupleNum=1+r.nextInt(10);
+            for(int j=0;j<tupleNum;j++){
+                Element tuple = table.addElement("tuple");
+                Element type = tuple.addElement("type");
+                type.setText("double");
+                Element min=tuple.addElement("min");
+                min.setText("0");
+                Element max=tuple.addElement("range");
+                max.setText("100000");
+                Element work=tuple.addElement("work");
+                work.addAttribute("id",String.valueOf(r.nextInt(workNum))).setText("inout");
+            }
+        }
+
+        Element threads=generator.addElement("threads");
+        Element runCount = threads.addElement("runCount");
+        runCount.setText("1000");
+        for(int i=0;i<workNum;i++){
+            Element work=threads.addElement("work");
+            work.addAttribute("id",String.valueOf(i)).setText("10");
         }
     }
 
@@ -32,10 +74,6 @@ public class LoadConfig {
             instance = new LoadConfig();
         }
         return instance;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(LoadConfig.getConfig().getThreadNum(0));
     }
 
     public int getRunCount() {
