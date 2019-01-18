@@ -80,26 +80,26 @@ public class WorkGroup {
         }
     }
 
-    void checkCorrect(){
-        Double beginSum=0d;
-        Double endSum=0d;
+    void checkCorrect() {
+        Double beginSum = 0d;
+        Double endSum = 0d;
 
-        for(WorkNode node:in){
-            beginSum+=node.getBeginSum();
-            endSum+=node.getEndSum();
+        for (WorkNode node : in) {
+            beginSum += node.getBeginSum();
+            endSum += node.getEndSum();
         }
-        for(WorkNode node:out){
-            beginSum+=node.getBeginSum();
-            endSum+=node.getEndSum();
+        for (WorkNode node : out) {
+            beginSum += node.getBeginSum();
+            endSum += node.getEndSum();
         }
-        for(WorkNode node:inout){
-            beginSum+=node.getBeginSum();
-            endSum+=node.getEndSum();
+        for (WorkNode node : inout) {
+            beginSum += node.getBeginSum();
+            endSum += node.getEndSum();
         }
-        if(!DoubleTuple.df.format(beginSum).equals(DoubleTuple.df.format(endSum))){
-            System.out.println("工作组"+workId+"前后和不一致，前和为"+beginSum+",后和为"+endSum);
-        }else {
-            System.out.println("工作组"+workId+"前后和一致");
+        if (!DoubleTuple.df.format(beginSum).equals(DoubleTuple.df.format(endSum))) {
+            System.out.println("工作组" + workId + "前后和不一致，前和为" + beginSum + ",后和为" + endSum);
+        } else {
+            System.out.println("工作组" + workId + "前后和一致");
         }
     }
 }

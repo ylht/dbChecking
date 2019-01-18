@@ -12,8 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.FutureTask;
 
 /**
  * @author wangqingshuai
@@ -45,9 +43,9 @@ public class ProcessTransactions implements Callable<double[][][]> {
 
     @Override
     public double[][][] call() {
-        double[][][]results=new double[tables.length][][];
-        for(int i=0;i<results.length;i++){
-            results[i]=new double[tables[i].getTableSize()][tables[i].getColSize()];
+        double[][][] results = new double[tables.length][][];
+        for (int i = 0; i < results.length; i++) {
+            results[i] = new double[tables[i].getTableSize()][tables[i].getColSize()];
         }
 
         Random r = new Random();
@@ -68,7 +66,7 @@ public class ProcessTransactions implements Callable<double[][][]> {
             PreparedStatement preparedInStatement = addStatement.get(randomInIndex);
             try {
                 preparedOutStatement.setDouble(1, subNum);
-                int workOutPriKey=workOut.getSubValueList().get(zf.sample() - 1);
+                int workOutPriKey = workOut.getSubValueList().get(zf.sample() - 1);
                 preparedOutStatement.setInt(2, workOutPriKey);
                 preparedOutStatement.setDouble(3, subNum);
                 if (preparedOutStatement.executeUpdate() == 0) {
@@ -77,7 +75,7 @@ public class ProcessTransactions implements Callable<double[][][]> {
                     continue;
                 }
                 preparedInStatement.setDouble(1, subNum);
-                int workInPriKey=workIn.getAddValueList().get(zf.sample() - 1);
+                int workInPriKey = workIn.getAddValueList().get(zf.sample() - 1);
                 preparedInStatement.setInt(2, workInPriKey);
                 preparedInStatement.setDouble(3, tables[workIn.getTableIndex()].
                         getMaxValue(workIn.getTupleIndex()) - subNum);
@@ -87,8 +85,8 @@ public class ProcessTransactions implements Callable<double[][][]> {
                     continue;
                 }
                 conn.commit();
-                results[workOut.getTableIndex()][workOutPriKey][workOut.getTupleIndex()-1]-=subNum;
-                results[workIn.getTableIndex()][workInPriKey][workIn.getTupleIndex()-1]+=subNum;
+                results[workOut.getTableIndex()][workOutPriKey][workOut.getTupleIndex() - 1] -= subNum;
+                results[workIn.getTableIndex()][workInPriKey][workIn.getTupleIndex() - 1] += subNum;
             } catch (SQLException e) {
                 e.printStackTrace();
             }

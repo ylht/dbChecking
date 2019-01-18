@@ -14,14 +14,14 @@ import java.util.Random;
  * 读取配置文件的类
  */
 public class LoadConfig {
+    public static String fileName;
     private static LoadConfig instance;
     private Document document;
-    public static String fileName;
 
     private LoadConfig() {
         try {
             SAXReader reader = new SAXReader();
-            if(!"".equals(fileName)){
+            if (!"".equals(fileName)) {
                 document = reader.read(fileName);
             } else {
                 //随机一个配置文件
@@ -32,48 +32,55 @@ public class LoadConfig {
         }
     }
 
-    private void getRandomDocument(){
-        Random r=new Random();
-        document = DocumentHelper.createDocument();
-        Element generator = document.addElement("generator");
-        Element rangeRandomCount = generator.addElement("rangeRandomCount");
-        rangeRandomCount.setText("1000");
-
-        int tableNum=r.nextInt(10)+2;
-        int workNum=r.nextInt(2)+2;
-
-        for(int i=0;i<tableNum;i++) {
-            Element table = generator.addElement("table");
-            Element tableSize = table.addElement("tableSize");
-            tableSize.setText("100000");
-            int tupleNum=1+r.nextInt(10);
-            for(int j=0;j<tupleNum;j++){
-                Element tuple = table.addElement("tuple");
-                Element type = tuple.addElement("type");
-                type.setText("double");
-                Element min=tuple.addElement("min");
-                min.setText("0");
-                Element max=tuple.addElement("range");
-                max.setText("100000");
-                Element work=tuple.addElement("work");
-                work.addAttribute("id",String.valueOf(r.nextInt(workNum))).setText("inout");
-            }
-        }
-
-        Element threads=generator.addElement("threads");
-        Element runCount = threads.addElement("runCount");
-        runCount.setText("1000");
-        for(int i=0;i<workNum;i++){
-            Element work=threads.addElement("work");
-            work.addAttribute("id",String.valueOf(i)).setText("10");
-        }
-    }
-
     public synchronized static LoadConfig getConfig() {
         if (instance == null) {
             instance = new LoadConfig();
         }
         return instance;
+    }
+
+    private void getRandomDocument() {
+        Random r = new Random();
+        document = DocumentHelper.createDocument();
+        Element generator = document.addElement("generator");
+        Element rangeRandomCount = generator.addElement("rangeRandomCount");
+        rangeRandomCount.setText("1000");
+        Element type = generator.addElement("type");
+        type.setText("double");
+
+        int tableNum = r.nextInt(10) + 2;
+        int workNum = r.nextInt(2) + 2;
+
+        for (int i = 0; i < tableNum; i++) {
+            Element table = generator.addElement("table");
+            Element tableSize = table.addElement("tableSize");
+            tableSize.setText("100000");
+            int tupleNum = 1 + r.nextInt(10);
+            for (int j = 0; j < tupleNum; j++) {
+                Element tuple = table.addElement("tuple");
+
+                Element min = tuple.addElement("min");
+                min.setText("0");
+                Element max = tuple.addElement("range");
+                max.setText("100000");
+                Element work = tuple.addElement("work");
+                work.addAttribute("id", String.valueOf(r.nextInt(workNum))).setText("inout");
+            }
+        }
+
+        Element threads = generator.addElement("threads");
+        Element runCount = threads.addElement("runCount");
+        runCount.setText("1000");
+        for (int i = 0; i < workNum; i++) {
+            Element work = threads.addElement("work");
+            work.addAttribute("id", String.valueOf(i)).setText("10");
+        }
+    }
+
+    public String getType() {
+        String xpath = "//generator/type";
+        Node list = document.selectNodes(xpath).get(0);
+        return list.getText();
     }
 
     public int getRunCount() {
@@ -96,6 +103,7 @@ public class LoadConfig {
         Node table = list.get(tableIndex);
         return table.selectNodes("tuple");
     }
+
 
     public int[] getTableSize() {
         String xpath = "//generator/table";

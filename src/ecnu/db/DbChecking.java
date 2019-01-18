@@ -29,7 +29,7 @@ public class DbChecking {
 
     private DbChecking(String configFile) {
         //载入配置文件
-        LoadConfig.fileName=configFile;
+        LoadConfig.fileName = configFile;
         //初始化数据表
         tables = new Table[LoadConfig.getConfig().getTableNum()];
         int[] tableSizes = LoadConfig.getConfig().getTableSize();

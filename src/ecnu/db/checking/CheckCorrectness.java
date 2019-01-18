@@ -7,7 +7,6 @@ import ecnu.db.threads.ProcessTransactions;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -47,21 +46,22 @@ public class CheckCorrectness {
         for (int i = 0; i < workGroups.size(); i++) {
             threadsNum[i] = LoadConfig.getConfig().getThreadNum(workGroups.get(i).getWorkId());
         }
-        int totalNum= IntStream.of(threadsNum).sum();;
-        FutureTask[] futureTasks=new FutureTask[totalNum];
-        int index=0;
+        int totalNum = IntStream.of(threadsNum).sum();
+        ;
+        FutureTask[] futureTasks = new FutureTask[totalNum];
+        int index = 0;
         for (int i = 0; i < workGroups.size(); i++) {
             for (int j = 0; j < threadsNum[i]; j++) {
                 ProcessTransactions processTransactions = new ProcessTransactions(
                         tables, workGroups.get(i), runCount);
-                futureTasks[index]=new FutureTask<>(processTransactions);
+                futureTasks[index] = new FutureTask<>(processTransactions);
                 threadPoolExecutor.submit(futureTasks[index++]);
             }
         }
         try {
-            for(FutureTask futureTask:futureTasks){
-                double[][][] results=(double[][][]) futureTask.get();
-                workData=combinTableData (workData,results);
+            for (FutureTask futureTask : futureTasks) {
+                double[][][] results = (double[][][]) futureTask.get();
+                workData = combinTableData(workData, results);
             }
             System.out.println("全部事务执行完毕！");
         } catch (ExecutionException | InterruptedException e) {
@@ -70,21 +70,21 @@ public class CheckCorrectness {
 
     }
 
-    public void compareEveryLine(int tableNum){
-        for(int i=0;i<tableNum;i++){
-            CompareEveryLine compareEveryLine=new CompareEveryLine(i,workData[i]);
+    public void compareEveryLine(int tableNum) {
+        for (int i = 0; i < tableNum; i++) {
+            CompareEveryLine compareEveryLine = new CompareEveryLine(i, workData[i]);
             threadPoolExecutor.submit(compareEveryLine);
         }
     }
 
-    private double[][][]  combinTableData(double[][][] result,double[][][] tableData){
-        if(result==null){
-            result=tableData;
-        }else {
-            for(int i=0;i<result.length;i++){
-                for(int j=0;j<result[i].length;j++){
-                    for(int k=0;k<result[i][j].length;k++){
-                        result[i][j][k]+=tableData[i][j][k];
+    private double[][][] combinTableData(double[][][] result, double[][][] tableData) {
+        if (result == null) {
+            result = tableData;
+        } else {
+            for (int i = 0; i < result.length; i++) {
+                for (int j = 0; j < result[i].length; j++) {
+                    for (int k = 0; k < result[i][j].length; k++) {
+                        result[i][j][k] += tableData[i][j][k];
                     }
                 }
             }
@@ -120,8 +120,8 @@ public class CheckCorrectness {
         }
     }
 
-    public void checkCorrect(){
-        for(WorkGroup workGroup:workGroups){
+    public void checkCorrect() {
+        for (WorkGroup workGroup : workGroups) {
             workGroup.checkCorrect();
         }
     }

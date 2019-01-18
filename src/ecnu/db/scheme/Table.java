@@ -13,21 +13,9 @@ import java.util.List;
 public class Table {
 
     private ArrayList<AbstractTuple> tuples = new ArrayList<>();
-
-    public int getTableSize() {
-        return tableSize;
-    }
-
-    public int getColSize(){
-        return tuples.size();
-    }
-
     private int tableIndex;
-
     private int tableSize;
-
     private int currentValueLine = 0;
-
     private Object[] lineRecord;
 
     public Table(int tableIndex, int tableSize) {
@@ -39,7 +27,7 @@ public class Table {
         //数据的tuple从第二列开始，第一列作为主键列
         int i = 1;
         for (Node node : nodes) {
-            switch (node.valueOf("type")) {
+            switch (LoadConfig.getConfig().getType()) {
                 case "int":
                     tuples.add(new IntTuple(i, Integer.parseInt(node.valueOf("min")),
                             Integer.parseInt(node.valueOf("range"))));
@@ -54,6 +42,14 @@ public class Table {
             }
             i++;
         }
+    }
+
+    public int getTableSize() {
+        return tableSize;
+    }
+
+    public int getColSize() {
+        return tuples.size();
     }
 
     public String getSQL() {

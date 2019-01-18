@@ -104,22 +104,22 @@ public class MysqlConnector {
         }
     }
 
-    public double[][] getTableData(int tableIndex){
-        String tableName="t"+tableIndex;
-        String sql="select * from "+tableName;
+    public double[][] getTableData(int tableIndex) {
+        String tableName = "t" + tableIndex;
+        String sql = "select * from " + tableName;
         try {
             Statement statement = conn.createStatement(
                     ResultSet.TYPE_SCROLL_INSENSITIVE,
                     ResultSet.CONCUR_READ_ONLY);
             ResultSet rs = statement.executeQuery(sql);
-            int colCount=rs.getMetaData().getColumnCount()-1;
+            int colCount = rs.getMetaData().getColumnCount() - 1;
             rs.last();
-            double[][] datas=new double[rs.getRow()][colCount];
-            int i=0;
+            double[][] datas = new double[rs.getRow()][colCount];
+            int i = 0;
             rs.beforeFirst();
-            while (rs.next()){
-                for(int j=0;j<colCount;j++){
-                    datas[i][j]=rs.getDouble(j+2);
+            while (rs.next()) {
+                for (int j = 0; j < colCount; j++) {
+                    datas[i][j] = rs.getDouble(j + 2);
                 }
                 i++;
             }

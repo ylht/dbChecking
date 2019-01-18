@@ -8,9 +8,10 @@ import java.text.DecimalFormat;
  * double的tuple相关类
  */
 public class DoubleTuple extends AbstractTuple {
+    public static DecimalFormat df = new DecimalFormat("0.00");
     private double min;
     private double tupleRange;
-    public static DecimalFormat df = new DecimalFormat("0.00");
+
     DoubleTuple(int tupleIndex, double min, double tupleRange) {
         this.tupleIndex = tupleIndex;
         this.min = min;
