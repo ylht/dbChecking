@@ -1,6 +1,7 @@
 package ecnu.db.checking;
 
 import ecnu.db.scheme.Table;
+import ecnu.db.threads.CompareEveryLine;
 import ecnu.db.threads.ComputeSum;
 import ecnu.db.threads.ProcessTransactions;
 import ecnu.db.utils.LoadConfig;
@@ -8,7 +9,10 @@ import ecnu.db.utils.LoadConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.IntStream;
 
 
 /**
@@ -18,6 +22,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class CheckCorrectness {
     private ArrayList<WorkGroup> workGroups;
     private ThreadPoolExecutor threadPoolExecutor;
+    private double[][][] workData;
 
     /**
      * 按照配置文件生成转账组
@@ -42,21 +47,49 @@ public class CheckCorrectness {
         for (int i = 0; i < workGroups.size(); i++) {
             threadsNum[i] = LoadConfig.getConfig().getThreadNum(workGroups.get(i).getWorkId());
         }
-        int totalNum = Arrays.stream(threadsNum).sum();
-        CountDownLatch count = new CountDownLatch(totalNum);
+        int totalNum= IntStream.of(threadsNum).sum();;
+        FutureTask[] futureTasks=new FutureTask[totalNum];
+        int index=0;
         for (int i = 0; i < workGroups.size(); i++) {
             for (int j = 0; j < threadsNum[i]; j++) {
                 ProcessTransactions processTransactions = new ProcessTransactions(
-                        tables, workGroups.get(i), runCount, count);
-                threadPoolExecutor.submit(processTransactions);
+                        tables, workGroups.get(i), runCount);
+                futureTasks[index]=new FutureTask<>(processTransactions);
+                threadPoolExecutor.submit(futureTasks[index++]);
             }
         }
         try {
-            count.await();
+            for(FutureTask futureTask:futureTasks){
+                double[][][] results=(double[][][]) futureTask.get();
+                workData=combinTableData (workData,results);
+            }
             System.out.println("全部事务执行完毕！");
-        } catch (InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
+
+    }
+
+    public void compareEveryLine(int tableNum){
+        for(int i=0;i<tableNum;i++){
+            CompareEveryLine compareEveryLine=new CompareEveryLine(i,workData[i]);
+            threadPoolExecutor.submit(compareEveryLine);
+        }
+    }
+
+    private double[][][]  combinTableData(double[][][] result,double[][][] tableData){
+        if(result==null){
+            result=tableData;
+        }else {
+            for(int i=0;i<result.length;i++){
+                for(int j=0;j<result[i].length;j++){
+                    for(int k=0;k<result[i][j].length;k++){
+                        result[i][j][k]+=tableData[i][j][k];
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public void printWorkGroup() {
@@ -92,4 +125,6 @@ public class CheckCorrectness {
             workGroup.checkCorrect();
         }
     }
+
+
 }

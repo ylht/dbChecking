@@ -38,7 +38,7 @@ public class DbChecking {
         }
         //初始化线程池
         int coreNum = Runtime.getRuntime().availableProcessors();
-        int maxPoolSize = 10 * coreNum;
+        int maxPoolSize = 2 * coreNum;
         long keepAliveTime = 5000;
 
         threadPoolExecutor = new ThreadPoolExecutor(coreNum,
@@ -95,12 +95,13 @@ public class DbChecking {
 
     private void work() {
         CheckCorrectness checkCorrectness = new CheckCorrectness(threadPoolExecutor);
-        checkCorrectness.computeBeginSum();
-        checkCorrectness.printWorkGroup();
+//        checkCorrectness.computeBeginSum();
+//        checkCorrectness.printWorkGroup();
         checkCorrectness.work(tables);
-        checkCorrectness.computeEndSum();
-        checkCorrectness.printWorkGroup();
-        checkCorrectness.checkCorrect();
+//        checkCorrectness.computeEndSum();
+//        checkCorrectness.printWorkGroup();
+//        checkCorrectness.checkCorrect();
+        checkCorrectness.compareEveryLine(tables.length);
     }
 
     private void closeThreadPoolExecutor() {

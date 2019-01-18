@@ -11,23 +11,23 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author wangqingshuai
  */
-public class ProcessTransactions implements Runnable {
+public class ProcessTransactions implements Callable<double[][][]> {
     private MysqlConnector mysqlConnector;
     private int runCount;
-    private CountDownLatch count;
     private Table[] tables;
     private ArrayList<WorkNode> inNode;
     private ArrayList<WorkNode> outNode;
-
     private ArrayList<PreparedStatement> addStatement = new ArrayList<>();
     private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
 
-    public ProcessTransactions(Table[] tables, WorkGroup workGroup, int runCount, CountDownLatch count) {
+    public ProcessTransactions(Table[] tables, WorkGroup workGroup, int runCount) {
         mysqlConnector = new MysqlConnector();
         this.tables = tables;
         inNode = new ArrayList<>(workGroup.getIn());
@@ -40,13 +40,16 @@ public class ProcessTransactions implements Runnable {
             subStatement.add(mysqlConnector.getPrepareUpdate(false, node.getTableIndex(),
                     node.getTupleIndex()));
         }
-
         this.runCount = runCount;
-        this.count = count;
     }
 
     @Override
-    public void run() {
+    public double[][][] call() {
+        double[][][]results=new double[tables.length][][];
+        for(int i=0;i<results.length;i++){
+            results[i]=new double[tables[i].getTableSize()][tables[i].getColSize()];
+        }
+
         Random r = new Random();
         ZipfDistribution zf = new ZipfDistribution(1000, 1);
         Connection conn = mysqlConnector.getConn();
@@ -65,7 +68,8 @@ public class ProcessTransactions implements Runnable {
             PreparedStatement preparedInStatement = addStatement.get(randomInIndex);
             try {
                 preparedOutStatement.setDouble(1, subNum);
-                preparedOutStatement.setInt(2, workOut.getSubValueList().get(zf.sample() - 1));
+                int workOutPriKey=workOut.getSubValueList().get(zf.sample() - 1);
+                preparedOutStatement.setInt(2, workOutPriKey);
                 preparedOutStatement.setDouble(3, subNum);
                 if (preparedOutStatement.executeUpdate() == 0) {
                     System.out.println(preparedOutStatement.toString());
@@ -73,7 +77,8 @@ public class ProcessTransactions implements Runnable {
                     continue;
                 }
                 preparedInStatement.setDouble(1, subNum);
-                preparedInStatement.setInt(2, workIn.getAddValueList().get(zf.sample() - 1));
+                int workInPriKey=workIn.getAddValueList().get(zf.sample() - 1);
+                preparedInStatement.setInt(2, workInPriKey);
                 preparedInStatement.setDouble(3, tables[workIn.getTableIndex()].
                         getMaxValue(workIn.getTupleIndex()) - subNum);
                 if (preparedInStatement.executeUpdate() == 0) {
@@ -82,12 +87,13 @@ public class ProcessTransactions implements Runnable {
                     continue;
                 }
                 conn.commit();
+                results[workOut.getTableIndex()][workOutPriKey][workOut.getTupleIndex()-1]-=subNum;
+                results[workIn.getTableIndex()][workInPriKey][workIn.getTupleIndex()-1]+=subNum;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
         mysqlConnector.close();
-        count.countDown();
+        return results;
     }
-
 }

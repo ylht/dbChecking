@@ -14,6 +14,14 @@ public class Table {
 
     private ArrayList<AbstractTuple> tuples = new ArrayList<>();
 
+    public int getTableSize() {
+        return tableSize;
+    }
+
+    public int getColSize(){
+        return tuples.size();
+    }
+
     private int tableIndex;
 
     private int tableSize;

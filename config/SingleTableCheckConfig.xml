@@ -4,9 +4,9 @@
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
     <rangeRandomCount>10000</rangeRandomCount>
     <threads>
-        <runCount>1000</runCount>
-        <work id="0">10</work>
-        <work id="1">10</work>
+        <runCount>50</runCount>
+        <work id="0">1</work>
+        <work id="1">1</work>
         <work id="2">3</work>
     </threads>
     <table>

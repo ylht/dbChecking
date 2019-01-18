@@ -1,5 +1,6 @@
 package ecnu.db.checking;
 
+import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.utils.MysqlConnector;
 
 import java.util.ArrayList;
@@ -82,6 +83,7 @@ public class WorkGroup {
     void checkCorrect(){
         Double beginSum=0d;
         Double endSum=0d;
+
         for(WorkNode node:in){
             beginSum+=node.getBeginSum();
             endSum+=node.getEndSum();
@@ -94,7 +96,7 @@ public class WorkGroup {
             beginSum+=node.getBeginSum();
             endSum+=node.getEndSum();
         }
-        if(Math.abs(beginSum-endSum)>=0.01){
+        if(!DoubleTuple.df.format(beginSum).equals(DoubleTuple.df.format(endSum))){
             System.out.println("工作组"+workId+"前后和不一致，前和为"+beginSum+",后和为"+endSum);
         }else {
             System.out.println("工作组"+workId+"前后和一致");

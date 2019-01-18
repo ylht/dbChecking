@@ -1,6 +1,8 @@
 package ecnu.db.scheme;
 
 
+import java.text.DecimalFormat;
+
 /**
  * @author wangqingshuai
  * double的tuple相关类
@@ -8,7 +10,7 @@ package ecnu.db.scheme;
 public class DoubleTuple extends AbstractTuple {
     private double min;
     private double tupleRange;
-
+    public static DecimalFormat df = new DecimalFormat("0.00");
     DoubleTuple(int tupleIndex, double min, double tupleRange) {
         this.tupleIndex = tupleIndex;
         this.min = min;
@@ -24,14 +26,14 @@ public class DoubleTuple extends AbstractTuple {
     @Override
     public Object getValue(boolean processingTableData) {
         if (processingTableData) {
-            return R.nextDouble() * tupleRange + min;
+            return df.format(R.nextDouble() * tupleRange + min);
         } else {
-            return R.nextDouble() * tupleRange / RANGE_RANDOM_COUNT;
+            return df.format(R.nextDouble() * tupleRange / RANGE_RANDOM_COUNT);
         }
     }
 
     @Override
     public Object getMaxValue() {
-        return min + tupleRange;
+        return df.format(min + tupleRange);
     }
 }

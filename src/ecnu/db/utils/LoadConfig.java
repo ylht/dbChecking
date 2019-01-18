@@ -40,7 +40,7 @@ public class LoadConfig {
         rangeRandomCount.setText("1000");
 
         int tableNum=r.nextInt(10)+2;
-        int workNum=r.nextInt(5)+5;
+        int workNum=r.nextInt(2)+2;
 
         for(int i=0;i<tableNum;i++) {
             Element table = generator.addElement("table");
