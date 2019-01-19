@@ -12,12 +12,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author wangqingshuai
  */
-public class ProcessTransactions implements Callable<double[][][]> {
+public class ProcessTransactions implements Runnable {
     private MysqlConnector mysqlConnector;
+    private CountDownLatch count;
     private int runCount;
     private Table[] tables;
     private ArrayList<WorkNode> inNode;
@@ -25,7 +27,7 @@ public class ProcessTransactions implements Callable<double[][][]> {
     private ArrayList<PreparedStatement> addStatement = new ArrayList<>();
     private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
 
-    public ProcessTransactions(Table[] tables, WorkGroup workGroup, int runCount) {
+    public ProcessTransactions(Table[] tables, WorkGroup workGroup, int runCount,CountDownLatch count) {
         mysqlConnector = new MysqlConnector();
         this.tables = tables;
         inNode = new ArrayList<>(workGroup.getIn());
@@ -39,15 +41,11 @@ public class ProcessTransactions implements Callable<double[][][]> {
                     node.getTupleIndex()));
         }
         this.runCount = runCount;
+        this.count=count;
     }
 
     @Override
-    public double[][][] call() {
-        double[][][] results = new double[tables.length][][];
-        for (int i = 0; i < results.length; i++) {
-            results[i] = new double[tables[i].getTableSize()][tables[i].getColSize()];
-        }
-
+    public void run() {
         Random r = new Random();
         ZipfDistribution zf = new ZipfDistribution(1000, 1);
         Connection conn = mysqlConnector.getConn();
@@ -85,13 +83,11 @@ public class ProcessTransactions implements Callable<double[][][]> {
                     continue;
                 }
                 conn.commit();
-                results[workOut.getTableIndex()][workOutPriKey][workOut.getTupleIndex() - 1] -= subNum;
-                results[workIn.getTableIndex()][workInPriKey][workIn.getTupleIndex() - 1] += subNum;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
+        count.countDown();
         mysqlConnector.close();
-        return results;
     }
 }

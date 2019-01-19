@@ -1,15 +1,12 @@
 package ecnu.db.checking;
 
 import ecnu.db.scheme.Table;
-import ecnu.db.threads.CompareEveryLine;
 import ecnu.db.threads.ComputeSum;
 import ecnu.db.threads.ProcessTransactions;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.IntStream;
 
@@ -47,49 +44,22 @@ public class CheckCorrectness {
             threadsNum[i] = LoadConfig.getConfig().getThreadNum(workGroups.get(i).getWorkId());
         }
         int totalNum = IntStream.of(threadsNum).sum();
-        ;
-        FutureTask[] futureTasks = new FutureTask[totalNum];
-        int index = 0;
+        CountDownLatch count=new CountDownLatch(totalNum);
+
         for (int i = 0; i < workGroups.size(); i++) {
             for (int j = 0; j < threadsNum[i]; j++) {
                 ProcessTransactions processTransactions = new ProcessTransactions(
-                        tables, workGroups.get(i), runCount);
-                futureTasks[index] = new FutureTask<>(processTransactions);
-                threadPoolExecutor.submit(futureTasks[index++]);
+                        tables, workGroups.get(i), runCount,count);
+                threadPoolExecutor.submit(processTransactions);
             }
         }
         try {
-            for (FutureTask futureTask : futureTasks) {
-                double[][][] results = (double[][][]) futureTask.get();
-                workData = combinTableData(workData, results);
-            }
+            count.await();
             System.out.println("全部事务执行完毕！");
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-    }
-
-    public void compareEveryLine(int tableNum) {
-        for (int i = 0; i < tableNum; i++) {
-            CompareEveryLine compareEveryLine = new CompareEveryLine(i, workData[i]);
-            threadPoolExecutor.submit(compareEveryLine);
-        }
-    }
-
-    private double[][][] combinTableData(double[][][] result, double[][][] tableData) {
-        if (result == null) {
-            result = tableData;
-        } else {
-            for (int i = 0; i < result.length; i++) {
-                for (int j = 0; j < result[i].length; j++) {
-                    for (int k = 0; k < result[i][j].length; k++) {
-                        result[i][j][k] += tableData[i][j][k];
-                    }
-                }
-            }
-        }
-        return result;
     }
 
     public void printWorkGroup() {

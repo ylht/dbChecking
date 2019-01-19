@@ -95,13 +95,12 @@ public class DbChecking {
 
     private void work() {
         CheckCorrectness checkCorrectness = new CheckCorrectness(threadPoolExecutor);
-//        checkCorrectness.computeBeginSum();
-//        checkCorrectness.printWorkGroup();
+        checkCorrectness.computeBeginSum();
+        checkCorrectness.printWorkGroup();
         checkCorrectness.work(tables);
-//        checkCorrectness.computeEndSum();
-//        checkCorrectness.printWorkGroup();
-//        checkCorrectness.checkCorrect();
-        checkCorrectness.compareEveryLine(tables.length);
+        checkCorrectness.computeEndSum();
+        checkCorrectness.printWorkGroup();
+        checkCorrectness.checkCorrect();
     }
 
     private void closeThreadPoolExecutor() {
