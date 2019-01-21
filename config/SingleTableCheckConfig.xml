@@ -3,11 +3,11 @@
 
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
     <rangeRandomCount>10000</rangeRandomCount>
-    <type>int</type>
+    <type>double</type>
     <threads>
-        <runCount>50</runCount>
-        <work id="0">1</work>
-        <work id="1">1</work>
+        <runCount>500</runCount>
+        <work id="0">10</work>
+        <work id="1">10</work>
         <work id="2">3</work>
     </threads>
     <table>
@@ -23,7 +23,7 @@
         <tuple>
             <work id="0">in</work>
             <min>0</min>
-            <range>100000</range>
+            <range>500000</range>
         </tuple>
         <tuple>
             <min>0</min>

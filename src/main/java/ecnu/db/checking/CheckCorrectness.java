@@ -2,7 +2,8 @@ package ecnu.db.checking;
 
 import ecnu.db.scheme.Table;
 import ecnu.db.threads.ComputeSum;
-import ecnu.db.threads.ProcessTransactions;
+import ecnu.db.threads.FunctionTransaction;
+import ecnu.db.threads.RemittanceTransaction;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
@@ -18,7 +19,6 @@ import java.util.stream.IntStream;
 public class CheckCorrectness {
     private ArrayList<WorkGroup> workGroups;
     private ThreadPoolExecutor threadPoolExecutor;
-    private double[][][] workData;
 
     /**
      * 按照配置文件生成转账组
@@ -28,11 +28,7 @@ public class CheckCorrectness {
     public CheckCorrectness(ThreadPoolExecutor threadPoolExecutor) {
         workGroups = LoadConfig.getConfig().getWorkNode();
         for (WorkGroup workGroup : workGroups) {
-            if (!workGroup.check()) {
-                System.out.println("工作组" + workGroup.getWorkId() + "只有in或者只有out，" +
-                        "无法操作，请检查配置文件");
-                System.exit(-1);
-            }
+            workGroup.check();
         }
         this.threadPoolExecutor = threadPoolExecutor;
     }
@@ -44,13 +40,30 @@ public class CheckCorrectness {
             threadsNum[i] = LoadConfig.getConfig().getThreadNum(workGroups.get(i).getWorkId());
         }
         int totalNum = IntStream.of(threadsNum).sum();
-        CountDownLatch count=new CountDownLatch(totalNum);
+        CountDownLatch count = new CountDownLatch(totalNum);
 
         for (int i = 0; i < workGroups.size(); i++) {
-            for (int j = 0; j < threadsNum[i]; j++) {
-                ProcessTransactions processTransactions = new ProcessTransactions(
-                        tables, workGroups.get(i), runCount,count);
-                threadPoolExecutor.submit(processTransactions);
+            switch (workGroups.get(i).getWorkGroupType()){
+                case remittance:
+                    for (int j = 0; j < threadsNum[i]; j++) {
+                        RemittanceTransaction remittanceTransaction = new RemittanceTransaction(
+                                tables, workGroups.get(i), runCount, count);
+                        threadPoolExecutor.submit(remittanceTransaction);
+                    }
+                    break;
+                case function:
+                    for (int j = 0; j < threadsNum[i]; j++) {
+                        FunctionTransaction functionTransaction = new FunctionTransaction(
+                                tables,workGroups.get(i),runCount,count);
+                        threadPoolExecutor.submit(functionTransaction);
+                    }
+                    break;
+                default:
+                    try {
+                        throw new Exception("没有匹配到工作组");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
             }
         }
         try {
@@ -95,6 +108,4 @@ public class CheckCorrectness {
             workGroup.checkCorrect();
         }
     }
-
-
 }

@@ -14,11 +14,11 @@ public class DataInputFromFile {
 
     public DataInputFromFile(int tableIndex) {
         try {
-            fileReader = new FileReader("randomData/t" + tableIndex);
+            fileReader = new FileReader("data/t" + tableIndex);
             CSVFormat csvFileFormat = CSVFormat.DEFAULT.withSkipHeaderRecord();
             csvParser = new CSVParser(fileReader, csvFileFormat);
         } catch (Exception e) {
-            System.out.println("读取文件randomData/t" + tableIndex + "失败");
+            System.out.println("读取文件data/t" + tableIndex + "失败");
         }
     }
 

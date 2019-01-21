@@ -50,8 +50,8 @@ public class DbChecking {
     }
 
     public static void main(String[] args) {
-        //DbChecking dbChecking = new DbChecking("config/SingleTableCheckConfig.xml");
-        DbChecking dbChecking = new DbChecking("");
+        DbChecking dbChecking = new DbChecking("config/SingleTableCheckConfig.xml");
+        //DbChecking dbChecking = new DbChecking("");
         dbChecking.createScheme();
         dbChecking.loadData();
         dbChecking.work();

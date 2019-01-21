@@ -1,6 +1,7 @@
 package ecnu.db.scheme;
 
 import ecnu.db.utils.LoadConfig;
+import org.apache.commons.math3.distribution.ZipfDistribution;
 import org.dom4j.Node;
 
 import java.util.ArrayList;
@@ -17,10 +18,12 @@ public class Table {
     private int tableSize;
     private int currentValueLine = 0;
     private Object[] lineRecord;
+    private ZipfDistribution zf;
 
     public Table(int tableIndex, int tableSize) {
         this.tableIndex = tableIndex;
         this.tableSize = tableSize;
+        this.zf = new ZipfDistribution(tableSize, 1);
         List<Node> nodes = LoadConfig.getConfig().getTableTupleInfo(tableIndex);
         this.lineRecord = new Object[nodes.size() + 1];
 
@@ -44,13 +47,15 @@ public class Table {
         }
     }
 
+    public int getRandomKey() {
+        return zf.sample();
+    }
+
+
     public int getTableSize() {
         return tableSize;
     }
 
-    public int getColSize() {
-        return tuples.size();
-    }
 
     public String getSQL() {
         StringBuilder sql = new StringBuilder("CREATE TABLE t" + tableIndex + "(tp0 INT,");

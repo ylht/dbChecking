@@ -12,9 +12,9 @@ public class DataOutputToFile {
 
     public DataOutputToFile(int tableIndex) {
         try {
-            file = new FileWriter("randomData/t" + tableIndex);
+            file = new FileWriter("data/t" + tableIndex);
         } catch (Exception e) {
-            System.out.println("写入文件randomData/t" + tableIndex + "路径失败");
+            System.out.println("写入文件data/t" + tableIndex + "路径失败");
         }
     }
 

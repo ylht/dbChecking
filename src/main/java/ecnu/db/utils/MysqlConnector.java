@@ -35,6 +35,11 @@ public class MysqlConnector {
     }
 
     public Connection getConn() {
+        try {
+            conn.setAutoCommit(false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return conn;
     }
 
@@ -61,7 +66,25 @@ public class MysqlConnector {
         }
     }
 
-    public PreparedStatement getPrepareUpdate(boolean add, int tableIndex, int tupleIndex) {
+    public PreparedStatement getOrderUpdate(boolean add,int tableIndex,int tupleIndex){
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String sql = "update " + tableName + " set " + tupleName + "=" + tupleName;
+        if(add){
+            sql+="+1";
+        }else {
+            sql+="-1";
+        }
+        sql+="where tp0=?";
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public PreparedStatement getRemittanceUpdate(boolean add, int tableIndex, int tupleIndex) {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
         String sql = "update " + tableName + " set " + tupleName + "=" + tupleName;
@@ -85,7 +108,7 @@ public class MysqlConnector {
     }
 
     public void loadData(int tableIndex) {
-        String sql = "load data local infile 'randomData/t" + tableIndex +
+        String sql = "load data local infile 'data/t" + tableIndex +
                 "' replace into table t" + tableIndex + " columns terminated by ',' ";
         executeSql(sql);
     }
@@ -98,32 +121,6 @@ public class MysqlConnector {
             ResultSet rs = stmt.executeQuery(sql);
             rs.next();
             return rs.getDouble(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public double[][] getTableData(int tableIndex) {
-        String tableName = "t" + tableIndex;
-        String sql = "select * from " + tableName;
-        try {
-            Statement statement = conn.createStatement(
-                    ResultSet.TYPE_SCROLL_INSENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY);
-            ResultSet rs = statement.executeQuery(sql);
-            int colCount = rs.getMetaData().getColumnCount() - 1;
-            rs.last();
-            double[][] datas = new double[rs.getRow()][colCount];
-            int i = 0;
-            rs.beforeFirst();
-            while (rs.next()) {
-                for (int j = 0; j < colCount; j++) {
-                    datas[i][j] = rs.getDouble(j + 2);
-                }
-                i++;
-            }
-            return datas;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
