@@ -27,6 +27,7 @@ public class CheckCorrectness {
     }
 
     public void work(Table[] tables) {
+        System.out.println("开始执行事务");
         int runCount = LoadConfig.getConfig().getRunCount();
         int[] threadsNum = new int[workGroups.size()];
         for (int i = 0; i < workGroups.size(); i++) {

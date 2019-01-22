@@ -127,6 +127,7 @@ public class MysqlConnector {
             return datas.toArray(new Double[0]);
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println(e.getSQLState());
             return null;
         }
     }

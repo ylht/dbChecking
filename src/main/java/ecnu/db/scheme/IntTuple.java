@@ -31,6 +31,6 @@ public class IntTuple extends AbstractTuple {
 
     @Override
     public Object getMaxValue() {
-        return min + tupleRange;
+        return Integer.MAX_VALUE;
     }
 }

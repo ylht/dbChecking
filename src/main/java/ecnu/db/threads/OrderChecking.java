@@ -24,20 +24,25 @@ public class OrderChecking implements Runnable {
         DataInputFromFile dataInputFromFile = new DataInputFromFile(tableIndex);
         double[] results = dataInputFromFile.readData(tupleIndex);
         Map<Integer, MutableInt> ops = ReadLogs.getInstance().getDatas(tableIndex, tupleIndex);
-        for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {
-            results[entry.getKey()] += entry.getValue().getValue();
+        if (ops != null) {
+            for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {
+                results[entry.getKey()] += entry.getValue().getValue();
+            }
         }
         MysqlConnector mysqlConnector = new MysqlConnector();
         Double[] dataBaseData = mysqlConnector.getTableData(tableIndex, tupleIndex);
+
         for (int i = 0; i < results.length; i++) {
             if (results[i] != dataBaseData[i]) {
-                System.out.println("Order数据不匹配，在第" + i + "行，本地计算数据为" + results[i]
+                System.out.println("第" + tableIndex + "张表，第" + tupleIndex + "列校验完成，校验结果为");
+                System.out.println("不匹配，在第" + i + "行，本地计算数据为" + results[i]
                         + "在线数据为" + dataBaseData[i]);
                 count.countDown();
                 return;
             }
         }
-        System.out.println("第" + tableIndex + "张表,第" + tupleIndex + "个数据计算结果完全匹配");
+        System.out.println("第" + tableIndex + "张表，第" + tupleIndex + "列校验完成，结果完全相同");
         count.countDown();
+        mysqlConnector.close();
     }
 }

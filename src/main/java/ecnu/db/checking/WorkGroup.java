@@ -137,18 +137,20 @@ public class WorkGroup {
                 beginSum += node.getBeginSum();
                 endSum += node.getEndSum();
             }
+            System.out.print("工作组" + workId + "类型为" + workGroupType + "事务，校验结果");
             if (!DoubleTuple.df.format(beginSum).equals(DoubleTuple.df.format(endSum))) {
-                System.out.println("工作组" + workId + "前后和不一致，前和为" + beginSum + ",后和为" + endSum);
+                System.out.println("前后和不一致，前和为" + beginSum + ",后和为" + endSum);
             } else {
-                System.out.println("工作组" + workId + "前后和一致");
+                System.out.println("前后和一致");
             }
         } else if (workGroupType == WorkGroupType.function) {
             double preB = in.get(0).getBeginSum() - k * out.get(0).getBeginSum();
             double postB = in.get(0).getEndSum() - k * out.get(0).getEndSum();
+            System.out.print("工作组" + workId + "类型为" + workGroupType + "事务，校验结果");
             if (!DoubleTuple.df.format(preB).equals(DoubleTuple.df.format(postB))) {
-                System.out.println("工作组" + workId + "没有满足一次函数关系,k是" + k + "前b是" + preB + "后b是" + postB);
+                System.out.println("没有满足一次函数关系,k是" + k + "前b是" + preB + "后b是" + postB);
             } else {
-                System.out.println("工作组" + workId + "满足一次函数关系");
+                System.out.println("满足一次函数关系");
             }
         } else if (workGroupType == WorkGroupType.order) {
             if (in == null) {
@@ -162,6 +164,7 @@ public class WorkGroup {
     private void orderCheck(ArrayList<WorkNode> in) {
         int total = in.size();
         CountDownLatch count = new CountDownLatch(total);
+        System.out.println("工作组" + workId + "类型为" + workGroupType + "事务，开始多线程并发校验数据结果，输出无先后");
         for (WorkNode node : in) {
             OrderChecking orderChecking = new OrderChecking(node.getTableIndex(), node.getTupleIndex(), count);
             ThreadPool.getThreadPoolExecutor().submit(orderChecking);

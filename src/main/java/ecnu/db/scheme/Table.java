@@ -51,12 +51,6 @@ public class Table {
         return zf.sample();
     }
 
-
-    public int getTableSize() {
-        return tableSize;
-    }
-
-
     public String getSQL() {
         StringBuilder sql = new StringBuilder("CREATE TABLE t" + tableIndex + "(tp0 INT,");
         for (AbstractTuple tuple : tuples) {
@@ -87,6 +81,6 @@ public class Table {
     }
 
     public Double getMaxValue(int tupleIndex) {
-        return Double.valueOf(tuples.get(tupleIndex - 1).getMaxValue().toString());
+        return Double.MAX_VALUE;
     }
 }
