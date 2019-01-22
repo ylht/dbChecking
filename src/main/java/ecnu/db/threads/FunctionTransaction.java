@@ -10,6 +10,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * @author wangqingshuai
+ * 处理fuction类型事务的线程
+ */
 public class FunctionTransaction implements Runnable {
     private MysqlConnector mysqlConnector;
     private CountDownLatch count;

@@ -81,6 +81,6 @@ public class Table {
     }
 
     public Double getMaxValue(int tupleIndex) {
-        return Double.MAX_VALUE;
+        return Double.parseDouble(tuples.get(tupleIndex).getMaxValue().toString());
     }
 }

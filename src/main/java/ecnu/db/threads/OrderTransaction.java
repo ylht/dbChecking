@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * @author wangqingshuai
+ * 处理order类型事务的线程
+ */
 public class OrderTransaction implements Runnable {
 
     private static final Logger logger = LogManager.getLogger();

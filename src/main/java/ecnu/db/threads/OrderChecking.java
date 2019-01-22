@@ -1,5 +1,6 @@
 package ecnu.db.threads;
 
+import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.utils.DataInputFromFile;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ReadLogs;
@@ -8,6 +9,10 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * @author wangqingshuai
+ * 检测order中每列的结果是否正确的线程
+ */
 public class OrderChecking implements Runnable {
     private int tableIndex;
     private int tupleIndex;
@@ -33,7 +38,7 @@ public class OrderChecking implements Runnable {
         Double[] dataBaseData = mysqlConnector.getTableData(tableIndex, tupleIndex);
 
         for (int i = 0; i < results.length; i++) {
-            if (results[i] != dataBaseData[i]) {
+            if (!DoubleTuple.df.format(results[i]).equals(DoubleTuple.df.format(dataBaseData[i]))) {
                 System.out.println("第" + tableIndex + "张表，第" + tupleIndex + "列校验完成，校验结果为");
                 System.out.println("不匹配，在第" + i + "行，本地计算数据为" + results[i]
                         + "在线数据为" + dataBaseData[i]);

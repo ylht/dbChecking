@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+/**
+ * @author wangqingshuai
+ * 从order日志中读取操作记录
+ */
 public class ReadLogs {
     private static ReadLogs instance;
     private Map<Vector<Integer>, Map<Integer, MutableInt>> counter;

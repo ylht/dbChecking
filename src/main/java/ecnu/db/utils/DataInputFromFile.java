@@ -8,6 +8,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * @author wangqingshuai
+ * 从本地记录中读取数据，用于和日志记录结合之后判定和在线数据的结果是否一致
+ */
 public class DataInputFromFile {
     private FileReader fileReader;
     private CSVParser csvParser;
@@ -23,7 +27,7 @@ public class DataInputFromFile {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         DataInputFromFile dataInputFromFile = new DataInputFromFile(0);
         dataInputFromFile.readData(1);
     }
