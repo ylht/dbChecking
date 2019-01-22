@@ -49,8 +49,6 @@ public class MysqlConnector {
             stmt.execute(sql);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(sql);
-            System.exit(-1);
         }
     }
 

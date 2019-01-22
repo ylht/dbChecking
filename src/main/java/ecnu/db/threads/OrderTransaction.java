@@ -85,8 +85,6 @@ public class OrderTransaction implements Runnable {
                 logger.trace(work.getTableIndex() + "," + work.getTupleIndex() + "," + workPriKey);
             } catch (SQLException e) {
                 e.printStackTrace();
-                System.out.println(preparedStatement.toString());
-                System.exit(-1);
             }
         }
         count.countDown();
