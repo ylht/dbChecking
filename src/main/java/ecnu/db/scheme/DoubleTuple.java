@@ -35,6 +35,6 @@ public class DoubleTuple extends AbstractTuple {
 
     @Override
     public Object getMaxValue() {
-        return df.format(min + tupleRange);
+        return df.format(Double.MAX_VALUE);
     }
 }

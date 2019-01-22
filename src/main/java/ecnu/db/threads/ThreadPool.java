@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThreadPool {
     private static final int CORE_NUM = Runtime.getRuntime().availableProcessors();
-    private static final int MAX_POOL_SIZE = 4 * CORE_NUM;
+    private static final int MAX_POOL_SIZE = 8 * CORE_NUM;
     private static final int KEEP_ALIVE_TIME = 5000;
     /**
      * 线程池
