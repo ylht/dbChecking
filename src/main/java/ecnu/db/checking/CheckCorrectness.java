@@ -1,14 +1,11 @@
 package ecnu.db.checking;
 
 import ecnu.db.scheme.Table;
-import ecnu.db.threads.ComputeSum;
-import ecnu.db.threads.FunctionTransaction;
-import ecnu.db.threads.RemittanceTransaction;
+import ecnu.db.threads.*;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.IntStream;
 
 
@@ -18,19 +15,15 @@ import java.util.stream.IntStream;
  */
 public class CheckCorrectness {
     private ArrayList<WorkGroup> workGroups;
-    private ThreadPoolExecutor threadPoolExecutor;
 
     /**
      * 按照配置文件生成转账组
-     *
-     * @param threadPoolExecutor 全局线程池
      */
-    public CheckCorrectness(ThreadPoolExecutor threadPoolExecutor) {
+    public CheckCorrectness() {
         workGroups = LoadConfig.getConfig().getWorkNode();
         for (WorkGroup workGroup : workGroups) {
             workGroup.check();
         }
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     public void work(Table[] tables) {
@@ -41,21 +34,27 @@ public class CheckCorrectness {
         }
         int totalNum = IntStream.of(threadsNum).sum();
         CountDownLatch count = new CountDownLatch(totalNum);
-
         for (int i = 0; i < workGroups.size(); i++) {
-            switch (workGroups.get(i).getWorkGroupType()){
+            switch (workGroups.get(i).getWorkGroupType()) {
                 case remittance:
                     for (int j = 0; j < threadsNum[i]; j++) {
                         RemittanceTransaction remittanceTransaction = new RemittanceTransaction(
                                 tables, workGroups.get(i), runCount, count);
-                        threadPoolExecutor.submit(remittanceTransaction);
+                        ThreadPool.getThreadPoolExecutor().submit(remittanceTransaction);
                     }
                     break;
                 case function:
                     for (int j = 0; j < threadsNum[i]; j++) {
                         FunctionTransaction functionTransaction = new FunctionTransaction(
-                                tables,workGroups.get(i),runCount,count);
-                        threadPoolExecutor.submit(functionTransaction);
+                                tables, workGroups.get(i), runCount, count);
+                        ThreadPool.getThreadPoolExecutor().submit(functionTransaction);
+                    }
+                    break;
+                case order:
+                    for (int j = 0; j < threadsNum[i]; j++) {
+                        OrderTransaction orderTransaction = new OrderTransaction(
+                                tables, workGroups.get(i), runCount, count);
+                        ThreadPool.getThreadPoolExecutor().submit(orderTransaction);
                     }
                     break;
                 default:
@@ -94,7 +93,7 @@ public class CheckCorrectness {
         CountDownLatch count = new CountDownLatch(workGroups.size());
         for (int i = 0; i < workGroups.size(); i++) {
             computeSums[i] = new ComputeSum(workGroups.get(i), count, isBegin);
-            threadPoolExecutor.submit(computeSums[i]);
+            ThreadPool.getThreadPoolExecutor().submit(computeSums[i]);
         }
         try {
             count.await();

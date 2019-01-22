@@ -1,6 +1,7 @@
 package ecnu.db.utils;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 /**
  * @author wangqingshuai
@@ -66,16 +67,16 @@ public class MysqlConnector {
         }
     }
 
-    public PreparedStatement getOrderUpdate(boolean add,int tableIndex,int tupleIndex){
+    public PreparedStatement getOrderUpdate(boolean add, int tableIndex, int tupleIndex) {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
         String sql = "update " + tableName + " set " + tupleName + "=" + tupleName;
-        if(add){
-            sql+="+1";
-        }else {
-            sql+="-1";
+        if (add) {
+            sql += "+1";
+        } else {
+            sql += "-1";
         }
-        sql+="where tp0=?";
+        sql += " where tp0=?";
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
@@ -111,6 +112,23 @@ public class MysqlConnector {
         String sql = "load data local infile 'data/t" + tableIndex +
                 "' replace into table t" + tableIndex + " columns terminated by ',' ";
         executeSql(sql);
+    }
+
+    public Double[] getTableData(int tableIndex, int tupleIndex) {
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String sql = "select " + tupleName + " from " + tableName;
+        ArrayList<Double> datas = new ArrayList<>();
+        try {
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                datas.add(rs.getDouble(1));
+            }
+            return datas.toArray(new Double[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public Double sumColumn(int tableIndex, int tupleIndex) {

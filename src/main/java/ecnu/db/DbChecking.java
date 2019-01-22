@@ -3,14 +3,11 @@ package ecnu.db;
 import ecnu.db.checking.CheckCorrectness;
 import ecnu.db.scheme.Table;
 import ecnu.db.threads.LoadData;
-import ecnu.db.threads.MyThreadFactory;
+import ecnu.db.threads.ThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author wangqingshuai
@@ -22,10 +19,6 @@ public class DbChecking {
      */
     private Table[] tables;
 
-    /**
-     * 线程池
-     */
-    private ThreadPoolExecutor threadPoolExecutor;
 
     private DbChecking(String configFile) {
         //载入配置文件
@@ -36,17 +29,8 @@ public class DbChecking {
         for (int i = 0; i < tables.length; i++) {
             tables[i] = new Table(i, tableSizes[i]);
         }
-        //初始化线程池
-        int coreNum = Runtime.getRuntime().availableProcessors();
-        int maxPoolSize = 2 * coreNum;
-        long keepAliveTime = 5000;
 
-        threadPoolExecutor = new ThreadPoolExecutor(coreNum,
-                maxPoolSize,
-                keepAliveTime,
-                TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
-                new MyThreadFactory());
+
     }
 
     public static void main(String[] args) {
@@ -83,7 +67,7 @@ public class DbChecking {
         CountDownLatch count = new CountDownLatch(tables.length);
         for (int i = 0; i < tables.length; i++) {
             loadData[i] = new LoadData(tables[i], count);
-            threadPoolExecutor.submit(loadData[i]);
+            ThreadPool.getThreadPoolExecutor().submit(loadData[i]);
         }
         try {
             count.await();
@@ -94,7 +78,7 @@ public class DbChecking {
     }
 
     private void work() {
-        CheckCorrectness checkCorrectness = new CheckCorrectness(threadPoolExecutor);
+        CheckCorrectness checkCorrectness = new CheckCorrectness();
         checkCorrectness.computeBeginSum();
         checkCorrectness.printWorkGroup();
         checkCorrectness.work(tables);
@@ -104,6 +88,6 @@ public class DbChecking {
     }
 
     private void closeThreadPoolExecutor() {
-        threadPoolExecutor.shutdown();
+        ThreadPool.getThreadPoolExecutor().shutdown();
     }
 }

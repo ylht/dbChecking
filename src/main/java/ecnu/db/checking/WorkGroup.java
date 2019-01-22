@@ -1,10 +1,13 @@
 package ecnu.db.checking;
 
 import ecnu.db.scheme.DoubleTuple;
+import ecnu.db.threads.OrderChecking;
+import ecnu.db.threads.ThreadPool;
 import ecnu.db.utils.MysqlConnector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author wangqingshuai
@@ -24,6 +27,7 @@ public class WorkGroup {
     private ArrayList<WorkNode> in = new ArrayList<>();
     private ArrayList<WorkNode> out = new ArrayList<>();
     private ArrayList<WorkNode> inout = new ArrayList<>();
+
     public WorkGroup(int workId) {
         this.workId = workId;
     }
@@ -50,7 +54,7 @@ public class WorkGroup {
 
     @Override
     public String toString() {
-        return "第" + workId + "工作组的类型为"+workGroupType+",数据为\n" + "In:" + Arrays.toString(in.toArray()) + "\n" +
+        return "第" + workId + "工作组的类型为" + workGroupType + ",数据为\n" + "In:" + Arrays.toString(in.toArray()) + "\n" +
                 "Out:" + Arrays.toString(out.toArray()) + "\n" + "Inout:" + Arrays.toString(inout.toArray());
     }
 
@@ -93,7 +97,6 @@ public class WorkGroup {
     }
 
 
-
     public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) {
         ArrayList<WorkNode> allNode = new ArrayList<>();
         allNode.addAll(in);
@@ -108,17 +111,17 @@ public class WorkGroup {
                 node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getTupleIndex()));
             }
         }
-        if(workGroupType==WorkGroupType.function){
-            k=(int)(in.get(0).getBeginSum()/out.get(0).getBeginSum());
+        if (workGroupType == WorkGroupType.function) {
+            k = (int) (in.get(0).getBeginSum() / out.get(0).getBeginSum());
         }
     }
 
-    public int getK(){
+    public int getK() {
         return k;
     }
 
     void checkCorrect() {
-        if(workGroupType==WorkGroupType.remittance){
+        if (workGroupType == WorkGroupType.remittance) {
             Double beginSum = 0d;
             Double endSum = 0d;
 
@@ -139,18 +142,35 @@ public class WorkGroup {
             } else {
                 System.out.println("工作组" + workId + "前后和一致");
             }
-        }else if(workGroupType==WorkGroupType.function){
-            double preB=in.get(0).getBeginSum()-k*out.get(0).getBeginSum();
-            double postB=in.get(0).getEndSum()-k*out.get(0).getEndSum();
-            if(!DoubleTuple.df.format(preB).equals(DoubleTuple.df.format(postB))){
-                System.out.println("工作组" + workId + "没有满足一次函数关系,k是"+k+"前b是"+preB+"后b是"+postB);
-            }else {
+        } else if (workGroupType == WorkGroupType.function) {
+            double preB = in.get(0).getBeginSum() - k * out.get(0).getBeginSum();
+            double postB = in.get(0).getEndSum() - k * out.get(0).getEndSum();
+            if (!DoubleTuple.df.format(preB).equals(DoubleTuple.df.format(postB))) {
+                System.out.println("工作组" + workId + "没有满足一次函数关系,k是" + k + "前b是" + preB + "后b是" + postB);
+            } else {
                 System.out.println("工作组" + workId + "满足一次函数关系");
             }
-
+        } else if (workGroupType == WorkGroupType.order) {
+            if (in == null) {
+                orderCheck(out);
+            } else {
+                orderCheck(in);
+            }
         }
+    }
 
-
+    private void orderCheck(ArrayList<WorkNode> in) {
+        int total = in.size();
+        CountDownLatch count = new CountDownLatch(total);
+        for (WorkNode node : in) {
+            OrderChecking orderChecking = new OrderChecking(node.getTableIndex(), node.getTupleIndex(), count);
+            ThreadPool.getThreadPoolExecutor().submit(orderChecking);
+        }
+        try {
+            count.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public enum WorkGroupType {

@@ -12,9 +12,13 @@ import java.util.Collections;
 public class WorkNode {
     private int tableIndex;
     private int tupleIndex;
-    /**该列开始计算之前的和*/
+    /**
+     * 该列开始计算之前的和
+     */
     private Double beginSum;
-    /**该列计算完成之后的和*/
+    /**
+     * 该列计算完成之后的和
+     */
     private Double endSum;
     private ArrayList<Integer> addValueList;
     private ArrayList<Integer> subValueList;

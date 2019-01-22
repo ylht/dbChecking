@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <Console name="File" target="SYSTEM_OUT">
+        <File name="File" fileName="logs/order.log" immediateFlush="true" append="false">
             <PatternLayout pattern="%m%n"/>
-        </Console>
+        </File>
     </Appenders>
     <Loggers>
         <Root level="trace">
-            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
         </Root>
     </Loggers>
 </Configuration>

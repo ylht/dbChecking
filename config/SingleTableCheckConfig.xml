@@ -5,7 +5,7 @@
     <rangeRandomCount>10000</rangeRandomCount>
     <type>double</type>
     <threads>
-        <runCount>500</runCount>
+        <runCount>50</runCount>
         <work id="0">10</work>
         <work id="1">10</work>
         <work id="2">3</work>
@@ -19,7 +19,7 @@
         </tuple>
     </table>
     <table>
-        <tableSize>1000</tableSize>
+        <tableSize>100</tableSize>
         <tuple>
             <work id="0">in</work>
             <min>0</min>
@@ -30,7 +30,7 @@
             <range>100000</range>
         </tuple>
         <tuple>
-            <work id="0">out</work>
+            <work id="0">in</work>
             <min>0</min>
             <range>100000</range>
         </tuple>

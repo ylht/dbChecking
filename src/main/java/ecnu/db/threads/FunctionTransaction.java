@@ -37,7 +37,7 @@ public class FunctionTransaction implements Runnable {
 
         this.runCount = runCount;
         this.count = count;
-        this.k=workGroup.getK();
+        this.k = workGroup.getK();
     }
 
     @Override
@@ -48,7 +48,7 @@ public class FunctionTransaction implements Runnable {
             Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
             try {
                 RemittanceTransaction.workForTransaction(conn, outNode, subNum, addOutStatement,
-                        inNode, addInStatement, tables, subNum * k,true);
+                        inNode, addInStatement, tables, subNum * k, true);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

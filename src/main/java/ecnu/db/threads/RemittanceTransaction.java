@@ -48,15 +48,15 @@ public class RemittanceTransaction implements Runnable {
                                    Double subNum,
                                    PreparedStatement preparedOutStatement,
                                    WorkNode workIn, PreparedStatement preparedInStatement,
-                                   Table[] tables, Double subNum2,boolean isFunction) throws SQLException {
+                                   Table[] tables, Double subNum2, boolean isFunction) throws SQLException {
         preparedOutStatement.setDouble(1, subNum);
         int workOutPriKey = workOut.getSubValueList().get(
                 tables[workOut.getTableIndex()].getRandomKey() - 1);
         preparedOutStatement.setInt(2, workOutPriKey);
-        if(isFunction){
-            preparedOutStatement.setDouble(3,tables[workOut.getTableIndex()].
+        if (isFunction) {
+            preparedOutStatement.setDouble(3, tables[workOut.getTableIndex()].
                     getMaxValue(workOut.getTupleIndex()) - subNum);
-        }else {
+        } else {
             preparedOutStatement.setDouble(3, subNum);
         }
         if (preparedOutStatement.executeUpdate() == 0) {
@@ -93,7 +93,7 @@ public class RemittanceTransaction implements Runnable {
             PreparedStatement preparedInStatement = addStatement.get(randomInIndex);
             try {
                 workForTransaction(conn, workOut, subNum, preparedOutStatement,
-                        workIn, preparedInStatement, tables, subNum,false);
+                        workIn, preparedInStatement, tables, subNum, false);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

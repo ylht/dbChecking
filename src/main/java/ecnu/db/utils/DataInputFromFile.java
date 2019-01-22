@@ -12,6 +12,7 @@ public class DataInputFromFile {
     private FileReader fileReader;
     private CSVParser csvParser;
 
+
     public DataInputFromFile(int tableIndex) {
         try {
             fileReader = new FileReader("data/t" + tableIndex);
@@ -24,26 +25,23 @@ public class DataInputFromFile {
 
     public static void main(String[] args) throws IOException {
         DataInputFromFile dataInputFromFile = new DataInputFromFile(0);
-        dataInputFromFile.readData();
+        dataInputFromFile.readData(1);
     }
 
-    public double[][] readData() throws IOException {
-        List<CSVRecord> csvRecords = csvParser.getRecords();
-        int lineNum = csvRecords.size();
-        int colNum = csvRecords.get(0).size();
-        double[][] results = new double[lineNum][colNum - 1];
-        int i = 0;
-        for (CSVRecord csvRecord : csvRecords) {
-            for (int j = 0; j < colNum - 1; j++) {
-                results[i][j] = Double.valueOf(csvRecord.get(j + 1));
-            }
-            i++;
-        }
+    public double[] readData(int tupleIndex) {
         try {
+            List<CSVRecord> csvRecords = csvParser.getRecords();
+            int lineNum = csvRecords.size();
+            double[] results = new double[lineNum];
+            int i = 0;
+            for (CSVRecord csvRecord : csvRecords) {
+                results[i++] = Double.valueOf(csvRecord.get(tupleIndex));
+            }
             fileReader.close();
+            return results;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
-        return results;
     }
 }
