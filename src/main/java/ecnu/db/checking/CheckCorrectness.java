@@ -1,7 +1,11 @@
 package ecnu.db.checking;
 
 import ecnu.db.scheme.Table;
-import ecnu.db.threads.*;
+import ecnu.db.threads.ComputeSum;
+import ecnu.db.threads.pool.ThreadPool;
+import ecnu.db.threads.transaction.FunctionBySelectTransaction;
+import ecnu.db.threads.transaction.OrderBySelectTransaction;
+import ecnu.db.threads.transaction.RemittanceBySelectTransaction;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
@@ -39,22 +43,22 @@ public class CheckCorrectness {
             switch (workGroups.get(i).getWorkGroupType()) {
                 case remittance:
                     for (int j = 0; j < threadsNum[i]; j++) {
-                        RemittanceTransaction remittanceTransaction = new RemittanceTransaction(
-                                tables, workGroups.get(i), runCount, count);
+                        RemittanceBySelectTransaction remittanceTransaction = new RemittanceBySelectTransaction(
+                                tables, workGroups.get(i), runCount, count, true);
                         ThreadPool.getThreadPoolExecutor().submit(remittanceTransaction);
                     }
                     break;
                 case function:
                     for (int j = 0; j < threadsNum[i]; j++) {
-                        FunctionTransaction functionTransaction = new FunctionTransaction(
-                                tables, workGroups.get(i), runCount, count);
+                        FunctionBySelectTransaction functionTransaction = new FunctionBySelectTransaction(
+                                tables, workGroups.get(i), runCount, count, true);
                         ThreadPool.getThreadPoolExecutor().submit(functionTransaction);
                     }
                     break;
                 case order:
                     for (int j = 0; j < threadsNum[i]; j++) {
-                        OrderTransaction orderTransaction = new OrderTransaction(
-                                tables, workGroups.get(i), runCount, count);
+                        OrderBySelectTransaction orderTransaction = new OrderBySelectTransaction(
+                                tables, workGroups.get(i), runCount, count, true);
                         ThreadPool.getThreadPoolExecutor().submit(orderTransaction);
                     }
                     break;

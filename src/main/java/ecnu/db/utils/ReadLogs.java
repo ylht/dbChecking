@@ -58,6 +58,12 @@ public class ReadLogs {
         return instance;
     }
 
+    public static void main(String[] args) {
+        for (Map.Entry<Integer, MutableInt> entry : ReadLogs.getInstance().getDatas(1, 3).entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        }
+    }
+
     public Map<Integer, MutableInt> getDatas(int tableIndex, int tupleIndex) {
         Vector<Integer> key = new Vector<>();
         key.add(tableIndex);

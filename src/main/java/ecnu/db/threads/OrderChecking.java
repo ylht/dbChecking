@@ -17,8 +17,10 @@ public class OrderChecking implements Runnable {
     private int tableIndex;
     private int tupleIndex;
     private CountDownLatch count;
+    private boolean add;
 
-    public OrderChecking(int tableIndex, int tupleIndex, CountDownLatch count) {
+    public OrderChecking(boolean add, int tableIndex, int tupleIndex, CountDownLatch count) {
+        this.add = add;
         this.tableIndex = tableIndex;
         this.tupleIndex = tupleIndex;
         this.count = count;
@@ -30,9 +32,16 @@ public class OrderChecking implements Runnable {
         double[] results = dataInputFromFile.readData(tupleIndex);
         Map<Integer, MutableInt> ops = ReadLogs.getInstance().getDatas(tableIndex, tupleIndex);
         if (ops != null) {
-            for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {
-                results[entry.getKey()] += entry.getValue().getValue();
+            if (add) {
+                for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {
+                    results[entry.getKey()] += entry.getValue().getValue();
+                }
+            } else {
+                for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {
+                    results[entry.getKey()] -= entry.getValue().getValue();
+                }
             }
+
         }
         MysqlConnector mysqlConnector = new MysqlConnector();
         Double[] dataBaseData = mysqlConnector.getTableData(tableIndex, tupleIndex);

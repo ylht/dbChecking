@@ -45,7 +45,7 @@ public class LoadConfig {
         document = DocumentHelper.createDocument();
         Element generator = document.addElement("generator");
         Element rangeRandomCount = generator.addElement("rangeRandomCount");
-        rangeRandomCount.setText("1000");
+        rangeRandomCount.setText("100");
         Element type = generator.addElement("type");
         type.setText("double");
 
@@ -76,7 +76,7 @@ public class LoadConfig {
             Element work = threads.addElement("work");
             work.addAttribute("id", String.valueOf(i)).setText("10");
             HashSet<Integer> allIndex = new HashSet<>();
-            if (i % 3 == 1) {
+            if (i % 3 == 2) {
                 int outNum = r.nextInt(tuples.size());
                 Element outTuple = tuples.get(outNum);
                 Element outWork = outTuple.element("work");
@@ -97,7 +97,7 @@ public class LoadConfig {
                 allIndex.add(inNum);
                 allIndex.add(outNum);
             }
-            if (i % 3 == 2) {
+            if (i % 3 == 1) {
                 int orderNum = r.nextInt(10) + 2;
                 for (int j = 0; j < orderNum; j++) {
                     int randomIndex = r.nextInt(tuples.size());
@@ -108,7 +108,7 @@ public class LoadConfig {
                     Element tuple = tuples.get(randomIndex);
                     Element workTuple = tuple.element("work");
                     workTuple.addAttribute("id", "2");
-                    workTuple.setText("in");
+                    workTuple.setText("out");
                 }
             }
         }

@@ -6,9 +6,9 @@
     <type>int</type>
     <threads>
         <runCount>50</runCount>
-        <work id="0">10</work>
+        <work id="0">20</work>
         <work id="1">10</work>
-        <work id="2">3</work>
+        <work id="2">20</work>
     </threads>
     <table>
         <tableSize>1000</tableSize>
@@ -21,18 +21,18 @@
     <table>
         <tableSize>100</tableSize>
         <tuple>
-            <work id="1">in</work>
+            <work id="0">out</work>
+            <min>0</min>
+            <range>100000</range>
+        </tuple>
+        <tuple>
+            <min>0</min>
+            <range>100000</range>
+        </tuple>
+        <tuple>
+            <work id="0">in</work>
             <min>0</min>
             <range>500000</range>
-        </tuple>
-        <tuple>
-            <min>0</min>
-            <range>100000</range>
-        </tuple>
-        <tuple>
-            <work id="1">out</work>
-            <min>0</min>
-            <range>100000</range>
         </tuple>
     </table>
 </generator>

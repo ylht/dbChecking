@@ -2,7 +2,7 @@ package ecnu.db.checking;
 
 import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.threads.OrderChecking;
-import ecnu.db.threads.ThreadPool;
+import ecnu.db.threads.pool.ThreadPool;
 import ecnu.db.utils.MysqlConnector;
 
 import java.util.ArrayList;
@@ -153,20 +153,20 @@ public class WorkGroup {
                 System.out.println("满足一次函数关系");
             }
         } else if (workGroupType == WorkGroupType.order) {
-            if (in == null) {
-                orderCheck(out);
+            if (in.size() == 0) {
+                orderCheck(out, false);
             } else {
-                orderCheck(in);
+                orderCheck(in, true);
             }
         }
     }
 
-    private void orderCheck(ArrayList<WorkNode> in) {
+    private void orderCheck(ArrayList<WorkNode> in, boolean addOrNot) {
         int total = in.size();
         CountDownLatch count = new CountDownLatch(total);
         System.out.println("工作组" + workId + "类型为" + workGroupType + "事务，开始多线程并发校验数据结果，输出无先后");
         for (WorkNode node : in) {
-            OrderChecking orderChecking = new OrderChecking(node.getTableIndex(), node.getTupleIndex(), count);
+            OrderChecking orderChecking = new OrderChecking(addOrNot, node.getTableIndex(), node.getTupleIndex(), count);
             ThreadPool.getThreadPoolExecutor().submit(orderChecking);
         }
         try {

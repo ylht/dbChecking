@@ -3,7 +3,7 @@ package ecnu.db;
 import ecnu.db.checking.CheckCorrectness;
 import ecnu.db.scheme.Table;
 import ecnu.db.threads.LoadData;
-import ecnu.db.threads.ThreadPool;
+import ecnu.db.threads.pool.ThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
 

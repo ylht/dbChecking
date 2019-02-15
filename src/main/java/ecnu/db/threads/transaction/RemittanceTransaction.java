@@ -1,4 +1,4 @@
-package ecnu.db.threads;
+package ecnu.db.threads.transaction;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
@@ -34,11 +34,11 @@ public class RemittanceTransaction implements Runnable {
         outNode = new ArrayList<>(workGroup.getOut());
         for (WorkNode node : inNode) {
             addStatement.add(mysqlConnector.getRemittanceUpdate(true, node.getTableIndex()
-                    , node.getTupleIndex()));
+                    , node.getTupleIndex(), false));
         }
         for (WorkNode node : outNode) {
             subStatement.add(mysqlConnector.getRemittanceUpdate(false, node.getTableIndex(),
-                    node.getTupleIndex()));
+                    node.getTupleIndex(), false));
         }
         this.runCount = runCount;
         this.count = count;
@@ -60,7 +60,7 @@ public class RemittanceTransaction implements Runnable {
             preparedOutStatement.setDouble(3, subNum);
         }
         if (preparedOutStatement.executeUpdate() == 0) {
-            System.out.println(preparedOutStatement.toString());
+            System.out.println("执行失败："+preparedOutStatement);
             conn.rollback();
             return;
         }
@@ -71,7 +71,7 @@ public class RemittanceTransaction implements Runnable {
         preparedInStatement.setDouble(3, tables[workIn.getTableIndex()].
                 getMaxValue(workIn.getTupleIndex()) - subNum);
         if (preparedInStatement.executeUpdate() == 0) {
-            System.out.println(preparedInStatement.toString());
+            System.out.println("执行失败"+preparedInStatement);
             conn.rollback();
             return;
         }

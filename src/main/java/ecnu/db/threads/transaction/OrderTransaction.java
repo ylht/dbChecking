@@ -1,4 +1,4 @@
-package ecnu.db.threads;
+package ecnu.db.threads.transaction;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
@@ -44,14 +44,14 @@ public class OrderTransaction implements Runnable {
             inNodes.addAll(workGroup.getIn());
             for (WorkNode inNode : inNodes) {
                 addStatement.add(mysqlConnector.getOrderUpdate(true, inNode.getTableIndex()
-                        , inNode.getTupleIndex()));
+                        , inNode.getTupleIndex(), false));
             }
         } else {
             addOrNot = false;
             outNodes.addAll(workGroup.getOut());
             for (WorkNode outNode : outNodes) {
                 subStatement.add(mysqlConnector.getOrderUpdate(false, outNode.getTableIndex(),
-                        outNode.getTupleIndex()));
+                        outNode.getTupleIndex(), false));
             }
         }
     }
@@ -77,7 +77,7 @@ public class OrderTransaction implements Runnable {
                         tables[work.getTableIndex()].getRandomKey() - 1);
                 preparedStatement.setInt(1, workPriKey);
                 if (preparedStatement.executeUpdate() == 0) {
-                    System.out.println(preparedStatement.toString());
+                    System.out.println("执行失败"+preparedStatement.toString());
                     conn.rollback();
                     continue;
                 }

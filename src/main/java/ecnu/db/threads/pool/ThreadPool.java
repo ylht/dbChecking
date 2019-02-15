@@ -1,4 +1,4 @@
-package ecnu.db.threads;
+package ecnu.db.threads.pool;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -20,7 +20,7 @@ public class ThreadPool {
             KEEP_ALIVE_TIME,
             TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(),
-            new MyThreadFactory());
+            new DbCheckingThreadFactory());
 
     public static ThreadPoolExecutor getThreadPoolExecutor() {
         return THREAD_POOL_EXECUTOR;

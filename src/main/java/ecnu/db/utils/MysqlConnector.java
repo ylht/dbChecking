@@ -65,16 +65,14 @@ public class MysqlConnector {
         }
     }
 
-    public PreparedStatement getOrderUpdate(boolean add, int tableIndex, int tupleIndex) {
+    public PreparedStatement getSelect(boolean forUpdate, int tableIndex, int tupleIndex) {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
-        String sql = "update " + tableName + " set " + tupleName + "=" + tupleName;
-        if (add) {
-            sql += "+1";
-        } else {
-            sql += "-1";
+        String sql = "select " + tupleName + " from " + tableName;
+        sql += " where tp0 =?";
+        if (forUpdate) {
+            sql += " for update";
         }
-        sql += " where tp0=?";
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
@@ -83,16 +81,60 @@ public class MysqlConnector {
         }
     }
 
-    public PreparedStatement getRemittanceUpdate(boolean add, int tableIndex, int tupleIndex) {
+    public PreparedStatement getOrderUpdate(boolean add, int tableIndex, int tupleIndex, boolean forSelect) {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
-        String sql = "update " + tableName + " set " + tupleName + "=" + tupleName;
+        String sql = "update " + tableName + " set " + tupleName + "=";
+        if (forSelect) {
+            sql += " ?";
+        } else {
+            sql += tupleName;
+        }
+        if (add) {
+            sql += "+1";
+        } else {
+            sql += "-1";
+        }
+        sql += " where tp0=?";
+        if (!add) {
+            sql += " and " + tupleName + ">0";
+        }
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public PreparedStatement getScanStatement(int tableIndex,int tupleIndex){
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String keyName="tp0";
+        String sql="select "+keyName+" from "+ tableName+" where "+tupleName+" between ? and ?";
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public PreparedStatement getRemittanceUpdate(boolean add, int tableIndex, int tupleIndex, boolean forSelect) {
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String sql = " update " + tableName + " set " + tupleName + "=";
+        if (forSelect) {
+            sql += " ? ";
+        } else {
+            sql += tupleName;
+        }
         if (add) {
             sql += "+";
         } else {
             sql += "-";
         }
-        sql += " ? where tp0 = ? and tp" + tupleIndex;
+        sql += "? where tp0 = ? and tp" + tupleIndex;
         if (add) {
             sql += " < ?";
         } else {

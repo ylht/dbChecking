@@ -83,4 +83,8 @@ public class Table {
     public Double getMaxValue(int tupleIndex) {
         return Double.parseDouble(tuples.get(tupleIndex - 1).getMaxValue().toString());
     }
+
+    public Double getRandomValue(int tupleIndex) {
+        return Double.parseDouble(tuples.get(tupleIndex - 1).getValue(true).toString());
+    }
 }

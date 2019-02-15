@@ -1,4 +1,4 @@
-package ecnu.db.threads;
+package ecnu.db.threads.transaction;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
@@ -34,10 +34,10 @@ public class FunctionTransaction implements Runnable {
         outNode = workGroup.getOut().get(0);
 
         addInStatement = mysqlConnector.getRemittanceUpdate(true, inNode.getTableIndex()
-                , inNode.getTupleIndex());
+                , inNode.getTupleIndex(), false);
 
         addOutStatement = mysqlConnector.getRemittanceUpdate(true, outNode.getTableIndex(),
-                outNode.getTupleIndex());
+                outNode.getTupleIndex(), false);
 
         this.runCount = runCount;
         this.count = count;
