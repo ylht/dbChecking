@@ -3,13 +3,20 @@ package ecnu.db.transaction;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.Random;
 
 public abstract class BaseTransaction {
-    protected Connection conn;
+    Connection conn;
+    boolean isSelect;
     protected Random r = new Random();
-    public BaseTransaction(MysqlConnector mysqlConnector){
+    PreparedStatement preparedOutStatement;
+    PreparedStatement preparedInStatement;
+    PreparedStatement preparedOutSelectStatement;
+    PreparedStatement preparedInSelectStatement;
+    BaseTransaction(MysqlConnector mysqlConnector,boolean isSelect){
         this.conn=mysqlConnector.getConn();
+        this.isSelect=isSelect;
     }
     public abstract void execute();
 }

@@ -81,63 +81,7 @@ public class CheckCorrectness {
 
 
 
-        for (int i = 0; i < workGroups.size(); i++) {
-            switch (workGroups.get(i).getWorkGroupType()) {
-                case remittance:
-                    if (checkType.isUpdateWithSelect()) {
-                        for (int j = 0; j < threadsNum[i]; j++) {
-                            RemittanceBySelectTransaction remittanceTransaction = new RemittanceBySelectTransaction(
-                                    tables, workGroups.get(i), runCount, count, checkType.isForUpdate());
-                            ThreadPool.getThreadPoolExecutor().submit(remittanceTransaction);
-                        }
-                    } else {
-                        for (int j = 0; j < threadsNum[i]; j++) {
-                            RemittanceTransaction remittanceTransaction = new RemittanceTransaction(tables,
-                                    workGroups.get(i), runCount, count);
-                            ThreadPool.getThreadPoolExecutor().submit(remittanceTransaction);
-                        }
-                    }
-                    break;
-                case function:
-                    if (checkType.isUpdateWithSelect()) {
-                        for (int j = 0; j < threadsNum[i]; j++) {
-                            FunctionBySelectTransaction functionTransaction = new FunctionBySelectTransaction(
-                                    tables, workGroups.get(i), runCount, count, checkType.isForUpdate());
-                            ThreadPool.getThreadPoolExecutor().submit(functionTransaction);
-                        }
-                    } else {
-                        for (int j = 0; j < threadsNum[i]; j++) {
-                            FunctionTransaction functionTransaction = new FunctionTransaction(
-                                    tables, workGroups.get(i), runCount, count);
-                            ThreadPool.getThreadPoolExecutor().submit(functionTransaction);
-                        }
-                    }
 
-                    break;
-                case order:
-                    if (checkType.isUpdateWithSelect()) {
-                        for (int j = 0; j < threadsNum[i]; j++) {
-                            OrderBySelectTransaction orderTransaction = new OrderBySelectTransaction(
-                                    tables, workGroups.get(i), runCount, count, checkType.isForUpdate());
-                            ThreadPool.getThreadPoolExecutor().submit(orderTransaction);
-                        }
-                    } else {
-                        for (int j = 0; j < threadsNum[i]; j++) {
-                            OrderTransaction orderTransaction = new OrderTransaction(
-                                    tables, workGroups.get(i), runCount, count);
-                            ThreadPool.getThreadPoolExecutor().submit(orderTransaction);
-                        }
-                    }
-
-                    break;
-                default:
-                    try {
-                        throw new Exception("没有匹配到工作组");
-                    } catch (Exception e) {
-                        LogManager.getLogger().error(e);
-                    }
-            }
-        }
         if (checkType.isScan()) {
             workScanWork(count, tables);
         }

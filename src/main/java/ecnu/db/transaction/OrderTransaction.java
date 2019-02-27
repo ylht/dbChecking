@@ -7,87 +7,90 @@ import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author wangqingshuai
  * 处理order类型事务的线程
  */
-public class OrderTransaction implements Runnable {
+public class OrderTransaction extends BaseTransaction {
 
-    private static final Logger logger = LogManager.getLogger("order");
-    private MysqlConnector mysqlConnector;
-    private boolean addOrNot;
-    private CountDownLatch count;
-    private int runCount;
+
     private Table[] tables;
-    private ArrayList<WorkNode> inNodes = new ArrayList<>();
-    private ArrayList<WorkNode> outNodes = new ArrayList<>();
-    private ArrayList<PreparedStatement> addStatement = new ArrayList<>();
-    private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
+    private ArrayList<WorkNode> nodes = new ArrayList<>();
 
-    public OrderTransaction(Table[] tables, WorkGroup workGroup, int runCount, CountDownLatch count) {
+    private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
+    private ArrayList<PreparedStatement> subSelectStatement = new ArrayList<>();
+
+    public OrderTransaction(Table[] tables, WorkGroup workGroup, MysqlConnector mysqlConnector) {
+        super(mysqlConnector, false);
+        orderTransaction(tables,workGroup,mysqlConnector);
+    }
+    public OrderTransaction(Table[] tables, WorkGroup workGroup,
+                            MysqlConnector mysqlConnector,boolean forUpdate){
+        super(mysqlConnector,true);
+        orderTransaction(tables,workGroup,mysqlConnector);
+        for (WorkNode node : nodes) {
+            subSelectStatement.add(mysqlConnector.getSelect(forUpdate,node.getTableIndex(),
+                    node.getTupleIndex()));
+        }
+
+    }
+
+    private void orderTransaction(Table[] tables, WorkGroup workGroup,
+                                  MysqlConnector mysqlConnector){
         //确保工作组的类型正确
         assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.order;
-        mysqlConnector = new MysqlConnector();
         this.tables = tables;
-        this.runCount = runCount;
-        this.count = count;
 
         if (workGroup.getIn() != null) {
-            addOrNot = true;
-            inNodes.addAll(workGroup.getIn());
-            for (WorkNode inNode : inNodes) {
-                addStatement.add(mysqlConnector.getOrderUpdate(true, inNode.getTableIndex()
-                        , inNode.getTupleIndex(), false));
+            nodes.addAll(workGroup.getIn());
+            for (WorkNode node : nodes) {
+                subStatement.add(mysqlConnector.getOrderUpdate(node.getTableIndex()
+                        , node.getTupleIndex(), false));
             }
         } else {
-            addOrNot = false;
-            outNodes.addAll(workGroup.getOut());
-            for (WorkNode outNode : outNodes) {
-                subStatement.add(mysqlConnector.getOrderUpdate(false, outNode.getTableIndex(),
-                        outNode.getTupleIndex(), false));
+            nodes.addAll(workGroup.getOut());
+            for (WorkNode node : nodes) {
+                subStatement.add(mysqlConnector.getOrderUpdate(node.getTableIndex(),
+                        node.getTupleIndex(), false));
             }
         }
     }
 
     @Override
-    public void run() {
-        Random r = new Random();
-        Connection conn = mysqlConnector.getConn();
-        WorkNode work;
-        PreparedStatement preparedStatement;
-        if (addOrNot) {
-            int randomInIndex = r.nextInt(inNodes.size());
-            work = inNodes.get(randomInIndex);
-            preparedStatement = addStatement.get(randomInIndex);
-        } else {
-            int randomOutIndex = r.nextInt(outNodes.size());
-            work = outNodes.get(randomOutIndex);
-            preparedStatement = subStatement.get(randomOutIndex);
+    public void execute() {
+        int randomInIndex = r.nextInt(nodes.size());
+        preparedOutStatement = subStatement.get(randomInIndex);
+        if(isSelect){
+            preparedOutSelectStatement=subSelectStatement.get(randomInIndex);
         }
-        for (int i = 0; i < runCount; i++) {
-            try {
-                int workPriKey = work.getSubValueList().get(
-                        tables[work.getTableIndex()].getRandomKey() - 1);
-                preparedStatement.setInt(1, workPriKey);
-                if (preparedStatement.executeUpdate() == 0) {
-                    System.out.println("执行失败" + preparedStatement.toString());
-                    conn.rollback();
-                    continue;
-                }
-                conn.commit();
-                logger.trace(work.getTableIndex() + "," + work.getTupleIndex() + "," + workPriKey);
-            } catch (SQLException e) {
-                LogManager.getLogger().error(e);
+        WorkNode work=nodes.get(randomInIndex);
+
+        try {
+            int workPriKey = work.getSubValueList().get(
+                    tables[work.getTableIndex()].getRandomKey() - 1);
+            if(isSelect){
+                preparedOutSelectStatement.setInt(1,workPriKey);
+                ResultSet rs=preparedOutSelectStatement.executeQuery();
+                rs.next();
+                preparedOutStatement.setInt(1,rs.getInt(1)-1);
+            }else {
+                preparedOutStatement.setInt(1, workPriKey);
             }
+            if (preparedOutStatement.executeUpdate() == 0) {
+                System.out.println("执行失败" + preparedOutStatement.toString());
+                conn.rollback();
+                return;
+            }
+            conn.commit();
+        } catch (SQLException e) {
+            LogManager.getLogger().error(e);
         }
-        count.countDown();
-        mysqlConnector.close();
+
     }
 }

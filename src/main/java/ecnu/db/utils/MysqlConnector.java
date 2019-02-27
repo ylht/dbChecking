@@ -83,24 +83,17 @@ public class MysqlConnector {
         }
     }
 
-    public PreparedStatement getOrderUpdate(boolean add, int tableIndex, int tupleIndex, boolean forSelect) {
+    public PreparedStatement getOrderUpdate(int tableIndex, int tupleIndex, boolean forSelect) {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
         String sql = "update " + tableName + " set " + tupleName + "=";
         if (forSelect) {
             sql += " ?";
         } else {
-            sql += tupleName;
+            sql += tupleName+"-1";
         }
-        if (add) {
-            sql += "+1";
-        } else {
-            sql += "-1";
-        }
-        sql += " where tp0=?";
-        if (!add) {
-            sql += " and " + tupleName + ">0";
-        }
+        sql += " where tp0=? and "+tupleName+">0";
+
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
@@ -179,20 +172,15 @@ public class MysqlConnector {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
         String sql = " update " + tableName + " set " + tupleName + "=";
-        if (forSelect) {
-            sql += " ? ";
-        } else {
-            sql += tupleName;
+        if (!forSelect) {
+            if (add) {
+                sql +=tupleName+ "+";
+            } else {
+                sql +=tupleName+ "-";
+            }
         }
-        if (add) {
-            sql += "+";
-        } else {
-            sql += "-";
-        }
-        sql += "? where tp0 = ? and tp" + tupleIndex;
-        if (add) {
-            sql += " < ?";
-        } else {
+        sql += "? where tp0 = ? and " + tupleName;
+        if (!add) {
             sql += " > ?";
         }
         try {
