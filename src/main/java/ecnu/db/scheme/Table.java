@@ -10,9 +10,12 @@ import java.util.List;
 /**
  * @author wangqingshuai
  * 数据库表相关的类，存储数据库表的所有信息
+ * <p>
+ * 插入数据时，采用不完全插入，主键key mod KeyRange为
  */
 public class Table {
 
+    private static final int KEY_RANGE = LoadConfig.getConfig().getKeyRange();
     private ArrayList<AbstractTuple> tuples = new ArrayList<>();
     private int tableIndex;
     private int tableSize;
@@ -23,7 +26,8 @@ public class Table {
     public Table(int tableIndex, int tableSize) {
         this.tableIndex = tableIndex;
         this.tableSize = tableSize;
-        this.zf = new ZipfDistribution(tableSize, 1);
+        this.zf = new ZipfDistribution(tableSize / LoadConfig.getConfig().getKeyRange()
+                * (LoadConfig.getConfig().getKeyRange() - 2), 1);
         List<Node> nodes = LoadConfig.getConfig().getTableTupleInfo(tableIndex);
         this.lineRecord = new Object[nodes.size() + 1];
 
@@ -64,16 +68,37 @@ public class Table {
         return tableIndex;
     }
 
+    public int getTableSize() {
+        return tableSize;
+    }
+
+    public int getTableColSizeExceptKey() {
+        return tuples.size();
+    }
+
     public Object[] getValue() {
         if (currentValueLine == tableSize) {
             return null;
         } else {
             lineRecord[0] = currentValueLine++;
-            for (int i = 1; i < lineRecord.length; i++) {
-                lineRecord[i] = tuples.get(i - 1).getValue(true);
+            //如果没有mod keyRange等于0，则这一行不会被插入
+            if ((Integer) lineRecord[0] % KEY_RANGE == 0) {
+                lineRecord[0] = currentValueLine++;
             }
-            return lineRecord;
+            return getObjects();
         }
+    }
+
+    public Object[] getInsertValue() {
+        lineRecord[0] = 0;
+        return getObjects();
+    }
+
+    private Object[] getObjects() {
+        for (int i = 1; i < lineRecord.length; i++) {
+            lineRecord[i] = tuples.get(i - 1).getValue(true);
+        }
+        return lineRecord;
     }
 
     public Double getTransactionValue(int tupleIndex) {

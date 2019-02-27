@@ -4,6 +4,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.FileReader;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.Vector;
  */
 public class ReadLogs {
     private static ReadLogs instance;
+
     private Map<Vector<Integer>, Map<Integer, MutableInt>> counter;
 
     private ReadLogs() {
@@ -47,7 +49,7 @@ public class ReadLogs {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 

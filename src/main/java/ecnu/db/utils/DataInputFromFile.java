@@ -3,6 +3,7 @@ package ecnu.db.utils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class DataInputFromFile {
             fileReader.close();
             return results;
         } catch (IOException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
             return null;
         }
     }

@@ -1,9 +1,10 @@
-package ecnu.db.threads.transaction;
+package ecnu.db.transaction;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
+import org.apache.logging.log4j.LogManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,7 +74,7 @@ public class RemittanceBySelectTransaction implements Runnable {
             }
 
             if (preparedOutStatement.executeUpdate() == 0) {
-                System.out.println("执行失败"+preparedOutStatement);
+                System.out.println("执行失败" + preparedOutStatement);
                 conn.rollback();
                 return true;
             }
@@ -89,13 +90,13 @@ public class RemittanceBySelectTransaction implements Runnable {
             preparedInStatement.setDouble(4, tables[workIn.getTableIndex()].
                     getMaxValue(workIn.getTupleIndex()) - subNum2);
             if (preparedInStatement.executeUpdate() == 0) {
-                System.out.println("执行失败"+preparedInStatement);
+                System.out.println("执行失败" + preparedInStatement);
                 conn.rollback();
                 return true;
             }
             conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
         return false;
     }

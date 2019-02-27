@@ -1,11 +1,13 @@
 package ecnu.db;
 
 import ecnu.db.checking.CheckCorrectness;
+import ecnu.db.checking.CheckType;
 import ecnu.db.scheme.Table;
 import ecnu.db.threads.LoadData;
 import ecnu.db.threads.pool.ThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -34,8 +36,10 @@ public class DbChecking {
     }
 
     public static void main(String[] args) {
-        //DbChecking dbChecking = new DbChecking("config/SingleTableCheckConfig.xml");
-        DbChecking dbChecking = new DbChecking("");
+        //初始化logger
+        LogManager.getLogger();
+        DbChecking dbChecking = new DbChecking("config/SingleTableCheckConfig.xml");
+        //DbChecking dbChecking = new DbChecking("");
         dbChecking.createScheme();
         dbChecking.loadData();
         dbChecking.work();
@@ -73,12 +77,12 @@ public class DbChecking {
             count.await();
             System.out.println("导入数据完成！");
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 
     private void work() {
-        CheckCorrectness checkCorrectness = new CheckCorrectness();
+        CheckCorrectness checkCorrectness = new CheckCorrectness(new CheckType(CheckType.CheckKind.ReaptableRead));
         checkCorrectness.computeBeginSum();
         checkCorrectness.printWorkGroup();
         checkCorrectness.work(tables);

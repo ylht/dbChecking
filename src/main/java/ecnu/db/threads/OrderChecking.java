@@ -2,6 +2,7 @@ package ecnu.db.threads;
 
 import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.utils.DataInputFromFile;
+import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ReadLogs;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -34,7 +35,7 @@ public class OrderChecking implements Runnable {
         if (ops != null) {
             if (add) {
                 for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {
-                    results[entry.getKey()] += entry.getValue().getValue();
+                    results[entry.getKey() - entry.getKey() / LoadConfig.getConfig().getKeyRange() - 1] += entry.getValue().getValue();
                 }
             } else {
                 for (Map.Entry<Integer, MutableInt> entry : ops.entrySet()) {

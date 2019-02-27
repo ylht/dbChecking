@@ -30,7 +30,9 @@ public class WorkNode {
         int tableLine = LoadConfig.getConfig().getTableSize()[tableIndex];
         ArrayList<Integer> valueList = new ArrayList<>();
         for (int i = 0; i < tableLine; i++) {
-            valueList.add(i);
+            if (i % LoadConfig.getConfig().getKeyRange() > 1) {
+                valueList.add(i);
+            }
         }
         Collections.shuffle(valueList);
         addValueList = new ArrayList<>(valueList);

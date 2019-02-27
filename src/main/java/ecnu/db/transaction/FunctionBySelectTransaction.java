@@ -1,19 +1,16 @@
-package ecnu.db.threads.transaction;
+package ecnu.db.transaction;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.concurrent.CountDownLatch;
 
-public class FunctionBySelectTransaction implements Runnable {
-    private MysqlConnector mysqlConnector;
-    private CountDownLatch count;
+public class FunctionBySelectTransaction extends BaseTransaction {
+
     private int k;
-    private int runCount;
     private Table[] tables;
     private WorkNode inNode;
     private WorkNode outNode;
@@ -22,10 +19,11 @@ public class FunctionBySelectTransaction implements Runnable {
     private PreparedStatement outSelectStatement;
     private PreparedStatement outStatement;
 
-    public FunctionBySelectTransaction(Table[] tables, WorkGroup workGroup, int runCount, CountDownLatch count, boolean forUpdate) {
+    public FunctionBySelectTransaction(Table[] tables, WorkGroup workGroup,
+                                       MysqlConnector mysqlConnector, boolean forUpdate) {
+        super(mysqlConnector);
         //确保工作组的类型正确
         assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.function;
-        mysqlConnector = new MysqlConnector();
         this.tables = tables;
         inNode = workGroup.getIn().get(0);
         outNode = workGroup.getOut().get(0);
@@ -42,25 +40,15 @@ public class FunctionBySelectTransaction implements Runnable {
         outStatement = mysqlConnector.getRemittanceUpdate(true, outNode.getTableIndex(),
                 outNode.getTupleIndex(), true);
 
-        this.runCount = runCount;
-        this.count = count;
         this.k = workGroup.getK();
     }
 
     @Override
-    public void run() {
-        Connection conn = mysqlConnector.getConn();
-
-        for (int i = 0; i < runCount; i++) {
-            Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
-            if (RemittanceBySelectTransaction.workTransactionForSelect(conn, tables, subNum, k * subNum,
-                    outNode, outStatement, outSelectStatement,
-                    inNode, inStatement, inSelectStatement, true)) {
-                break;
-            }
-        }
-        count.countDown();
-        mysqlConnector.close();
+    public void execute() {
+        Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
+        RemittanceBySelectTransaction.workTransactionForSelect(conn, tables, subNum, k * subNum,
+                outNode, outStatement, outSelectStatement,
+                inNode, inStatement, inSelectStatement, true);
     }
 
 }

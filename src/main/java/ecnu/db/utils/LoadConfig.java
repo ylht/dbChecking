@@ -2,6 +2,7 @@ package ecnu.db.utils;
 
 import ecnu.db.checking.WorkGroup;
 import ecnu.db.checking.WorkNode;
+import org.apache.logging.log4j.LogManager;
 import org.dom4j.*;
 import org.dom4j.io.SAXReader;
 
@@ -29,7 +30,7 @@ public class LoadConfig {
                 getRandomDocument();
             }
         } catch (DocumentException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 
@@ -122,7 +123,7 @@ public class LoadConfig {
     }
 
     public int getRunCount() {
-        String xpath = "//generator/threads/runCount";
+        String xpath = "//generator/runCount";
         Node list = document.selectNodes(xpath).get(0);
         return Integer.valueOf(list.getText());
     }
@@ -142,6 +143,9 @@ public class LoadConfig {
         return table.selectNodes("tuple");
     }
 
+    public int getKeyRange() {
+        return Integer.valueOf(document.valueOf("//generator/keyRange"));
+    }
 
     public int[] getTableSize() {
         String xpath = "//generator/table";
@@ -154,10 +158,16 @@ public class LoadConfig {
         return tableSizes;
     }
 
-    public int getThreadNum(int workGroupNum) {
-        String xpath = "//generator/threads/work[@id='" + workGroupNum + "']";
-        Node list = document.selectNodes(xpath).get(0);
-        return Integer.valueOf(list.getText());
+    public int getScanThreadNum() {
+        return Runtime.getRuntime().availableProcessors();
+    }
+
+    public int getThreadNum() {
+        return Runtime.getRuntime().availableProcessors();
+    }
+
+    public int getUpdateNoCommitedRunCount() {
+        return 1;
     }
 
     public ArrayList<WorkGroup> getWorkNode() {

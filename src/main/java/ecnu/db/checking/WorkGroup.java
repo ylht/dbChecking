@@ -4,6 +4,7 @@ import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.threads.OrderChecking;
 import ecnu.db.threads.pool.ThreadPool;
 import ecnu.db.utils.MysqlConnector;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -172,7 +173,7 @@ public class WorkGroup {
         try {
             count.await();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 

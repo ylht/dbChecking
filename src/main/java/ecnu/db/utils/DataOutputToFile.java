@@ -1,5 +1,7 @@
 package ecnu.db.utils;
 
+import org.apache.logging.log4j.LogManager;
+
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -22,7 +24,7 @@ public class DataOutputToFile {
         try {
             file.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 
@@ -34,7 +36,7 @@ public class DataOutputToFile {
         try {
             file.write(line.substring(0, line.length() - 1) + "\n");
         } catch (IOException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 

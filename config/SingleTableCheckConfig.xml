@@ -3,13 +3,13 @@
 
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
     <rangeRandomCount>10000</rangeRandomCount>
+
+    <!--在执行的keyRange内循环，0指insert的数据，1指delete的数据-->
+    <keyRange>20</keyRange>
+
     <type>int</type>
-    <threads>
-        <runCount>50</runCount>
-        <work id="0">20</work>
-        <work id="1">10</work>
-        <work id="2">20</work>
-    </threads>
+
+    <runCount>200</runCount>
     <table>
         <tableSize>1000</tableSize>
         <tuple>
@@ -21,7 +21,7 @@
     <table>
         <tableSize>100</tableSize>
         <tuple>
-            <work id="0">out</work>
+            <work id="0">in</work>
             <min>0</min>
             <range>100000</range>
         </tuple>

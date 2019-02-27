@@ -1,5 +1,7 @@
 package ecnu.db.utils;
 
+import org.apache.logging.log4j.LogManager;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -25,7 +27,7 @@ public class MysqlConnector {
             conn = DriverManager.getConnection(dbUrl, user, pass);
             stmt = conn.createStatement();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            LogManager.getLogger().error(e);
             System.exit(-1);
         }
     }
@@ -39,7 +41,7 @@ public class MysqlConnector {
         try {
             conn.setAutoCommit(false);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
         return conn;
     }
@@ -48,7 +50,7 @@ public class MysqlConnector {
         try {
             stmt.execute(sql);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 
@@ -76,7 +78,7 @@ public class MysqlConnector {
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
             return null;
         }
     }
@@ -102,20 +104,73 @@ public class MysqlConnector {
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
             return null;
         }
     }
 
-    public PreparedStatement getScanStatement(int tableIndex,int tupleIndex){
+    public PreparedStatement getDeleteStatement(int tableIndex) {
         String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String keyName="tp0";
-        String sql="select "+keyName+" from "+ tableName+" where "+tupleName+" between ? and ?";
+        String keyName = "tp0";
+        String sql = "delete from " + tableName + " where " + keyName + " =?";
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
+            return null;
+        }
+    }
+
+    public PreparedStatement getUpdateNoCommitStatement(int tableIndex, int tupleIndex) {
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String keyName="tp0";
+        String sql = "update " + tableName + " set " + keyName + "= - " + keyName + " where " + tupleName + " between ? and ?";
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            LogManager.getLogger().error(e);
+            return null;
+        }
+    }
+
+    public PreparedStatement getInsertStatement(int tableIndex, int valueNum) {
+        String tableName = "t" + tableIndex;
+        StringBuilder sql = new StringBuilder("replace into " + tableName + " values(?");
+        for (int i = 0; i < valueNum; i++) {
+            sql.append(",?");
+        }
+        sql.append(")");
+        try {
+            return conn.prepareStatement(sql.toString());
+        } catch (SQLException e) {
+            LogManager.getLogger().error(e);
+            return null;
+        }
+    }
+
+    public PreparedStatement getScanStatement(int tableIndex, int tupleIndex) {
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String keyName = "tp0";
+        String sql = "select " + keyName + " from " + tableName + " where " + tupleName + " between ? and ?";
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            LogManager.getLogger().error(e);
+            return null;
+        }
+    }
+
+    //将range范围内的所有数据加1
+    public PreparedStatement getUpdateAllStatement(int tableIndex, int tupleIndex) {
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String sql = "update " + tableName + " set " + tupleName + "=" + tupleName + " +1 where " + tupleName + " between ? and ?";
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            LogManager.getLogger().error(e);
             return null;
         }
     }
@@ -143,7 +198,7 @@ public class MysqlConnector {
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
             return null;
         }
     }
@@ -166,8 +221,8 @@ public class MysqlConnector {
             }
             return datas.toArray(new Double[0]);
         } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println(e.getSQLState());
+            LogManager.getLogger().error(e);
+            //System.out.println(e.getSQLState());
             return null;
         }
     }
@@ -181,7 +236,7 @@ public class MysqlConnector {
             rs.next();
             return rs.getDouble(1);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
             return null;
         }
     }
@@ -190,7 +245,7 @@ public class MysqlConnector {
         try {
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error(e);
         }
     }
 }
