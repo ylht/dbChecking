@@ -1,6 +1,4 @@
-package ecnu.db.checking;
-
-import ecnu.db.utils.LoadConfig;
+package ecnu.db.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,20 +22,19 @@ public class WorkNode {
     private ArrayList<Integer> subValueList;
 
 
+    public void setAddValueList(ArrayList<Integer> addValueList) {
+        Collections.shuffle(addValueList);
+        this.addValueList = addValueList;
+    }
+
+    public void setSubValueList(ArrayList<Integer> subValueList) {
+        Collections.shuffle(subValueList);
+        this.subValueList = subValueList;
+    }
+
     public WorkNode(int tableIndex, int tupleIndex) {
         this.tableIndex = tableIndex;
         this.tupleIndex = tupleIndex;
-        int tableLine = LoadConfig.getConfig().getTableSize()[tableIndex];
-        ArrayList<Integer> valueList = new ArrayList<>();
-        for (int i = 0; i < tableLine; i++) {
-            if (i % LoadConfig.getConfig().getKeyRange() > 1) {
-                valueList.add(i);
-            }
-        }
-        Collections.shuffle(valueList);
-        addValueList = new ArrayList<>(valueList);
-        Collections.shuffle(valueList);
-        subValueList = new ArrayList<>(valueList);
     }
 
     public ArrayList<Integer> getAddValueList() {

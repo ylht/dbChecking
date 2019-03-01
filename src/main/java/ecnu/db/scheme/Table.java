@@ -6,6 +6,7 @@ import org.dom4j.Node;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author wangqingshuai
@@ -15,43 +16,54 @@ import java.util.List;
  */
 public class Table {
 
-    private static final int KEY_RANGE = LoadConfig.getConfig().getKeyRange();
     private ArrayList<AbstractTuple> tuples = new ArrayList<>();
     private int tableIndex;
+
     private int tableSize;
+    private double tableSparsity;
+    private ArrayList<Integer> keys=new ArrayList<>();
     private int currentValueLine = 0;
     private Object[] lineRecord;
-    private ZipfDistribution zf;
 
-    public Table(int tableIndex, int tableSize) {
+    private ZipfDistribution zf;
+    private final static Random R = new Random();
+
+    public Table(int tableIndex, int tableSize,int tupleSize) {
         this.tableIndex = tableIndex;
         this.tableSize = tableSize;
-        this.zf = new ZipfDistribution(tableSize / LoadConfig.getConfig().getKeyRange()
-                * (LoadConfig.getConfig().getKeyRange() - 2), 1);
-        List<Node> nodes = LoadConfig.getConfig().getTableTupleInfo(tableIndex);
-        this.lineRecord = new Object[nodes.size() + 1];
-
+        //获取除主键外其他键值的数据信息
+        this.tableSparsity = LoadConfig.getConfig().getTableSparsity();
+        double min=LoadConfig.getConfig().getTupleMin();
+        double range=LoadConfig.getConfig().getTupleRange();
+        lineRecord=new Object[tupleSize+1];
         //数据的tuple从第二列开始，第一列作为主键列
-        int i = 1;
-        for (Node node : nodes) {
-            switch (LoadConfig.getConfig().getType()) {
-                case "int":
-                    tuples.add(new IntTuple(i, Integer.parseInt(node.valueOf("min")),
-                            Integer.parseInt(node.valueOf("range"))));
-                    break;
-                case "double":
-                    tuples.add(new DoubleTuple(i, Integer.parseInt(node.valueOf("min")),
-                            Integer.parseInt(node.valueOf("range"))));
-                    break;
-                default:
-                    System.out.println("配置文件错误");
-                    System.exit(-1);
-            }
-            i++;
+        switch (LoadConfig.getConfig().getType()) {
+            case "int":
+                for (int i = 0; i < tupleSize; i++) {
+                    tuples.add(new IntTuple(i+1,(int)min,(int)range));
+                }
+                break;
+            case "double":
+                for (int i = 0; i < tupleSize; i++) {
+                    tuples.add(new DoubleTuple(i+1,min,range));
+                }
+                break;
+            default:
+                System.out.println("配置文件错误");
+                System.exit(-1);
         }
     }
 
-    public int getRandomKey() {
+
+    public ArrayList<Integer> getKeys() {
+        return keys;
+    }
+
+    public int getRandomKey(){
+        return R.nextInt(tableSize);
+    }
+
+    public int getDistributionIndex() {
         return zf.sample();
     }
 
@@ -68,29 +80,32 @@ public class Table {
         return tableIndex;
     }
 
-    public int getTableSize() {
-        return tableSize;
-    }
-
     public int getTableColSizeExceptKey() {
         return tuples.size();
     }
 
     public Object[] getValue() {
         if (currentValueLine == tableSize) {
+            this.zf = new ZipfDistribution(keys.size(), 1);
             return null;
         } else {
-            lineRecord[0] = currentValueLine++;
-            //如果没有mod keyRange等于0，则这一行不会被插入
-            if ((Integer) lineRecord[0] % KEY_RANGE == 0) {
+            do {
                 lineRecord[0] = currentValueLine++;
             }
+            //如果随机到的数值小于给定的数值，则跳过该主键，给定数值为1时表为空
+            while (R.nextDouble() < tableSparsity && currentValueLine!=tableSize);
+            if(currentValueLine == tableSize){
+                this.zf = new ZipfDistribution(keys.size(), 1);
+                return null;
+            }
+            //记录所有一开始有值的主键
+            keys.add((Integer) lineRecord[0]);
             return getObjects();
         }
     }
 
     public Object[] getInsertValue() {
-        lineRecord[0] = 0;
+        lineRecord[0] = R.nextInt(tableSize);
         return getObjects();
     }
 
@@ -103,10 +118,6 @@ public class Table {
 
     public Double getTransactionValue(int tupleIndex) {
         return Double.valueOf(tuples.get(tupleIndex - 1).getValue(false).toString());
-    }
-
-    public Double getMaxValue(int tupleIndex) {
-        return Double.parseDouble(tuples.get(tupleIndex - 1).getMaxValue().toString());
     }
 
     public Double getRandomValue(int tupleIndex) {

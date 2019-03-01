@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
-import ecnu.db.checking.WorkGroup;
-import ecnu.db.checking.WorkNode;
+import ecnu.db.core.WorkGroup;
+import ecnu.db.core.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
@@ -58,8 +58,8 @@ public class FunctionTransaction extends BaseTransaction {
     @Override
     public void execute() {
         Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
-        int workOutPriKey = outNode.getSubValueList().get(tables[outNode.getTableIndex()].getRandomKey() - 1);
-        int workInPriKey = inNode.getAddValueList().get(tables[inNode.getTableIndex()].getRandomKey() - 1);
+        int workOutPriKey = outNode.getSubValueList().get(tables[outNode.getTableIndex()].getDistributionIndex() - 1);
+        int workInPriKey = inNode.getAddValueList().get(tables[inNode.getTableIndex()].getDistributionIndex() - 1);
         try {
             if(!executeAdd(isSelect,preparedOutSelectStatement,preparedOutStatement,workOutPriKey,subNum)){
                 conn.rollback();

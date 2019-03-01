@@ -167,6 +167,19 @@ public class MysqlConnector {
             return null;
         }
     }
+    public PreparedStatement getWriteSkewUpdate(int tableIndex,int tupleIndex){
+        String tableName = "t" + tableIndex;
+        String tupleName = "tp" + tupleIndex;
+        String keyName="tp0";
+        String sql = " update " + tableName + " set " + tupleName + "=" +tupleName+"-? where "+keyName+"=?";
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            LogManager.getLogger().error(e);
+            return null;
+        }
+    }
+
 
     public PreparedStatement getRemittanceUpdate(boolean add, int tableIndex, int tupleIndex, boolean forSelect) {
         String tableName = "t" + tableIndex;

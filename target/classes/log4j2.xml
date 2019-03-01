@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Appenders>
-        <File name="File" fileName="logs/order.log" immediateFlush="true" append="false">
-            <PatternLayout pattern="%m%n"/>
-        </File>
         <File name="ErrorFile" fileName="logs/error.log" immediateFlush="true" append="false">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
         </File>
     </Appenders>
     <Loggers>
-        <Logger name="order" level="trace" additivity="false">
-            <AppenderRef ref="File"/>
-        </Logger>
         <root level="error">
             <AppenderRef ref="ErrorFile"/>
         </root>

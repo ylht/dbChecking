@@ -1,4 +1,4 @@
-package ecnu.db.checking;
+package ecnu.db.core;
 
 public class CheckType {
     private CheckKind checkKind;

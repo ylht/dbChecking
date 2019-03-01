@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
  * @author wangqingshuai
  * 全局线程池的基本配置信息
  */
-public class ThreadPool {
+public class DbCheckingThreadPool {
     private static final int CORE_NUM = 4 * Runtime.getRuntime().availableProcessors();
     private static final int MAX_POOL_SIZE = 8 * CORE_NUM;
     private static final int KEEP_ALIVE_TIME = 5000;
@@ -25,4 +25,6 @@ public class ThreadPool {
     public static ThreadPoolExecutor getThreadPoolExecutor() {
         return THREAD_POOL_EXECUTOR;
     }
+
+    public static void closeThreadPool(){THREAD_POOL_EXECUTOR.shutdown();}
 }

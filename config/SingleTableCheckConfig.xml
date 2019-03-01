@@ -3,37 +3,19 @@
 
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
     <rangeRandomCount>10000</rangeRandomCount>
-
-    <!--在执行的keyRange内循环，0指insert的数据，1指delete的数据-->
-    <keyRange>20</keyRange>
-
     <type>int</type>
-
     <runCount>200</runCount>
     <table>
+        <num>3</num>
         <tableSize>1000</tableSize>
-        <tuple>
-            <work id="1">inout</work>
-            <min>0</min>
-            <range>100000</range>
-        </tuple>
+        <tableSparsity>0.2</tableSparsity>
     </table>
-    <table>
-        <tableSize>100</tableSize>
-        <tuple>
-            <work id="0">in</work>
-            <min>0</min>
-            <range>100000</range>
-        </tuple>
-        <tuple>
-            <min>0</min>
-            <range>100000</range>
-        </tuple>
-        <tuple>
-            <work id="0">in</work>
-            <min>0</min>
-            <range>500000</range>
-        </tuple>
-    </table>
+    <tuple>
+        <!--num不能小于8-->
+        <num>15</num>
+        <min>100</min>
+        <max>1000000</max>
+    </tuple>
+
 </generator>
 

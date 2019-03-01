@@ -1,23 +1,28 @@
 package ecnu.db.threads;
 
-import ecnu.db.checking.CheckType;
-import ecnu.db.checking.WorkGroup;
+import ecnu.db.core.CheckType;
+import ecnu.db.core.WorkGroup;
 import ecnu.db.scheme.Table;
-import ecnu.db.threads.pool.ThreadPool;
-import ecnu.db.transaction.BaseTransaction;
-import ecnu.db.transaction.FunctionTransaction;
-import ecnu.db.transaction.OrderTransaction;
-import ecnu.db.transaction.RemittanceTransaction;
+import ecnu.db.transaction.*;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 public class TransactionThread implements Runnable {
+    private static Random r=new Random();
     private ArrayList<BaseTransaction> transactions = new ArrayList<>();
+    private int runCount;
+    private CountDownLatch count;
+    private MysqlConnector mysqlConnector;
+    public TransactionThread(Table[] tables, ArrayList<WorkGroup> workGroups, CheckType checkType,
+                             int runCount,CountDownLatch count) {
+        this.runCount=runCount;
+        this.count=count;
 
-    public TransactionThread(Table[] tables, ArrayList<WorkGroup> workGroups, CheckType checkType) {
-        MysqlConnector mysqlConnector = new MysqlConnector();
+        mysqlConnector = new MysqlConnector();
         for (WorkGroup workGroup : workGroups) {
             switch (workGroup.getWorkGroupType()) {
                 case remittance:
@@ -56,6 +61,11 @@ public class TransactionThread implements Runnable {
                     }
 
                     break;
+                case writeSkew:
+                    BaseTransaction writeSkewTransaction = new WriteSkewTransaction(tables,
+                            workGroup,mysqlConnector);
+                    transactions.add(writeSkewTransaction);
+                    break;
                 default:
                     try {
                         throw new Exception("没有匹配到工作组");
@@ -69,6 +79,11 @@ public class TransactionThread implements Runnable {
 
     @Override
     public void run() {
-
+        for (int i = 0; i < runCount; i++) {
+            int randomIndex=r.nextInt(transactions.size());
+            transactions.get(randomIndex).execute();
+        }
+        count.countDown();
+        mysqlConnector.close();
     }
 }

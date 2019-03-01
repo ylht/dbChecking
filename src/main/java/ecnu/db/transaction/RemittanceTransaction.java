@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
-import ecnu.db.checking.WorkGroup;
-import ecnu.db.checking.WorkNode;
+import ecnu.db.core.WorkGroup;
+import ecnu.db.core.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
@@ -54,11 +54,11 @@ public class RemittanceTransaction extends BaseTransaction {
         outNode = new ArrayList<>(workGroup.getOut());
         for (WorkNode node : inNode) {
             addStatement.add(mysqlConnector.getRemittanceUpdate(true,
-                    node.getTableIndex(), node.getTupleIndex(), false));
+                    node.getTableIndex(), node.getTupleIndex(), isSelect));
         }
         for (WorkNode node : outNode) {
             subStatement.add(mysqlConnector.getRemittanceUpdate(false,
-                    node.getTableIndex(), node.getTupleIndex(), false));
+                    node.getTableIndex(), node.getTupleIndex(), isSelect));
         }
     }
 
@@ -68,7 +68,7 @@ public class RemittanceTransaction extends BaseTransaction {
         //随机做减的表格和SQL信息
         int randomOutIndex = r.nextInt(outNode.size());
         WorkNode workOut = outNode.get(randomOutIndex);
-        int workOutPriKey = workOut.getSubValueList().get(tables[workOut.getTableIndex()].getRandomKey() - 1);
+        int workOutPriKey = workOut.getSubValueList().get(tables[workOut.getTableIndex()].getDistributionIndex() - 1);
 
         Double subNum = tables[workOut.getTableIndex()].getTransactionValue(workOut.getTupleIndex());
         preparedOutStatement = subStatement.get(randomOutIndex);
@@ -77,7 +77,7 @@ public class RemittanceTransaction extends BaseTransaction {
         //随机做加的表格和SQL信息
         int randomInIndex = r.nextInt(inNode.size());
         WorkNode workIn = inNode.get(randomInIndex);
-        int workInPriKey = workIn.getAddValueList().get(tables[workIn.getTableIndex()].getRandomKey() - 1);
+        int workInPriKey = workIn.getAddValueList().get(tables[workIn.getTableIndex()].getDistributionIndex() - 1);
 
         preparedInStatement = addStatement.get(randomInIndex);
         preparedInSelectStatement = addSelectStatement.get(randomInIndex);

@@ -1,7 +1,7 @@
 package ecnu.db.utils;
 
-import ecnu.db.checking.WorkGroup;
-import ecnu.db.checking.WorkNode;
+import ecnu.db.core.WorkGroup;
+import ecnu.db.core.WorkNode;
 import org.apache.logging.log4j.LogManager;
 import org.dom4j.*;
 import org.dom4j.io.SAXReader;
@@ -16,11 +16,10 @@ import java.util.Random;
  * 读取配置文件的类
  */
 public class LoadConfig {
-    public static String fileName;
     private static LoadConfig instance;
     private Document document;
 
-    private LoadConfig() {
+    private LoadConfig(String fileName) {
         try {
             SAXReader reader = new SAXReader();
             if (!"".equals(fileName)) {
@@ -34,13 +33,16 @@ public class LoadConfig {
         }
     }
 
-    public synchronized static LoadConfig getConfig() {
-        if (instance == null) {
-            instance = new LoadConfig();
-        }
+    public static LoadConfig getConfig() {
         return instance;
     }
 
+    public static LoadConfig getConfig(String configFile) {
+        instance=new LoadConfig(configFile);
+        return instance;
+    }
+
+    //生成随机的配置文件
     private void getRandomDocument() {
         Random r = new Random();
         document = DocumentHelper.createDocument();
@@ -73,53 +75,12 @@ public class LoadConfig {
         Element threads = generator.addElement("threads");
         Element runCount = threads.addElement("runCount");
         runCount.setText("1000");
-        for (int i = 0; i < workNum; i++) {
-            Element work = threads.addElement("work");
-            work.addAttribute("id", String.valueOf(i)).setText("10");
-            HashSet<Integer> allIndex = new HashSet<>();
-            if (i % 3 == 2) {
-                int outNum = r.nextInt(tuples.size());
-                Element outTuple = tuples.get(outNum);
-                Element outWork = outTuple.element("work");
-                outWork.addAttribute("id", "1");
-                outWork.setText("out");
-                int k = r.nextInt(10) + 2;
-
-                int inNum = r.nextInt(tuples.size());
-                while (inNum == outNum) {
-                    inNum = r.nextInt(tuples.size());
-                }
-                Element inTuple = tuples.get(inNum);
-                Element inWork = inTuple.element("work");
-                inWork.addAttribute("id", "1");
-                inWork.setText("in");
-                inTuple.element("range").setText(
-                        String.valueOf(k * Integer.parseInt(outTuple.element("range").getText())));
-                allIndex.add(inNum);
-                allIndex.add(outNum);
-            }
-            if (i % 3 == 1) {
-                int orderNum = r.nextInt(10) + 2;
-                for (int j = 0; j < orderNum; j++) {
-                    int randomIndex = r.nextInt(tuples.size());
-                    while (allIndex.contains(randomIndex)) {
-                        randomIndex = r.nextInt(tuples.size());
-                    }
-                    allIndex.add(randomIndex);
-                    Element tuple = tuples.get(randomIndex);
-                    Element workTuple = tuple.element("work");
-                    workTuple.addAttribute("id", "2");
-                    workTuple.setText("out");
-                }
-            }
-        }
-
     }
 
-    public String getType() {
-        String xpath = "//generator/type";
-        Node list = document.selectNodes(xpath).get(0);
-        return list.getText();
+    //运行的相关信息
+
+    public int getThreadNum() {
+        return 8*Runtime.getRuntime().availableProcessors();
     }
 
     public int getRunCount() {
@@ -132,100 +93,38 @@ public class LoadConfig {
         return Integer.valueOf(document.valueOf("//generator/rangeRandomCount"));
     }
 
+    //表格信息
+
     public int getTableNum() {
-        return document.selectNodes("//generator/table").size();
+        return Integer.valueOf(document.valueOf("//generator/table/num"));
     }
 
-    public List<Node> getTableTupleInfo(int tableIndex) {
-        String xpath = "//generator/table";
-        List<Node> list = document.selectNodes(xpath);
-        Node table = list.get(tableIndex);
-        return table.selectNodes("tuple");
+    public int getTableSize() {
+        return Integer.valueOf(document.valueOf("//generator/table/tableSize"));
     }
 
-    public int getKeyRange() {
-        return Integer.valueOf(document.valueOf("//generator/keyRange"));
+    /**
+     * @return 表格的稀疏度，为0时为生成全部的表键值区间，为1时为全部不生成，采用
+     * random的方式，不确保最终的表大小为准确的keyRange*TableSparsity值，只能
+     * 保证大概在这个区间范围内
+     */
+    public Double getTableSparsity(){
+        return Double.valueOf(document.valueOf("//generator/table/tableSparsity"));
     }
 
-    public int[] getTableSize() {
-        String xpath = "//generator/table";
-        List<Node> list = document.selectNodes(xpath);
-        int[] tableSizes = new int[list.size()];
-        int i = 0;
-        for (Node l : list) {
-            tableSizes[i++] = Integer.valueOf(l.valueOf("tableSize"));
-        }
-        return tableSizes;
+    public String getType() {
+        return document.valueOf("//generator/type");
     }
 
-    public int getScanThreadNum() {
-        return Runtime.getRuntime().availableProcessors();
+    public int getTupleNum(){
+        return Integer.valueOf(document.valueOf("//generator/tuple/num"));
     }
 
-    public int getThreadNum() {
-        return Runtime.getRuntime().availableProcessors();
+    public double getTupleMin(){
+        return Integer.valueOf(document.valueOf("//generator/tuple/min"));
     }
 
-    public int getUpdateNoCommitedRunCount() {
-        return 1;
-    }
-
-    public ArrayList<WorkGroup> getWorkNode() {
-        ArrayList<WorkGroup> resultNodes = new ArrayList<>();
-        String xpath = "//generator/table";
-        List<Node> list = document.selectNodes(xpath);
-        int tableIndex = 0;
-        for (Node table : list) {
-            List<Node> tupleList = table.selectNodes("tuple");
-            int tupleIndex = 1;
-            for (Node tuple : tupleList) {
-                if (!"".equals(tuple.valueOf("work"))) {
-                    int workId = Integer.valueOf(tuple.valueOf("work/@id"));
-                    boolean hasWorkGroup = false;
-                    for (WorkGroup workGroup : resultNodes) {
-                        if (workGroup.getWorkId() == workId) {
-                            switch (tuple.valueOf("work")) {
-                                case "in":
-                                    workGroup.addInTuple(new WorkNode(tableIndex, tupleIndex));
-                                    break;
-                                case "out":
-                                    workGroup.addOutTuple(new WorkNode(tableIndex, tupleIndex));
-                                    break;
-                                case "inout":
-                                    workGroup.addInoutTuple(new WorkNode(tableIndex, tupleIndex));
-                                    break;
-                                default:
-                                    System.out.println("没有匹配到work类型，请检查配置文件");
-                                    System.exit(-1);
-                            }
-                            hasWorkGroup = true;
-                        }
-                    }
-                    if (!hasWorkGroup) {
-                        resultNodes.add(new WorkGroup(workId));
-                        switch (tuple.valueOf("work")) {
-                            case "in":
-                                resultNodes.get(resultNodes.size() - 1)
-                                        .addInTuple(new WorkNode(tableIndex, tupleIndex));
-                                break;
-                            case "out":
-                                resultNodes.get(resultNodes.size() - 1)
-                                        .addOutTuple(new WorkNode(tableIndex, tupleIndex));
-                                break;
-                            case "inout":
-                                resultNodes.get(resultNodes.size() - 1)
-                                        .addInoutTuple(new WorkNode(tableIndex, tupleIndex));
-                                break;
-                            default:
-                                System.out.println("没有匹配到work类型，请检查配置文件");
-                                System.exit(-1);
-                        }
-                    }
-                }
-                tupleIndex++;
-            }
-            tableIndex++;
-        }
-        return resultNodes;
+    public double getTupleRange(){
+        return Integer.valueOf(document.valueOf("//generator/tuple/max"))-getTupleMin();
     }
 }

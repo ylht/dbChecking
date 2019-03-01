@@ -1,6 +1,6 @@
 package ecnu.db.threads;
 
-import ecnu.db.checking.WorkGroup;
+import ecnu.db.core.WorkGroup;
 import ecnu.db.utils.MysqlConnector;
 
 import java.util.concurrent.CountDownLatch;
