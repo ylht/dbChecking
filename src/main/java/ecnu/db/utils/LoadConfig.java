@@ -1,15 +1,10 @@
 package ecnu.db.utils;
 
-import ecnu.db.core.WorkGroup;
-import ecnu.db.core.WorkNode;
 import org.apache.logging.log4j.LogManager;
-import org.dom4j.*;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
 
 /**
  * @author wangqingshuai
@@ -22,12 +17,7 @@ public class LoadConfig {
     private LoadConfig(String fileName) {
         try {
             SAXReader reader = new SAXReader();
-            if (!"".equals(fileName)) {
-                document = reader.read(fileName);
-            } else {
-                //随机一个配置文件
-                getRandomDocument();
-            }
+            document = reader.read(fileName);
         } catch (DocumentException e) {
             LogManager.getLogger().error(e);
         }
@@ -37,50 +27,15 @@ public class LoadConfig {
         return instance;
     }
 
-    public static LoadConfig getConfig(String configFile) {
-        instance=new LoadConfig(configFile);
-        return instance;
+    public static void loadConfig(String configFile) {
+        instance = new LoadConfig(configFile);
     }
 
-    //生成随机的配置文件
-    private void getRandomDocument() {
-        Random r = new Random();
-        document = DocumentHelper.createDocument();
-        Element generator = document.addElement("generator");
-        Element rangeRandomCount = generator.addElement("rangeRandomCount");
-        rangeRandomCount.setText("100");
-        Element type = generator.addElement("type");
-        type.setText("double");
-
-        int tableNum = r.nextInt(10) + 4;
-        int workNum = 3;
-        ArrayList<Element> tuples = new ArrayList<>();
-        for (int i = 0; i < tableNum; i++) {
-            Element table = generator.addElement("table");
-            Element tableSize = table.addElement("tableSize");
-            tableSize.setText("100");
-            int tupleNum = 3 + r.nextInt(10);
-            for (int j = 0; j < tupleNum; j++) {
-                Element tuple = table.addElement("tuple");
-                tuples.add(tuple);
-                Element min = tuple.addElement("min");
-                min.setText("0");
-                Element max = tuple.addElement("range");
-                max.setText("100000");
-                Element work = tuple.addElement("work");
-                work.addAttribute("id", String.valueOf(0)).setText("inout");
-            }
-        }
-
-        Element threads = generator.addElement("threads");
-        Element runCount = threads.addElement("runCount");
-        runCount.setText("1000");
-    }
 
     //运行的相关信息
 
     public int getThreadNum() {
-        return 8*Runtime.getRuntime().availableProcessors();
+        return 8 * Runtime.getRuntime().availableProcessors();
     }
 
     public int getRunCount() {
@@ -108,7 +63,7 @@ public class LoadConfig {
      * random的方式，不确保最终的表大小为准确的keyRange*TableSparsity值，只能
      * 保证大概在这个区间范围内
      */
-    public Double getTableSparsity(){
+    public Double getTableSparsity() {
         return Double.valueOf(document.valueOf("//generator/table/tableSparsity"));
     }
 
@@ -116,15 +71,15 @@ public class LoadConfig {
         return document.valueOf("//generator/type");
     }
 
-    public int getTupleNum(){
+    public int getTupleNum() {
         return Integer.valueOf(document.valueOf("//generator/tuple/num"));
     }
 
-    public double getTupleMin(){
+    public double getTupleMin() {
         return Integer.valueOf(document.valueOf("//generator/tuple/min"));
     }
 
-    public double getTupleRange(){
-        return Integer.valueOf(document.valueOf("//generator/tuple/max"))-getTupleMin();
+    public double getTupleRange() {
+        return Integer.valueOf(document.valueOf("//generator/tuple/max")) - getTupleMin();
     }
 }

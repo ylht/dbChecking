@@ -26,5 +26,7 @@ public class DbCheckingThreadPool {
         return THREAD_POOL_EXECUTOR;
     }
 
-    public static void closeThreadPool(){THREAD_POOL_EXECUTOR.shutdown();}
+    public static void closeThreadPool() {
+        THREAD_POOL_EXECUTOR.shutdown();
+    }
 }

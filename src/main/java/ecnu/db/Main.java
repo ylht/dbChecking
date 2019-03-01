@@ -1,13 +1,10 @@
 package ecnu.db;
 
-import ecnu.db.core.DbChecking;
 import ecnu.db.core.CheckType;
-import ecnu.db.scheme.Table;
+import ecnu.db.core.DbChecking;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import org.apache.logging.log4j.LogManager;
-
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author wangqingshuai
@@ -19,9 +16,9 @@ public class Main {
         //初始化logger
         LogManager.getLogger();
         //载入配置文件
-        LoadConfig.getConfig("config/SingleTableCheckConfig.xml");
+        LoadConfig.loadConfig("config/SingleTableCheckConfig.xml");
         //项目执行的核心类
-        DbChecking dbChecking=new DbChecking();
+        DbChecking dbChecking = new DbChecking();
         //初始化scheme
         dbChecking.createScheme();
         //载入数据
@@ -30,7 +27,6 @@ public class Main {
         dbChecking.check();
         DbCheckingThreadPool.closeThreadPool();
     }
-
 
 
 }

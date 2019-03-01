@@ -3,6 +3,7 @@ package ecnu.db.core;
 import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.utils.MysqlConnector;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -19,15 +20,13 @@ public class WorkGroup {
 
 
     private WorkGroupType workGroupType;
-
-    public WorkGroup(WorkGroupType workGroupType) {
-        this.workGroupType = workGroupType;
-    }
-
     private int k;
     private ArrayList<WorkNode> in = new ArrayList<>();
     private ArrayList<WorkNode> out = new ArrayList<>();
     private ArrayList<WorkNode> inout = new ArrayList<>();
+    public WorkGroup(WorkGroupType workGroupType) {
+        this.workGroupType = workGroupType;
+    }
 
     public WorkGroupType getWorkGroupType() {
         return workGroupType;
@@ -63,11 +62,12 @@ public class WorkGroup {
         return result;
     }
 
-    public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) {
+    void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
         ArrayList<WorkNode> allNode = new ArrayList<>();
         allNode.addAll(in);
         allNode.addAll(out);
         allNode.addAll(inout);
+
         if (isBegin) {
             for (WorkNode node : allNode) {
                 node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getTupleIndex()));
@@ -76,17 +76,26 @@ public class WorkGroup {
                 k = (int) (in.get(0).getBeginSum() / out.get(0).getBeginSum());
             }
         } else {
-            for (WorkNode node : allNode) {
-                node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getTupleIndex()));
+            if (workGroupType == WorkGroupType.writeSkew) {
+                int errCount = mysqlConnector.getWriteSkewResult(allNode);
+                for (WorkNode node : allNode) {
+                    node.setEndSum((double) errCount);
+                }
+            } else {
+                for (WorkNode node : allNode) {
+                    node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getTupleIndex()));
+                }
             }
+
         }
+
     }
 
     public int getK() {
         return k;
     }
 
-    private boolean checkRemittance() {
+    private boolean remittanceCheck() {
         Double beginSum = 0d;
         Double endSum = 0d;
 
@@ -108,26 +117,32 @@ public class WorkGroup {
     private boolean functionCheck() {
         double preB = in.get(0).getBeginSum() - k * out.get(0).getBeginSum();
         double postB = in.get(0).getEndSum() - k * out.get(0).getEndSum();
-        System.out.print("工作组类型为" + workGroupType + "事务，校验结果");
         return DoubleTuple.df.format(preB).equals(DoubleTuple.df.format(postB));
     }
 
     boolean checkCorrect() {
         switch (workGroupType) {
             case remittance:
-                return checkRemittance();
+                return remittanceCheck();
             case function:
                 return functionCheck();
             case order:
                 return orderCheck();
+            case writeSkew:
+                return writeSkewCheck();
             default:
                 return false;
         }
     }
 
+    private boolean writeSkewCheck() {
+        return out.get(0).getEndSum() == 0;
+    }
+
     private boolean orderCheck() {
         int total = in.size();
-        return false;
+
+        return true;
     }
 
     public enum WorkGroupType {

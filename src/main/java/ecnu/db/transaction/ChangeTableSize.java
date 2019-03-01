@@ -2,7 +2,6 @@ package ecnu.db.transaction;
 
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
-import org.apache.logging.log4j.LogManager;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,11 +13,11 @@ public class ChangeTableSize extends BaseTransaction {
     private PreparedStatement changeTablePrepareStatement;
 
 
-    public ChangeTableSize(boolean insert, Table table, MysqlConnector mysqlConnector) {
+    public ChangeTableSize(boolean insert, Table table, MysqlConnector mysqlConnector)
+            throws SQLException {
         super(mysqlConnector, false);
         this.insert = insert;
         this.table = table;
-        this.conn = mysqlConnector.getConn();
         if (insert) {
             changeTablePrepareStatement = mysqlConnector.getInsertStatement(
                     table.getTableIndex(), table.getTableColSizeExceptKey());
@@ -29,30 +28,19 @@ public class ChangeTableSize extends BaseTransaction {
     }
 
     @Override
-    public void execute() {
+    public void execute() throws SQLException {
         if (insert) {
             Object[] values = table.getInsertValue();
-            try {
-                int i = 1;
-                for (Object value : values) {
-                    changeTablePrepareStatement.setObject(i++, value);
-                }
-                changeTablePrepareStatement.executeUpdate();
-                conn.commit();
-            } catch (SQLException e) {
-                System.out.println(changeTablePrepareStatement);
-                LogManager.getLogger().error(e);
+            int i = 1;
+            for (Object value : values) {
+                changeTablePrepareStatement.setObject(i++, value);
             }
+            changeTablePrepareStatement.executeUpdate();
+            mysqlConnector.commit();
         } else {
-            try {
-                changeTablePrepareStatement.setInt(1, table.getRandomKey());
-                changeTablePrepareStatement.executeUpdate();
-                conn.commit();
-            } catch (SQLException e) {
-                System.out.println(changeTablePrepareStatement);
-                LogManager.getLogger().error(e);
-            }
-
+            changeTablePrepareStatement.setInt(1, table.getRandomKey());
+            changeTablePrepareStatement.executeUpdate();
+            mysqlConnector.commit();
         }
     }
 }

@@ -2,21 +2,29 @@ package ecnu.db.transaction;
 
 import ecnu.db.utils.MysqlConnector;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 public abstract class BaseTransaction {
-    Connection conn;
-    boolean isSelect;
     protected Random r = new Random();
+    protected MysqlConnector mysqlConnector;
+    boolean isSelect;
     PreparedStatement preparedOutStatement;
     PreparedStatement preparedInStatement;
     PreparedStatement preparedOutSelectStatement;
     PreparedStatement preparedInSelectStatement;
-    BaseTransaction(MysqlConnector mysqlConnector,boolean isSelect){
-        this.conn=mysqlConnector.getConn();
-        this.isSelect=isSelect;
+
+    BaseTransaction(MysqlConnector mysqlConnector, boolean isSelect) {
+        this.isSelect = isSelect;
+        this.mysqlConnector = mysqlConnector;
+        mysqlConnector.beginTransaction();
     }
-    public abstract void execute();
+
+    /**
+     * 执行本类事务
+     *
+     * @throws SQLException 事务执行时和数据库交互失败本事务会报错
+     */
+    public abstract void execute() throws SQLException;
 }

@@ -4,7 +4,6 @@ import ecnu.db.core.WorkGroup;
 import ecnu.db.core.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
-import org.apache.logging.log4j.LogManager;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +24,7 @@ public class RemittanceTransaction extends BaseTransaction {
     private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
 
     public RemittanceTransaction(Table[] tables, WorkGroup workGroup,
-                                 MysqlConnector mysqlConnector, boolean forUpdate) {
+                                 MysqlConnector mysqlConnector, boolean forUpdate) throws SQLException {
         super(mysqlConnector, true);
         //确保工作组的类型正确
         remittanceTransaction(tables, workGroup, mysqlConnector);
@@ -40,13 +39,13 @@ public class RemittanceTransaction extends BaseTransaction {
     }
 
     public RemittanceTransaction(Table[] tables, WorkGroup workGroup,
-                                 MysqlConnector mysqlConnector) {
+                                 MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
         remittanceTransaction(tables, workGroup, mysqlConnector);
     }
 
     private void remittanceTransaction(Table[] tables, WorkGroup workGroup,
-                                       MysqlConnector mysqlConnector) {
+                                       MysqlConnector mysqlConnector) throws SQLException {
         //确保工作组的类型正确
         assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.remittance;
         this.tables = tables;
@@ -64,7 +63,7 @@ public class RemittanceTransaction extends BaseTransaction {
 
 
     @Override
-    public void execute() {
+    public void execute() throws SQLException {
         //随机做减的表格和SQL信息
         int randomOutIndex = r.nextInt(outNode.size());
         WorkNode workOut = outNode.get(randomOutIndex);
@@ -82,35 +81,33 @@ public class RemittanceTransaction extends BaseTransaction {
         preparedInStatement = addStatement.get(randomInIndex);
         preparedInSelectStatement = addSelectStatement.get(randomInIndex);
 
-        try {
-            if (isSelect) {
-                preparedOutSelectStatement.setInt(1, workOutPriKey);
-                ResultSet rs = preparedOutSelectStatement.executeQuery();
-                rs.next();
-                preparedOutStatement.setDouble(1, rs.getDouble(1) - subNum);
-            } else {
-                preparedOutStatement.setDouble(1, subNum);
-            }
-            //设置主键
-            preparedOutStatement.setInt(2, workOutPriKey);
-            preparedOutStatement.setDouble(3, subNum);
 
-            if (preparedOutStatement.executeUpdate() == 0) {
-                System.out.println("执行失败:" + preparedOutStatement);
-                conn.rollback();
-                return;
-            }
-
-            if(!FunctionTransaction.executeAdd(isSelect,preparedInSelectStatement,
-                    preparedInStatement,workInPriKey,subNum)){
-                conn.rollback();
-                return;
-            }
-
-            conn.commit();
-
-        } catch (SQLException e) {
-            LogManager.getLogger().error(e);
+        if (isSelect) {
+            preparedOutSelectStatement.setInt(1, workOutPriKey);
+            ResultSet rs = preparedOutSelectStatement.executeQuery();
+            rs.next();
+            preparedOutStatement.setDouble(1, rs.getDouble(1) - subNum);
+        } else {
+            preparedOutStatement.setDouble(1, subNum);
         }
+        //设置主键
+        preparedOutStatement.setInt(2, workOutPriKey);
+        preparedOutStatement.setDouble(3, subNum);
+
+        if (preparedOutStatement.executeUpdate() == 0) {
+            System.out.println("执行失败:" + preparedOutStatement);
+            mysqlConnector.rollback();
+            return;
+        }
+
+        if (!FunctionTransaction.executeAdd(isSelect, preparedInSelectStatement,
+                preparedInStatement, workInPriKey, subNum)) {
+            mysqlConnector.rollback();
+            return;
+        }
+
+        mysqlConnector.commit();
+
+
     }
 }

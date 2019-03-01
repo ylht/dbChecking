@@ -4,7 +4,6 @@ import ecnu.db.core.WorkGroup;
 import ecnu.db.core.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
-import org.apache.logging.log4j.LogManager;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,13 +23,13 @@ public class OrderTransaction extends BaseTransaction {
     private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
     private ArrayList<PreparedStatement> subSelectStatement = new ArrayList<>();
 
-    public OrderTransaction(Table[] tables, WorkGroup workGroup, MysqlConnector mysqlConnector) {
+    public OrderTransaction(Table[] tables, WorkGroup workGroup, MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
         orderTransaction(tables, workGroup, mysqlConnector);
     }
 
     public OrderTransaction(Table[] tables, WorkGroup workGroup,
-                            MysqlConnector mysqlConnector, boolean forUpdate) {
+                            MysqlConnector mysqlConnector, boolean forUpdate) throws SQLException {
         super(mysqlConnector, true);
         orderTransaction(tables, workGroup, mysqlConnector);
         for (WorkNode node : nodes) {
@@ -41,7 +40,7 @@ public class OrderTransaction extends BaseTransaction {
     }
 
     private void orderTransaction(Table[] tables, WorkGroup workGroup,
-                                  MysqlConnector mysqlConnector) {
+                                  MysqlConnector mysqlConnector) throws SQLException {
         //确保工作组的类型正确
         assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.order;
         this.tables = tables;
@@ -53,7 +52,7 @@ public class OrderTransaction extends BaseTransaction {
     }
 
     @Override
-    public void execute() {
+    public void execute() throws SQLException {
         int randomInIndex = r.nextInt(nodes.size());
         preparedOutStatement = subStatement.get(randomInIndex);
         if (isSelect) {
@@ -61,27 +60,23 @@ public class OrderTransaction extends BaseTransaction {
         }
         WorkNode work = nodes.get(randomInIndex);
 
-        try {
-            int workPriKey = work.getSubValueList().get(
-                    tables[work.getTableIndex()].getDistributionIndex() - 1);
-            if (isSelect) {
-                preparedOutSelectStatement.setInt(1, workPriKey);
-                ResultSet rs = preparedOutSelectStatement.executeQuery();
-                rs.next();
-                preparedOutStatement.setInt(1, rs.getInt(1) - 1);
-                preparedOutStatement.setInt(2,workPriKey);
-            } else {
-                preparedOutStatement.setInt(1, workPriKey);
-            }
-            if (preparedOutStatement.executeUpdate() == 0) {
-                System.out.println("执行失败" + preparedOutStatement.toString());
-                conn.rollback();
-                return;
-            }
-            conn.commit();
-        } catch (SQLException e) {
-            LogManager.getLogger().error(e);
-        }
 
+        int workPriKey = work.getSubValueList().get(
+                tables[work.getTableIndex()].getDistributionIndex() - 1);
+        if (isSelect) {
+            preparedOutSelectStatement.setInt(1, workPriKey);
+            ResultSet rs = preparedOutSelectStatement.executeQuery();
+            rs.next();
+            preparedOutStatement.setInt(1, rs.getInt(1) - 1);
+            preparedOutStatement.setInt(2, workPriKey);
+        } else {
+            preparedOutStatement.setInt(1, workPriKey);
+        }
+        if (preparedOutStatement.executeUpdate() == 0) {
+            System.out.println("执行失败" + preparedOutStatement.toString());
+            mysqlConnector.rollback();
+            return;
+        }
+        mysqlConnector.commit();
     }
 }

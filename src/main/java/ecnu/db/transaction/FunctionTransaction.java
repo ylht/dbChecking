@@ -4,7 +4,6 @@ import ecnu.db.core.WorkGroup;
 import ecnu.db.core.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
-import org.apache.logging.log4j.LogManager;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,13 +22,13 @@ public class FunctionTransaction extends BaseTransaction {
 
 
     public FunctionTransaction(Table[] tables, WorkGroup workGroup,
-                               MysqlConnector mysqlConnector) {
+                               MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
         functionTransaction(tables, workGroup, mysqlConnector);
     }
 
     public FunctionTransaction(Table[] tables, WorkGroup workGroup,
-                               MysqlConnector mysqlConnector, boolean forUpdate) {
+                               MysqlConnector mysqlConnector, boolean forUpdate) throws SQLException {
         super(mysqlConnector, true);
         functionTransaction(tables, workGroup, mysqlConnector);
         preparedInSelectStatement = mysqlConnector.getSelect(forUpdate,
@@ -38,46 +37,9 @@ public class FunctionTransaction extends BaseTransaction {
                 outNode.getTableIndex(), outNode.getTupleIndex());
     }
 
-    private void functionTransaction(Table[] tables,
-                                     WorkGroup workGroup, MysqlConnector mysqlConnector) {
-        //确保工作组的类型正确
-        assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.function;
-        this.tables = tables;
-        inNode = workGroup.getIn().get(0);
-        outNode = workGroup.getOut().get(0);
-        preparedInStatement = mysqlConnector.getRemittanceUpdate(true, inNode.getTableIndex(),
-                inNode.getTupleIndex(), isSelect);
-
-        preparedOutStatement = mysqlConnector.getRemittanceUpdate(true, outNode.getTableIndex(),
-                outNode.getTupleIndex(), isSelect);
-
-        this.k = workGroup.getK();
-    }
-
-
-    @Override
-    public void execute() {
-        Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
-        int workOutPriKey = outNode.getSubValueList().get(tables[outNode.getTableIndex()].getDistributionIndex() - 1);
-        int workInPriKey = inNode.getAddValueList().get(tables[inNode.getTableIndex()].getDistributionIndex() - 1);
-        try {
-            if(!executeAdd(isSelect,preparedOutSelectStatement,preparedOutStatement,workOutPriKey,subNum)){
-                conn.rollback();
-                return;
-            }
-            if(executeAdd(isSelect,preparedInSelectStatement,preparedInStatement,workInPriKey,subNum*k)){
-                conn.rollback();
-                return;
-            }
-            conn.commit();
-        } catch (SQLException e) {
-            LogManager.getLogger().error(e);
-        }
-    }
-
     static boolean executeAdd(boolean isSelect, PreparedStatement preparedSelectStatement,
-                               PreparedStatement preparedStatement,
-                               int workPriKey, double subNum) throws SQLException{
+                              PreparedStatement preparedStatement,
+                              int workPriKey, double subNum) throws SQLException {
         if (isSelect) {
             preparedSelectStatement.setInt(1, workPriKey);
             ResultSet rs = preparedSelectStatement.executeQuery();
@@ -95,5 +57,39 @@ public class FunctionTransaction extends BaseTransaction {
             return false;
         }
         return true;
+    }
+
+    private void functionTransaction(Table[] tables,
+                                     WorkGroup workGroup, MysqlConnector mysqlConnector) throws SQLException {
+        //确保工作组的类型正确
+        assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.function;
+        this.tables = tables;
+        inNode = workGroup.getIn().get(0);
+        outNode = workGroup.getOut().get(0);
+        preparedInStatement = mysqlConnector.getRemittanceUpdate(true, inNode.getTableIndex(),
+                inNode.getTupleIndex(), isSelect);
+
+        preparedOutStatement = mysqlConnector.getRemittanceUpdate(true, outNode.getTableIndex(),
+                outNode.getTupleIndex(), isSelect);
+
+        this.k = workGroup.getK();
+    }
+
+    @Override
+    public void execute() throws SQLException {
+        Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
+        int workOutPriKey = outNode.getSubValueList().get(tables[outNode.getTableIndex()].getDistributionIndex() - 1);
+        int workInPriKey = inNode.getAddValueList().get(tables[inNode.getTableIndex()].getDistributionIndex() - 1);
+
+        if (!executeAdd(isSelect, preparedOutSelectStatement, preparedOutStatement, workOutPriKey, subNum)) {
+            mysqlConnector.rollback();
+            return;
+        }
+        if (executeAdd(isSelect, preparedInSelectStatement, preparedInStatement, workInPriKey, subNum * k)) {
+            mysqlConnector.rollback();
+            return;
+        }
+        mysqlConnector.rollback();
+
     }
 }

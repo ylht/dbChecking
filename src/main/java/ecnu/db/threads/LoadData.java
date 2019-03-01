@@ -4,6 +4,7 @@ import ecnu.db.scheme.Table;
 import ecnu.db.utils.DataOutputToFile;
 import ecnu.db.utils.MysqlConnector;
 
+import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -34,7 +35,13 @@ public class LoadData implements Runnable {
         System.out.println("表" + table.getTableIndex() + "生成数据完成");
         System.out.println("表" + table.getTableIndex() + "开始上传数据到数据库");
         MysqlConnector mysqlConnector = new MysqlConnector();
-        mysqlConnector.loadData(table.getTableIndex());
+        try {
+            mysqlConnector.loadData(table.getTableIndex());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("数据上传失败");
+            System.exit(-1);
+        }
         System.out.println("表" + table.getTableIndex() + "上传数据完成");
         count.countDown();
     }

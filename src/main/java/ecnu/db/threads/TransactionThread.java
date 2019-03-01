@@ -7,20 +7,22 @@ import ecnu.db.transaction.*;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 public class TransactionThread implements Runnable {
-    private static Random r=new Random();
+    private static Random r = new Random();
     private ArrayList<BaseTransaction> transactions = new ArrayList<>();
     private int runCount;
     private CountDownLatch count;
     private MysqlConnector mysqlConnector;
+
     public TransactionThread(Table[] tables, ArrayList<WorkGroup> workGroups, CheckType checkType,
-                             int runCount,CountDownLatch count) {
-        this.runCount=runCount;
-        this.count=count;
+                             int runCount, CountDownLatch count) throws SQLException {
+        this.runCount = runCount;
+        this.count = count;
 
         mysqlConnector = new MysqlConnector();
         for (WorkGroup workGroup : workGroups) {
@@ -63,7 +65,7 @@ public class TransactionThread implements Runnable {
                     break;
                 case writeSkew:
                     BaseTransaction writeSkewTransaction = new WriteSkewTransaction(tables,
-                            workGroup,mysqlConnector);
+                            workGroup, mysqlConnector);
                     transactions.add(writeSkewTransaction);
                     break;
                 default:
@@ -80,8 +82,12 @@ public class TransactionThread implements Runnable {
     @Override
     public void run() {
         for (int i = 0; i < runCount; i++) {
-            int randomIndex=r.nextInt(transactions.size());
-            transactions.get(randomIndex).execute();
+            int randomIndex = r.nextInt(transactions.size());
+            try {
+                transactions.get(randomIndex).execute();
+            } catch (SQLException e) {
+                LogManager.getLogger().error(e);
+            }
         }
         count.countDown();
         mysqlConnector.close();
