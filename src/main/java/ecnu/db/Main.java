@@ -6,6 +6,8 @@ import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import org.apache.logging.log4j.LogManager;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * @author wangqingshuai
  * 项目执行的主函数
@@ -18,12 +20,11 @@ public class Main {
         //载入配置文件
         LoadConfig.loadConfig("config/SingleTableCheckConfig.xml");
         //项目执行的核心类
-        DbChecking dbChecking = new DbChecking();
+        DbChecking dbChecking = new DbChecking(new CheckType(CheckType.CheckKind.Serializable));
         //初始化scheme
         dbChecking.createScheme();
         //载入数据
         dbChecking.loadData();
-        dbChecking.setCheckType(new CheckType(CheckType.CheckKind.Serializable));
         dbChecking.check();
         DbCheckingThreadPool.closeThreadPool();
     }

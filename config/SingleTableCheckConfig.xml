@@ -4,15 +4,16 @@
     <!--平均转账几次之后该数据的账户的余额会达到阈值-->
     <rangeRandomCount>10000</rangeRandomCount>
     <type>int</type>
-    <runCount>200</runCount>
+    <functionK>3</functionK>
+    <runCount>1000</runCount>
     <table>
-        <num>3</num>
+        <num>4</num>
         <tableSize>1000</tableSize>
         <tableSparsity>0.2</tableSparsity>
     </table>
     <tuple>
         <!--num不能小于8-->
-        <num>15</num>
+        <num>18</num>
         <min>100</min>
         <max>1000000</max>
     </tuple>

@@ -31,17 +31,20 @@ public class LoadConfig {
         instance = new LoadConfig(configFile);
     }
 
+    //事务信息
+
+    public int getK(){
+        return Integer.valueOf(document.valueOf("//generator/functionK"));
+    }
 
     //运行的相关信息
 
     public int getThreadNum() {
-        return 8 * Runtime.getRuntime().availableProcessors();
+        return 4 * Runtime.getRuntime().availableProcessors();
     }
 
     public int getRunCount() {
-        String xpath = "//generator/runCount";
-        Node list = document.selectNodes(xpath).get(0);
-        return Integer.valueOf(list.getText());
+        return Integer.valueOf(document.valueOf("//generator/runCount"));
     }
 
     public Integer getRangeRandomCount() {

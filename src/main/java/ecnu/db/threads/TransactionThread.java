@@ -1,10 +1,11 @@
 package ecnu.db.threads;
 
 import ecnu.db.core.CheckType;
-import ecnu.db.core.WorkGroup;
+import ecnu.db.workGroup.BaseWorkGroup;
 import ecnu.db.scheme.Table;
 import ecnu.db.transaction.*;
 import ecnu.db.utils.MysqlConnector;
+import ecnu.db.workGroup.PhantomReadWorkGroup;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;
@@ -12,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * @author wangqingshuai
+ */
 public class TransactionThread implements Runnable {
     private static Random r = new Random();
     private ArrayList<BaseTransaction> transactions = new ArrayList<>();
@@ -19,13 +23,13 @@ public class TransactionThread implements Runnable {
     private CountDownLatch count;
     private MysqlConnector mysqlConnector;
 
-    public TransactionThread(Table[] tables, ArrayList<WorkGroup> workGroups, CheckType checkType,
+    public TransactionThread(Table[] tables, ArrayList<BaseWorkGroup> workGroups, CheckType checkType,
                              int runCount, CountDownLatch count) throws SQLException {
         this.runCount = runCount;
         this.count = count;
 
         mysqlConnector = new MysqlConnector();
-        for (WorkGroup workGroup : workGroups) {
+        for (BaseWorkGroup workGroup : workGroups) {
             switch (workGroup.getWorkGroupType()) {
                 case remittance:
                     if (checkType.isUpdateWithSelect()) {
@@ -67,6 +71,29 @@ public class TransactionThread implements Runnable {
                     BaseTransaction writeSkewTransaction = new WriteSkewTransaction(tables,
                             workGroup, mysqlConnector);
                     transactions.add(writeSkewTransaction);
+                    break;
+                case noCommit:
+                    BaseTransaction updateNoCommitTransaction = new UpdateNoCommitTransaction(
+                            workGroup, mysqlConnector);
+                    transactions.add(updateNoCommitTransaction);
+                    BaseTransaction selectNoCommitTransaction = new SelectNoCommitTransaction(
+                            workGroup, mysqlConnector);
+                    transactions.add(selectNoCommitTransaction);
+                    break;
+                case repeatableRead:
+                    BaseTransaction repeatableReadTransaction=new RepeatableReadTransaction(
+                            workGroup,mysqlConnector);
+                    transactions.add(repeatableReadTransaction);
+                    break;
+                case phantomRead:
+                    if(((PhantomReadWorkGroup)workGroup).isChangeTableSize()){
+                        BaseTransaction changeTableSize=new ChangeTableSize(tables,
+                                workGroup,mysqlConnector);
+                        transactions.add(changeTableSize);
+                    }
+                    BaseTransaction scanTransaction=new ScanTransaction(tables,
+                            workGroup,mysqlConnector);
+                    transactions.add(scanTransaction);
                     break;
                 default:
                     try {

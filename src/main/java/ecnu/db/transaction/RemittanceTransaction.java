@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
-import ecnu.db.core.WorkGroup;
-import ecnu.db.core.WorkNode;
+import ecnu.db.workGroup.BaseWorkGroup;
+import ecnu.db.workGroup.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
 
@@ -23,7 +23,7 @@ public class RemittanceTransaction extends BaseTransaction {
     private ArrayList<PreparedStatement> subSelectStatement = new ArrayList<>();
     private ArrayList<PreparedStatement> subStatement = new ArrayList<>();
 
-    public RemittanceTransaction(Table[] tables, WorkGroup workGroup,
+    public RemittanceTransaction(Table[] tables, BaseWorkGroup workGroup,
                                  MysqlConnector mysqlConnector, boolean forUpdate) throws SQLException {
         super(mysqlConnector, true);
         //确保工作组的类型正确
@@ -38,16 +38,16 @@ public class RemittanceTransaction extends BaseTransaction {
         }
     }
 
-    public RemittanceTransaction(Table[] tables, WorkGroup workGroup,
+    public RemittanceTransaction(Table[] tables, BaseWorkGroup workGroup,
                                  MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
         remittanceTransaction(tables, workGroup, mysqlConnector);
     }
 
-    private void remittanceTransaction(Table[] tables, WorkGroup workGroup,
+    private void remittanceTransaction(Table[] tables, BaseWorkGroup workGroup,
                                        MysqlConnector mysqlConnector) throws SQLException {
         //确保工作组的类型正确
-        assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.remittance;
+        assert workGroup.getWorkGroupType() == BaseWorkGroup.WorkGroupType.remittance;
         this.tables = tables;
         inNode = new ArrayList<>(workGroup.getIn());
         outNode = new ArrayList<>(workGroup.getOut());
@@ -67,26 +67,25 @@ public class RemittanceTransaction extends BaseTransaction {
         //随机做减的表格和SQL信息
         int randomOutIndex = r.nextInt(outNode.size());
         WorkNode workOut = outNode.get(randomOutIndex);
-        int workOutPriKey = workOut.getSubValueList().get(tables[workOut.getTableIndex()].getDistributionIndex() - 1);
-
+        int workOutPriKey = workOut.getSubKey();
         Double subNum = tables[workOut.getTableIndex()].getTransactionValue(workOut.getTupleIndex());
         preparedOutStatement = subStatement.get(randomOutIndex);
-        preparedOutSelectStatement = subSelectStatement.get(randomOutIndex);
+
 
         //随机做加的表格和SQL信息
         int randomInIndex = r.nextInt(inNode.size());
         WorkNode workIn = inNode.get(randomInIndex);
-        int workInPriKey = workIn.getAddValueList().get(tables[workIn.getTableIndex()].getDistributionIndex() - 1);
+        int workInPriKey = workIn.getAddKey();
 
         preparedInStatement = addStatement.get(randomInIndex);
-        preparedInSelectStatement = addSelectStatement.get(randomInIndex);
-
 
         if (isSelect) {
+            preparedOutSelectStatement = subSelectStatement.get(randomOutIndex);
             preparedOutSelectStatement.setInt(1, workOutPriKey);
             ResultSet rs = preparedOutSelectStatement.executeQuery();
             rs.next();
             preparedOutStatement.setDouble(1, rs.getDouble(1) - subNum);
+            preparedInSelectStatement = addSelectStatement.get(randomInIndex);
         } else {
             preparedOutStatement.setDouble(1, subNum);
         }
@@ -100,7 +99,7 @@ public class RemittanceTransaction extends BaseTransaction {
             return;
         }
 
-        if (!FunctionTransaction.executeAdd(isSelect, preparedInSelectStatement,
+        if (FunctionTransaction.executeAdd(isSelect, preparedInSelectStatement,
                 preparedInStatement, workInPriKey, subNum)) {
             mysqlConnector.rollback();
             return;

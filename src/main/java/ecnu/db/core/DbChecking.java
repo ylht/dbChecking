@@ -7,6 +7,8 @@ import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.RandomTupleSize;
+import ecnu.db.workGroup.BaseWorkGroup;
+import ecnu.db.workGroup.InitAllWorkGroup;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;
@@ -19,26 +21,36 @@ import java.util.concurrent.CountDownLatch;
  * 核心校验类，包含前置求和 后置求和 以及事务执行的相关代码
  */
 public class DbChecking {
-    private ArrayList<WorkGroup> workGroups;
+    private ArrayList<BaseWorkGroup> workGroups;
     private Table[] tables;
     private CheckType checkType;
 
-    public DbChecking() {
+    public DbChecking(CheckType checkType) {
         //初始化数据表
+        this.checkType = checkType;
         tables = new Table[LoadConfig.getConfig().getTableNum()];
         int tableSizes = LoadConfig.getConfig().getTableSize();
-        RandomTupleSize randomTupleSize = new RandomTupleSize(
-                tables.length, LoadConfig.getConfig().getTupleNum());
-        for (int i = 0; i < tables.length; i++) {
-            tables[i] = new Table(i, tableSizes, randomTupleSize.getTupleSize());
+
+        if (checkType.getCheckKind() == CheckType.CheckKind.Serializable) {
+            tables[0] = new Table(0, tableSizes, 1);
+            RandomTupleSize randomTupleSize = new RandomTupleSize(
+                    tables.length - 1,
+                    LoadConfig.getConfig().getTupleNum() - 1);
+            for (int i = 1; i < tables.length; i++) {
+                int colSize = randomTupleSize.getTupleSize();
+                tables[i] = new Table(i, tableSizes, colSize);
+            }
+        } else {
+            RandomTupleSize randomTupleSize = new RandomTupleSize(
+                    tables.length, LoadConfig.getConfig().getTupleNum());
+            for (int i = 0; i < tables.length; i++) {
+                int colSize = randomTupleSize.getTupleSize();
+                tables[i] = new Table(i, tableSizes, colSize);
+            }
         }
+
     }
 
-    public void setCheckType(CheckType checkType) {
-        this.checkType = checkType;
-        workGroups = new WorkGroups(tables, checkType.getCheckKind()).getWorkGroups();
-        printWorkGroup();
-    }
 
     /**
      * 重建scheme
@@ -55,6 +67,9 @@ public class DbChecking {
                 mysqlConnector.executeSql(table.getSQL());
             }
             mysqlConnector.createOrderTable();
+            if (checkType.getCheckKind() == CheckType.CheckKind.Serializable) {
+                mysqlConnector.createPhantomReadRecordTable();
+            }
             System.out.println("数据库scheme重建成功！");
             mysqlConnector.close();
         } catch (SQLException e) {
@@ -81,6 +96,9 @@ public class DbChecking {
     }
 
     public void check() {
+        //初始化工作组
+        workGroups = new InitAllWorkGroup(tables, checkType).getWorkGroups();
+        printWorkGroup();
         try {
             computeSum(true);
         } catch (SQLException e) {
@@ -118,6 +136,7 @@ public class DbChecking {
                 System.out.println("线程组初始化失败");
                 System.exit(-1);
             }
+            //transactionThread.run();
             DbCheckingThreadPool.getThreadPoolExecutor().submit(transactionThread);
         }
         try {
@@ -130,14 +149,14 @@ public class DbChecking {
     }
 
     private void printWorkGroup() {
-        for (WorkGroup workGroup : workGroups) {
+        for (BaseWorkGroup workGroup : workGroups) {
             System.out.println(workGroup);
         }
     }
 
     private void computeSum(Boolean isBegin) throws SQLException {
         MysqlConnector mysqlConnector = new MysqlConnector();
-        for (WorkGroup workGroup : workGroups) {
+        for (BaseWorkGroup workGroup : workGroups) {
             workGroup.computeAllSum(isBegin, mysqlConnector);
         }
         mysqlConnector.close();
@@ -145,7 +164,7 @@ public class DbChecking {
 
     private boolean checkCorrect() {
         boolean checkResult = true;
-        for (WorkGroup workGroup : workGroups) {
+        for (BaseWorkGroup workGroup : workGroups) {
             boolean temp = workGroup.checkCorrect();
             if (!temp) {
                 System.out.println(workGroup.getWorkGroupType() + "验证失败");

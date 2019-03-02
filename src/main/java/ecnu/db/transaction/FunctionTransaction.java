@@ -1,7 +1,8 @@
 package ecnu.db.transaction;
 
-import ecnu.db.core.WorkGroup;
-import ecnu.db.core.WorkNode;
+import ecnu.db.workGroup.BaseWorkGroup;
+import ecnu.db.workGroup.FunctionWorkGroup;
+import ecnu.db.workGroup.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
 
@@ -21,13 +22,13 @@ public class FunctionTransaction extends BaseTransaction {
     private WorkNode outNode;
 
 
-    public FunctionTransaction(Table[] tables, WorkGroup workGroup,
+    public FunctionTransaction(Table[] tables, BaseWorkGroup workGroup,
                                MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
         functionTransaction(tables, workGroup, mysqlConnector);
     }
 
-    public FunctionTransaction(Table[] tables, WorkGroup workGroup,
+    public FunctionTransaction(Table[] tables, BaseWorkGroup workGroup,
                                MysqlConnector mysqlConnector, boolean forUpdate) throws SQLException {
         super(mysqlConnector, true);
         functionTransaction(tables, workGroup, mysqlConnector);
@@ -54,15 +55,15 @@ public class FunctionTransaction extends BaseTransaction {
 
         if (preparedStatement.executeUpdate() == 0) {
             System.out.println("执行失败:" + preparedStatement);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private void functionTransaction(Table[] tables,
-                                     WorkGroup workGroup, MysqlConnector mysqlConnector) throws SQLException {
+                                     BaseWorkGroup workGroup, MysqlConnector mysqlConnector) throws SQLException {
         //确保工作组的类型正确
-        assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.function;
+        assert workGroup.getWorkGroupType() == BaseWorkGroup.WorkGroupType.function;
         this.tables = tables;
         inNode = workGroup.getIn().get(0);
         outNode = workGroup.getOut().get(0);
@@ -72,16 +73,15 @@ public class FunctionTransaction extends BaseTransaction {
         preparedOutStatement = mysqlConnector.getRemittanceUpdate(true, outNode.getTableIndex(),
                 outNode.getTupleIndex(), isSelect);
 
-        this.k = workGroup.getK();
+        this.k = ((FunctionWorkGroup)workGroup).getK();
     }
 
     @Override
     public void execute() throws SQLException {
         Double subNum = tables[outNode.getTableIndex()].getTransactionValue(outNode.getTupleIndex());
-        int workOutPriKey = outNode.getSubValueList().get(tables[outNode.getTableIndex()].getDistributionIndex() - 1);
-        int workInPriKey = inNode.getAddValueList().get(tables[inNode.getTableIndex()].getDistributionIndex() - 1);
-
-        if (!executeAdd(isSelect, preparedOutSelectStatement, preparedOutStatement, workOutPriKey, subNum)) {
+        int workOutPriKey = outNode.getSubKey();
+        int workInPriKey = inNode.getAddKey();
+        if (executeAdd(isSelect, preparedOutSelectStatement, preparedOutStatement, workOutPriKey, subNum)) {
             mysqlConnector.rollback();
             return;
         }
@@ -89,7 +89,6 @@ public class FunctionTransaction extends BaseTransaction {
             mysqlConnector.rollback();
             return;
         }
-        mysqlConnector.rollback();
-
+        mysqlConnector.commit();
     }
 }

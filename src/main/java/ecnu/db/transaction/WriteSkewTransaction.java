@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
-import ecnu.db.core.WorkGroup;
-import ecnu.db.core.WorkNode;
+import ecnu.db.workGroup.BaseWorkGroup;
+import ecnu.db.workGroup.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
 
@@ -16,10 +16,10 @@ public class WriteSkewTransaction extends BaseTransaction {
     private ArrayList<PreparedStatement> preparedSelectStatements = new ArrayList<>();
     private ArrayList<PreparedStatement> preparedStatements = new ArrayList<>();
 
-    public WriteSkewTransaction(Table[] tables, WorkGroup workGroup,
+    public WriteSkewTransaction(Table[] tables, BaseWorkGroup workGroup,
                                 MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
-        assert workGroup.getWorkGroupType() == WorkGroup.WorkGroupType.writeSkew;
+        assert workGroup.getWorkGroupType() == BaseWorkGroup.WorkGroupType.writeSkew;
 
         this.tables = tables;
         nodes = workGroup.getOut();
@@ -45,8 +45,7 @@ public class WriteSkewTransaction extends BaseTransaction {
 
         preparedInSelectStatement = preparedSelectStatements.get(randomInIndex);
 
-        int workOutPriKey = workOut.getSubValueList().get(
-                tables[workOut.getTableIndex()].getDistributionIndex() - 1);
+        int workOutPriKey = workOut.getSubKey();
 
         preparedOutSelectStatement.setInt(1, workOutPriKey);
         ResultSet rsOut = preparedOutSelectStatement.executeQuery();

@@ -1,6 +1,6 @@
 package ecnu.db.utils;
 
-import ecnu.db.core.WorkNode;
+import ecnu.db.workGroup.WorkNode;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -93,12 +93,20 @@ public class MysqlConnector {
         }
         sql = "DROP TABLE IF EXISTS order_item";
         executeSql(sql);
+        sql="DROP TABLE IF EXISTS phantom_read_record";
+        executeSql(sql);
     }
 
     public void createOrderTable() throws SQLException {
         String sql = "CREATE TABLE order_item (tableIndex INT,tupleIndex INT)";
         executeSql(sql);
     }
+
+    public void createPhantomReadRecordTable() throws SQLException {
+        String sql = "CREATE TABLE phantom_read_record (tableIndex int,type int)";
+        executeSql(sql);
+    }
+
 
     //基本事务语句
 
@@ -147,6 +155,12 @@ public class MysqlConnector {
         return conn.prepareStatement(sql);
     }
 
+    public PreparedStatement insertOrderItem(int tableIndex,int tupleIndex) throws SQLException {
+        String sql="insert into order_item values ("+tableIndex+","+tupleIndex+")";
+        return conn.prepareStatement(sql);
+    }
+
+
     public PreparedStatement getWriteSkewUpdate(int tableIndex, int tupleIndex) throws SQLException {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
@@ -164,11 +178,22 @@ public class MysqlConnector {
         String tupleName = "tp" + tupleIndex;
         String keyName = "tp0";
         String sql = "update " + tableName +
-                " set " + keyName + "= - " + keyName +
-                " where " + tupleName + " between ? and ?";
+                " set " + tupleName + "= - " + tupleName +
+                " where " + keyName + " between ? and ?";
 
         return conn.prepareStatement(sql);
+    }
 
+    public PreparedStatement getInsertNoCommitColStatement(int tableIndex) throws SQLException{
+        String sql="update t"+tableIndex+" set checkNoCommit =? where tp0 =? and checkNoCommit>=0";
+        return conn.prepareStatement(sql);
+    }
+
+    //可重复读事务语句
+
+    public PreparedStatement getInsertRepeatableReadColStatement(int tableIndex) throws SQLException {
+        String sql="update t"+tableIndex+" set checkRepeatableRead =checkRepeatableRead+? where tp0 =? and checkNoCommit>=0";
+        return conn.prepareStatement(sql);
     }
 
     //幻读事务语句
@@ -212,8 +237,34 @@ public class MysqlConnector {
         return conn.prepareStatement(sql);
     }
 
+    public PreparedStatement getInsertPhantomReadRecordStatement(int tableIndex) throws SQLException {
+        String sql="insert into phantom_read_record values("+tableIndex+",?)";
+        return conn.prepareStatement(sql);
+    }
+
 
     //验证语句
+
+    public int getPhantomRecordNum() throws SQLException {
+        String sql="select count(*) from phantom_read_record";
+        ResultSet rs = stmt.executeQuery(sql);
+        rs.next();
+        return rs.getInt(1);
+    }
+
+    public int getNoCommitCount(int tableIndex) throws SQLException {
+        String sql="select count(*) from t"+tableIndex+" where checkNoCommit<0";
+        ResultSet rs=stmt.executeQuery(sql);
+        rs.next();
+        return rs.getInt(1);
+    }
+
+    public int getSumRepeatableRead(int tableIndex) throws SQLException {
+        String sql="select count(*) from t"+tableIndex+" where checkRepeatableRead!=0";
+        ResultSet rs=stmt.executeQuery(sql);
+        rs.next();
+        return rs.getInt(1);
+    }
 
     public int getWriteSkewResult(ArrayList<WorkNode> workNodes) throws SQLException {
         StringBuilder sql = new StringBuilder("select count(*) from ");
@@ -243,6 +294,14 @@ public class MysqlConnector {
         rs.next();
         return rs.getInt(1);
 
+    }
+
+    public int getOrderItem(int tableIndex,int tupleIndex) throws SQLException {
+        String sql="select count(*) from order_item" +
+                " where tableIndex="+tableIndex+" and tupleIndex ="+tupleIndex;
+        ResultSet rs = stmt.executeQuery(sql);
+        rs.next();
+        return rs.getInt(1);
     }
 
     public Double sumColumn(int tableIndex, int tupleIndex) throws SQLException {

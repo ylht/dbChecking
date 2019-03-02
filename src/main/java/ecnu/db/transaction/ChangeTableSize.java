@@ -1,45 +1,40 @@
 package ecnu.db.transaction;
 
 import ecnu.db.scheme.Table;
+import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
+import ecnu.db.workGroup.BaseWorkGroup;
+import ecnu.db.workGroup.WorkNode;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class ChangeTableSize extends BaseTransaction {
-    private boolean insert;
     private Table table;
-    private int randomSize;
-    private PreparedStatement changeTablePrepareStatement;
 
-
-    public ChangeTableSize(boolean insert, Table table, MysqlConnector mysqlConnector)
+    public ChangeTableSize(Table[] tables, BaseWorkGroup workGroup, MysqlConnector mysqlConnector)
             throws SQLException {
         super(mysqlConnector, false);
-        this.insert = insert;
-        this.table = table;
-        if (insert) {
-            changeTablePrepareStatement = mysqlConnector.getInsertStatement(
-                    table.getTableIndex(), table.getTableColSizeExceptKey());
-        } else {
-            changeTablePrepareStatement = mysqlConnector.getDeleteStatement(
-                    table.getTableIndex());
-        }
+        WorkNode node=workGroup.getIn().get(0);
+        table=tables[node.getTableIndex()];
+        preparedInStatement = mysqlConnector.getInsertStatement(
+                node.getTableIndex(), tables[node.getTableIndex()].getTableColSizeForInsert());
+        preparedOutStatement = mysqlConnector.getDeleteStatement(node.getTableIndex());
+
     }
 
     @Override
     public void execute() throws SQLException {
-        if (insert) {
+        if (r.nextDouble()> LoadConfig.getConfig().getTableSparsity()) {
             Object[] values = table.getInsertValue();
             int i = 1;
             for (Object value : values) {
-                changeTablePrepareStatement.setObject(i++, value);
+                preparedInStatement.setObject(i++, value);
             }
-            changeTablePrepareStatement.executeUpdate();
+            preparedInStatement.executeUpdate();
             mysqlConnector.commit();
         } else {
-            changeTablePrepareStatement.setInt(1, table.getRandomKey());
-            changeTablePrepareStatement.executeUpdate();
+            preparedOutStatement.setInt(1, table.getRandomKey());
+            preparedOutStatement.executeUpdate();
             mysqlConnector.commit();
         }
     }
