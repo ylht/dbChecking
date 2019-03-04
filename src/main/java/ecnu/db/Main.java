@@ -1,12 +1,10 @@
 package ecnu.db;
 
-import ecnu.db.core.CheckType;
-import ecnu.db.core.DbChecking;
+import ecnu.db.work.CheckType;
+import ecnu.db.work.DbChecking;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import org.apache.logging.log4j.LogManager;
-
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author wangqingshuai

@@ -1,6 +1,5 @@
-package ecnu.db.workGroup;
+package ecnu.db.work.group;
 
-import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
@@ -70,8 +69,8 @@ public abstract class BaseWorkGroup {
     public abstract void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException;
 
     /**
-     *
-     * @return 该工作组是否维持了一致性
+     * 该工作组是否维持了一致性
+     * @return 满足返回true否则返回false
      */
     public abstract boolean checkCorrect();
 

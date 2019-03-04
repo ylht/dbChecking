@@ -2,8 +2,8 @@ package ecnu.db.transaction;
 
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
-import ecnu.db.workGroup.BaseWorkGroup;
-import ecnu.db.workGroup.WorkNode;
+import ecnu.db.work.group.BaseWorkGroup;
+import ecnu.db.work.group.WorkNode;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

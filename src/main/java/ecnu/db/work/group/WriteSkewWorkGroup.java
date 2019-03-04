@@ -1,22 +1,24 @@
-package ecnu.db.workGroup;
+package ecnu.db.work.group;
 
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
-public class RepeatableReadWorkGroup extends BaseWorkGroup{
+class WriteSkewWorkGroup extends BaseWorkGroup {
     private int errCount;
-    RepeatableReadWorkGroup() {
-        super(WorkGroupType.repeatableRead);
+    WriteSkewWorkGroup() {
+        super(WorkGroupType.writeSkew);
     }
 
     @Override
     public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
-        errCount=mysqlConnector.getSumRepeatableRead(in.get(0).getTableIndex());
+        if(!isBegin){
+            errCount = mysqlConnector.getWriteSkewResult(out);
+        }
     }
 
     @Override
     public boolean checkCorrect() {
-        return errCount==0;
+        return errCount == 0;
     }
 }

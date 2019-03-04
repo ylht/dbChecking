@@ -1,11 +1,11 @@
 package ecnu.db.threads;
 
-import ecnu.db.core.CheckType;
-import ecnu.db.workGroup.BaseWorkGroup;
+import ecnu.db.work.CheckType;
+import ecnu.db.work.group.BaseWorkGroup;
 import ecnu.db.scheme.Table;
 import ecnu.db.transaction.*;
 import ecnu.db.utils.MysqlConnector;
-import ecnu.db.workGroup.PhantomReadWorkGroup;
+import ecnu.db.work.group.PhantomReadWorkGroup;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;

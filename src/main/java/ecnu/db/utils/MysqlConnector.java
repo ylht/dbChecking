@@ -1,6 +1,6 @@
 package ecnu.db.utils;
 
-import ecnu.db.workGroup.WorkNode;
+import ecnu.db.work.group.WorkNode;
 
 import java.sql.*;
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
-package ecnu.db.workGroup;
+package ecnu.db.work.group;
 
-import ecnu.db.core.CheckType;
+import ecnu.db.work.CheckType;
 import ecnu.db.scheme.Table;
 
 import java.util.ArrayList;

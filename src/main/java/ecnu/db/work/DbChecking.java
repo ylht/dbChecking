@@ -1,4 +1,4 @@
-package ecnu.db.core;
+package ecnu.db.work;
 
 import ecnu.db.scheme.Table;
 import ecnu.db.threads.LoadData;
@@ -7,8 +7,9 @@ import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.RandomTupleSize;
-import ecnu.db.workGroup.BaseWorkGroup;
-import ecnu.db.workGroup.InitAllWorkGroup;
+import ecnu.db.work.CheckType;
+import ecnu.db.work.group.BaseWorkGroup;
+import ecnu.db.work.group.InitAllWorkGroup;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;
@@ -136,7 +137,6 @@ public class DbChecking {
                 System.out.println("线程组初始化失败");
                 System.exit(-1);
             }
-            //transactionThread.run();
             DbCheckingThreadPool.getThreadPoolExecutor().submit(transactionThread);
         }
         try {

@@ -1,4 +1,4 @@
-package ecnu.db.workGroup;
+package ecnu.db.work.group;
 
 import ecnu.db.scheme.DoubleTuple;
 import ecnu.db.utils.MysqlConnector;

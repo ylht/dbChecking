@@ -1,4 +1,4 @@
-package ecnu.db.workGroup;
+package ecnu.db.work.group;
 
 import org.apache.commons.math3.distribution.ZipfDistribution;
 
