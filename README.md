@@ -8,46 +8,80 @@
 
    + 定义
 
-     事务在一组列内操作，首先在其中选取一列，从该列中的一项中减去一个数，再将这个数加到另一个随机选择的列的随机一项上，随机的列可以是本列。
+   事务在一组列内执行，执行过程中首先选取组内一列，从该列中的一个tuple中减去一个数，再将这个数加到另一个随机选择的列的随机一个tuple上，随机的列可以是本列。
 
-     验证方式为，需要确保所有列的起始和和终止和一致。
+   验证方式为需要确保所有列开始事务计算前的和与结束事务计算之后的和保持一致。
 
    + 事务模版
 
-   ```sql
-   update TABLE_1 set column_a = column_a - <value> where key=x and coulumn_a > <value>
-   update TABLE_2 set column_b = column_b + <value> where key=y
-   ```
+     1. 单update语句
+
+        ```sql
+        update TABLE_1 set column_a = column_a - <value> where key=x and coulumn_a > <value>
+        update TABLE_2 set column_b = column_b + <value> where key=y
+        ```
+
+     2. select后update语句
+
+        ```sql
+        select column_a from TABLE_1 where key=x
+        update TABLE_1 set column_a = <column_a> - <value> where key=x and coulumn_a > <value>
+        select column_b from TABLE_2 where key=y
+        update TABLE_2 set column_b = <column_b> + <value> where key=y
+        ```
+
+     3. select…… for update后update语句
+
+        ```sql
+        select column_a from TABLE_1 where key=x for update
+        update TABLE_1 set column_a = <column_a> - <value> where key=x and coulumn_a > <value>
+        select column_b from TABLE_2 where key=y for update
+        update TABLE_2 set column_b = <column_b> + <value> where key=y
+        ```
 
    + 正确性验证公式
 
-   $$
-   sum(column\_a)_{pre}+sum(column\_b)_{pre}\\
-   =sum(column\_a)_{post}+sum(column\_b)_{post}
-   $$
+     𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_a)\_{𝑝𝑟𝑒}+𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑏)\_{𝑝𝑟𝑒}=sum(column\_a)\_{post}+sum(column_b)\_{post}
+
 
 2. 比例型事务
 
    + 定义：
 
-     事务在两个列上进行操作，对这两个列同时做加，每次需要保证在第二个列上加的值是一个列的K倍。
+     事务在两个列上进行操作，每次在两个列上随机选择两个tuple，在一个tuple上加一个值value，然后在第二个tuple上加上k*value。
 
-     验证方式为，需要确保第二列的终止和减去起始和为第一列的终止和减去起始和的K倍。
+     验证方式为需要确保第二列的终止和减去起始和为第一列的终止和减去起始和的K倍。
 
    + 事务模版
 
-   ```sql
-   update TABLE_1 set column_a= column_a + <value> where key=x
-   update TABLE_2 set column_b = column_b + k * <value> where key=y 
-   ```
+     1. 单update语句
+
+        ```sql
+        update TABLE_1 set column_a= column_a + <value> where key=x
+        update TABLE_2 set column_b = column_b + k * <value> where key=y 
+        ```
+
+     2. select后update语句
+
+        ```sql
+        select column_a from TABLE_1 where key = x
+        update TABLE_1 set column_a= column_a + <value> where key=x
+        select column_a from TABLE_1 where key = y
+        update TABLE_2 set column_b = column_b + k * <value> where key=y 
+        ```
+
+     3. select…… for update后update语句
+
+        ```sql
+        select column_a from TABLE_1 where key = x for update
+        update TABLE_1 set column_a= column_a + <value> where key=x
+        select column_a from TABLE_1 where key = y for update
+        update TABLE_2 set column_b = column_b + k * <value> where key=y 
+        ```
 
    + 正确性验证公式
 
-   $$
-   𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑏)_{𝑝𝑜𝑠𝑡}−𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑏)_{𝑝𝑟𝑒}\\=𝑘∗(𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)_{𝑝𝑜𝑠𝑡}−𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)_{𝑝𝑟𝑒})
-   $$
-
-   
+     𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑏)\_{𝑝𝑜𝑠𝑡}−𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑏)_{𝑝𝑟𝑒}=𝑘∗(𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)\_{𝑝𝑜𝑠𝑡}−𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)\_{𝑝𝑟𝑒})
 
 3. 订单事务
 
@@ -55,32 +89,46 @@
 
      事务在单列上操作，每次选取该列的一个元组对其减1，然后在ITEM表中插入一个记录项。
 
-     验证方式为，需要保证ITEM表中的记录项数量之和等于该列的起始和减去终止和。
+     验证方式为需要保证ITEM表中的记录项数量之和等于该列的起始和减去终止和。
 
    + 事务模版
 
-     ```sql
-     update TABLE_1 set column_a = column_a -1 where key=x
-     Insert into ITEM values(<TABLE_1>,<column_a>)
-     ```
+     1. 单update语句
+
+        ```sql
+        update TABLE_1 set column_a = column_a -1 where key=x > 0
+        insert into ITEM values(<TABLE_1>,<column_a>)
+        ```
+
+     2. select后update语句
+
+        ```sql
+        select column_a from TABLE_1 where key = x
+        update TABLE_1 set column_a = <column_a> - 1 where key=x > 0
+        insert into ITEM values(<TABLE_1>,<column_a>)
+        ```
+
+     3. select…… for update 后update语句
+
+        ```sql
+        select column_a from TABLE_1 where key = x for update 
+        update TABLE_1 set column_a = <column_a> - 1 where key=x > 0
+        insert into ITEM values(<TABLE_1>,<column_a>)
+        ```
 
    + 正确性验证公式
-   
-     $$
-     𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)_{𝑝𝑟𝑒}−𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)_{𝑝𝑜𝑠𝑡}=\\
-     𝑐𝑜𝑢𝑛𝑡(𝐼𝑇𝐸𝑀.𝑡𝑎𝑏𝑙𝑒𝑁𝑎𝑚𝑒=𝑇𝐴𝐵𝐿𝐸\_1,𝐼𝑇𝐸𝑀.𝑐𝑜𝑙𝑢𝑚𝑛𝑁𝑎𝑚𝑒=𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)
-     $$
-     
+
+     > 𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)_{𝑝𝑟𝑒}−𝑠𝑢𝑚(𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)_{𝑝𝑜𝑠𝑡}=𝑐𝑜𝑢𝑛𝑡(𝐼𝑇𝐸𝑀.𝑡𝑎𝑏𝑙𝑒𝑁𝑎𝑚𝑒=𝑇𝐴𝐵𝐿𝐸\_1,𝐼𝑇𝐸𝑀.𝑐𝑜𝑙𝑢𝑚𝑛𝑁𝑎𝑚𝑒=𝑐𝑜𝑙𝑢𝑚𝑛\_𝑎)
 
 ### Read Uncommitted
 
-采用基础事务即可，验证是否存在脏写。
+1. 脏写
+
+   验证可以采用基础事务中的1.1，2.1，3.1即可。
 
 ### Read Committed
 
-1. 脏写
-
-   采用基础事务即可
+1. 脏写可以采用如上阐述的验证方案
 
 2. 脏读
 
@@ -107,26 +155,18 @@
 
      ```sql
      select column_a from TABLE_1 where key = z
-     update TABLE_1 set Record = <column_a> where key = z and Record>=0;
+     update TABLE_1 set record = <column_a> where key = z and record>=0;
      ```
 
    + 正确性验证公式
 
-     $$
-     count(TABLE\_1.Record<0)=0
-     $$
+     > count(TABLE\_1.record<0)=0
 
 ### Repeatable Read
 
-1. 脏写
+1. 脏写，脏读可以采用如上阐述的验证方案
 
-   采用基础事务即可
-
-2. 脏读
-
-   事务和检验方式同Read Committed
-
-3. 模糊读/不可重复读
+2. 模糊读/不可重复读
 
    + 事务定义
 
@@ -140,27 +180,21 @@
      select column_a from TABLE_1  where key=x
      Thread sleep a time
      select column_a from TABLE_1  where key=x
-     update TABLE_1 set Diff_Record = Diff_Record + diff<column_a> where key = x
+     update TABLE_1 set diff_record = diff_record + diff<column_a> where key = x
      ```
 
    + 正确性验证公式
-   
+
      $$
-     𝑐𝑜𝑢𝑛𝑡(Diff\_Record!=0)=0
+     𝑐𝑜𝑢𝑛𝑡(diff\_record!=0)=0
      $$
      
 
-### Serialiable
+### Serializable
 
-1. 脏写，幻读
+1. 脏写，脏读，不可重复读可以采用如上阐述的验证方案
 
-   将基础事务的执行语句改为先select后update的方案（待证明），或者可以采用之前的阐述的事务来检测，如果可以证明，便可以将事务量简化，同时似乎丢失更新和读偏也可以用该事务一同验证，不过仍是待证明。
-
-2. 脏读
-
-   采用Read Committed中的验证方案
-
-3. 幻读
+2. 幻读
 
    + 事务定义
 
@@ -189,27 +223,23 @@
      2. 事务2
 
      ```sql
-     select key from TABLE_1 where column_a between x and y
+     select key , column_a from TABLE_1 where key between x and y
      Thread sleep a time
-     update TABLE_1 set column_a = column_a +1 where column_a between x and y
-     select key from TABLE_1 where column_a between x+1 and y+1
-     rollback
-     ```
-
-     3. 插入事务
-
-     ```sql
-     insert into Phantom_Read values (<Table_1>,Error_Type)
+     select key , column_a from TABLE_1 where key between x and y
+     compute in local:
+     	compare all items in key_pre,column_a_pre with items in key_post,column_a_post
+     	if(there is an uneaqual item):
+     		execute sql:
+     			insert into Phantom_Read values(TABLE_1,Error_Type)
      ```
 
    + 正确性验证公式
-   
+
      $$
      count(Phantom\_Read)=0
      $$
-     
 
-4. 写偏
+3. 写偏
 
    + 事务定义
 
@@ -226,8 +256,10 @@
      ```
 
    + 正确性验证公式
+
+   $$
+   count((column\_a+coulumn\_b)<0)=0
+   $$
+
    
-     $$
-     count((column\_a+coulumn\_b)<0)=0
-     $$
-     
+
