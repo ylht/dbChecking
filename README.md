@@ -218,7 +218,8 @@
      ```
      
      ```sql 
-     delete from TABLE_1 where key =x ```
+     delete from TABLE_1 where key =x 
+     ```
      
      ```sql
      update TABLE_1 set column_a = value where key = x
