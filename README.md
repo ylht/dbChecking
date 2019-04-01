@@ -65,18 +65,18 @@
 
         ```sql
         select column_a from TABLE_1 where key = x
-        update TABLE_1 set column_a= column_a + <value> where key=x
+        update TABLE_1 set column_a= <column_a> + <value> where key=x
         select column_a from TABLE_1 where key = y
-        update TABLE_2 set column_b = column_b + k * <value> where key=y 
+        update TABLE_2 set column_b = <column_b> + k * <value> where key=y 
         ```
 
      3. select…… for update后update语句
 
         ```sql
         select column_a from TABLE_1 where key = x for update
-        update TABLE_1 set column_a= column_a + <value> where key=x
+        update TABLE_1 set column_a= <column_a> + <value> where key=x
         select column_a from TABLE_1 where key = y for update
-        update TABLE_2 set column_b = column_b + k * <value> where key=y 
+        update TABLE_2 set column_b = <column_b> + k * <value> where key=y 
         ```
 
    + 正确性验证公式
@@ -124,7 +124,7 @@
 
 1. 脏写
 
-   验证可以采用基础事务中的1.1，2.1，3.1即可。
+   验证可以采用基础事务中的1.a，2.a，3.a即可。
 
 ### Read Committed
 
@@ -169,18 +169,23 @@
 2. 模糊读/不可重复读
 
    + 事务定义
-
-     对一个列执行select语句，之后sleep一段时间，再次对该列做select，将两次的差值的绝对值加到记录项上。
+     采用两组事务
+     1. 事务1对一列进行range修改
+     2. 事务2对本列的一个随机tuple执行select语句，之后sleep一段时间，再次对该tuple做select，将两次的差值的绝对值加到记录项上。 
 
      验证时需要确保记录项所有的值应该全部等于0。
 
    + 事务模板
-
+     1. 更新事务
      ```sql
-     select column_a from TABLE_1  where key=x
+     update TABLE_1 set column_a = column_a+1 where key between x and y
+     ```
+      2. 读取事务
+     ```sql
+     select column_a from TABLE_1  where key=z
      Thread sleep a time
-     select column_a from TABLE_1  where key=x
-     update TABLE_1 set diff_record = diff_record + abs(diff<column_a>) where key = x
+     select column_a from TABLE_1  where key=z
+     update TABLE_1 set diff_record = diff_record + abs(diff<column_a>) where key = z
      ```
 
    + 正确性验证公式
@@ -206,15 +211,14 @@
 
    + 事务模板
 
-     1. 事务1
+     1. 事务1每次执行时概率随机以下事务执行
 
-     ```sql
+     ```sql 
      insert into TABLE_1 values(?...?)
      ```
      
-     ```sql
-     delete from TABLE_1 where key =x
-     ```
+     ```sql 
+     delete from TABLE_1 where key =x ```
      
      ```sql
      update TABLE_1 set column_a = value where key = x
