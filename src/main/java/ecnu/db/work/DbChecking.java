@@ -7,7 +7,6 @@ import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.RandomTupleSize;
-import ecnu.db.work.CheckType;
 import ecnu.db.work.group.BaseWorkGroup;
 import ecnu.db.work.group.InitAllWorkGroup;
 import org.apache.logging.log4j.LogManager;
@@ -36,14 +35,14 @@ public class DbChecking {
             tables[0] = new Table(0, tableSizes, 1);
             RandomTupleSize randomTupleSize = new RandomTupleSize(
                     tables.length - 1,
-                    LoadConfig.getConfig().getTupleNum() - 1);
+                    LoadConfig.getConfig().getColumnNum() - 1);
             for (int i = 1; i < tables.length; i++) {
                 int colSize = randomTupleSize.getTupleSize();
                 tables[i] = new Table(i, tableSizes, colSize);
             }
         } else {
             RandomTupleSize randomTupleSize = new RandomTupleSize(
-                    tables.length, LoadConfig.getConfig().getTupleNum());
+                    tables.length, LoadConfig.getConfig().getColumnNum());
             for (int i = 0; i < tables.length; i++) {
                 int colSize = randomTupleSize.getTupleSize();
                 tables[i] = new Table(i, tableSizes, colSize);

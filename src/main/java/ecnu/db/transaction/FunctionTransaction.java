@@ -1,10 +1,10 @@
 package ecnu.db.transaction;
 
+import ecnu.db.scheme.Table;
+import ecnu.db.utils.MysqlConnector;
 import ecnu.db.work.group.BaseWorkGroup;
 import ecnu.db.work.group.FunctionWorkGroup;
 import ecnu.db.work.group.WorkNode;
-import ecnu.db.scheme.Table;
-import ecnu.db.utils.MysqlConnector;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -73,7 +73,7 @@ public class FunctionTransaction extends BaseTransaction {
         preparedOutStatement = mysqlConnector.getRemittanceUpdate(true, outNode.getTableIndex(),
                 outNode.getTupleIndex(), isSelect);
 
-        this.k = ((FunctionWorkGroup)workGroup).getK();
+        this.k = ((FunctionWorkGroup) workGroup).getK();
     }
 
     @Override

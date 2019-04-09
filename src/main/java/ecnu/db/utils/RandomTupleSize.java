@@ -9,7 +9,7 @@ public class RandomTupleSize {
 
     public RandomTupleSize(int totalTableNum, int totalTupleNum) {
         this.totalTableNum = totalTableNum;
-                        this.totalTupleNum = totalTupleNum;
+        this.totalTupleNum = totalTupleNum;
     }
 
     public int getTupleSize() {
@@ -20,7 +20,7 @@ public class RandomTupleSize {
             double max = (double) totalTupleNum / totalTableNum-- * 2;
             double size = r.nextDouble() * max;
             size = size <= min ? min : size;
-            totalTupleNum -=(int) size;
+            totalTupleNum -= (int) size;
             return (int) size;
         }
     }

@@ -6,13 +6,14 @@ import java.sql.SQLException;
 
 class WriteSkewWorkGroup extends BaseWorkGroup {
     private int errCount;
+
     WriteSkewWorkGroup() {
         super(WorkGroupType.writeSkew);
     }
 
     @Override
     public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
-        if(!isBegin){
+        if (!isBegin) {
             errCount = mysqlConnector.getWriteSkewResult(out);
         }
     }

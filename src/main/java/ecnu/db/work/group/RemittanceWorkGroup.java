@@ -1,6 +1,6 @@
 package ecnu.db.work.group;
 
-import ecnu.db.scheme.DoubleTuple;
+import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
@@ -45,6 +45,6 @@ class RemittanceWorkGroup extends BaseWorkGroup {
             beginSum += node.getBeginSum();
             endSum += node.getEndSum();
         }
-        return DoubleTuple.df.format(beginSum).equals(DoubleTuple.df.format(endSum));
+        return DecimalColumn.df.format(beginSum).equals(DecimalColumn.df.format(endSum));
     }
 }

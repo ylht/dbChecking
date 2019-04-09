@@ -1,9 +1,9 @@
 package ecnu.db;
 
-import ecnu.db.work.CheckType;
-import ecnu.db.work.DbChecking;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
+import ecnu.db.work.CheckType;
+import ecnu.db.work.DbChecking;
 import org.apache.logging.log4j.LogManager;
 
 /**
@@ -23,7 +23,7 @@ public class Main {
         dbChecking.createScheme();
         //载入数据
         dbChecking.loadData();
-        dbChecking.check();
+        //dbChecking.check();
         DbCheckingThreadPool.closeThreadPool();
     }
 

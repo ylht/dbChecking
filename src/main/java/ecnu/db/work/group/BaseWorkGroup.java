@@ -18,10 +18,11 @@ import java.util.Arrays;
 public abstract class BaseWorkGroup {
 
 
-    private WorkGroupType workGroupType;
     ArrayList<WorkNode> in = new ArrayList<>();
     ArrayList<WorkNode> out = new ArrayList<>();
     ArrayList<WorkNode> inout = new ArrayList<>();
+    private WorkGroupType workGroupType;
+
     BaseWorkGroup(WorkGroupType workGroupType) {
         this.workGroupType = workGroupType;
     }
@@ -62,7 +63,8 @@ public abstract class BaseWorkGroup {
 
     /**
      * 计算用于验证工作组正确性的相关数据
-     * @param isBegin 是否计算初始状态
+     *
+     * @param isBegin        是否计算初始状态
      * @param mysqlConnector 加载数据库驱动
      * @throws SQLException 抛出异常
      */
@@ -70,6 +72,7 @@ public abstract class BaseWorkGroup {
 
     /**
      * 该工作组是否维持了一致性
+     *
      * @return 满足返回true否则返回false
      */
     public abstract boolean checkCorrect();

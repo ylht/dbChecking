@@ -13,13 +13,13 @@ public class NoCommitWorkGroup extends BaseWorkGroup {
 
     @Override
     public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
-        if(!isBegin){
-            errCount=mysqlConnector.getNoCommitCount(in.get(0).getTableIndex());
+        if (!isBegin) {
+            errCount = mysqlConnector.getNoCommitCount(in.get(0).getTableIndex());
         }
     }
 
     @Override
     public boolean checkCorrect() {
-        return errCount==0;
+        return errCount == 0;
     }
 }

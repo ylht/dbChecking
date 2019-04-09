@@ -47,7 +47,7 @@ public class ScanTransaction extends BaseTransaction {
 
     @Override
     public void execute() throws SQLException {
-        if(r.nextDouble()<0.9){
+        if (r.nextDouble() < 0.9) {
             return;
         }
         double min = table.getRandomValue(tupleIndex);

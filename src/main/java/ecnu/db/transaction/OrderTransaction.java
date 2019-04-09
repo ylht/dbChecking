@@ -1,9 +1,9 @@
 package ecnu.db.transaction;
 
-import ecnu.db.work.group.BaseWorkGroup;
-import ecnu.db.work.group.WorkNode;
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.MysqlConnector;
+import ecnu.db.work.group.BaseWorkGroup;
+import ecnu.db.work.group.WorkNode;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +22,7 @@ public class OrderTransaction extends BaseTransaction {
 
     private ArrayList<PreparedStatement> subStatements = new ArrayList<>();
     private ArrayList<PreparedStatement> subSelectStatements = new ArrayList<>();
-    private ArrayList<PreparedStatement> insertStatements=new ArrayList<>();
+    private ArrayList<PreparedStatement> insertStatements = new ArrayList<>();
 
     public OrderTransaction(Table[] tables, BaseWorkGroup workGroup, MysqlConnector mysqlConnector) throws SQLException {
         super(mysqlConnector, false);
@@ -50,7 +50,7 @@ public class OrderTransaction extends BaseTransaction {
             subStatements.add(mysqlConnector.getOrderUpdate(node.getTableIndex(),
                     node.getTupleIndex(), isSelect));
             insertStatements.add(mysqlConnector.insertOrderItem(
-                    node.getTableIndex(),node.getTupleIndex()));
+                    node.getTableIndex(), node.getTupleIndex()));
         }
     }
 
@@ -76,7 +76,7 @@ public class OrderTransaction extends BaseTransaction {
             System.out.println("执行失败" + preparedOutStatement.toString());
             mysqlConnector.rollback();
             return;
-        }else {
+        } else {
             insertStatements.get(randomOutIndex).execute();
         }
         mysqlConnector.commit();

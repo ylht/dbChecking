@@ -10,7 +10,7 @@ import java.util.Random;
  * 该类为所有tuple的抽象类
  */
 
-public abstract class AbstractTuple {
+public abstract class AbstractColumn {
     /**
      * 事务在range范围内随机得到值时，range的大小，计算公式为
      * range= tupleRange/ RANGE_RANDOM_COUNT
@@ -23,9 +23,18 @@ public abstract class AbstractTuple {
     final static Random R = new Random();
 
     /**
-     * tuple的名称标示，用于唯一的标示一个列，字符标示为"'tp'+tupleIndex"
+     * 在int,decimal,float,date中代表数值下界，在char,varchar中代表长度下届
      */
-    int tupleIndex;
+    int min;
+    /**
+     * 在int,decimal,float,date中代表数值范围区间，在char,varchar中代表长度范围区间
+     */
+    int range;
+
+    AbstractColumn(int min, int range) {
+        this.min = min;
+        this.range = range;
+    }
 
     /**
      * 生成定义该tuple约束的SQL语句
@@ -45,12 +54,4 @@ public abstract class AbstractTuple {
      * @return 返回数据值对象
      */
     public abstract Object getValue(boolean processingTableData);
-
-    /**
-     * 返回该tuple的上界限
-     *
-     * @return min+tupleRange
-     */
-    public abstract Object getMaxValue();
-
 }

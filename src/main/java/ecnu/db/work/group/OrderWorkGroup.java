@@ -25,8 +25,8 @@ class OrderWorkGroup extends BaseWorkGroup {
 
     @Override
     public boolean checkCorrect() {
-        for(WorkNode node:in){
-            if(node.getOrderNum()!=node.getBeginSum()-node.getEndSum()){
+        for (WorkNode node : in) {
+            if (node.getOrderNum() != node.getBeginSum() - node.getEndSum()) {
                 return false;
             }
         }

@@ -16,17 +16,17 @@ public class SelectNoCommitTransaction extends BaseTransaction {
         node = workGroup.getIn().get(0);
         preparedOutSelectStatement = mysqlConnector.getSelect(false, node.getTableIndex(),
                 node.getTupleIndex());
-        preparedOutStatement=mysqlConnector.getInsertNoCommitColStatement(node.getTableIndex());
+        preparedOutStatement = mysqlConnector.getInsertNoCommitColStatement(node.getTableIndex());
     }
 
     @Override
     public void execute() throws SQLException {
-        int workInKey=node.getSubKey();
-        preparedOutSelectStatement.setInt(1,workInKey);
-        ResultSet rs=preparedOutSelectStatement.executeQuery();
-        if(rs.next()){
-            preparedOutStatement.setDouble(1,rs.getDouble(1));
-            preparedOutStatement.setInt(2,workInKey);
+        int workInKey = node.getSubKey();
+        preparedOutSelectStatement.setInt(1, workInKey);
+        ResultSet rs = preparedOutSelectStatement.executeQuery();
+        if (rs.next()) {
+            preparedOutStatement.setDouble(1, rs.getDouble(1));
+            preparedOutStatement.setInt(2, workInKey);
             preparedOutStatement.executeUpdate();
         }
         mysqlConnector.commit();

@@ -14,8 +14,8 @@ public class ChangeTableSize extends BaseTransaction {
     public ChangeTableSize(Table[] tables, BaseWorkGroup workGroup, MysqlConnector mysqlConnector)
             throws SQLException {
         super(mysqlConnector, false);
-        WorkNode node=workGroup.getIn().get(0);
-        table=tables[node.getTableIndex()];
+        WorkNode node = workGroup.getIn().get(0);
+        table = tables[node.getTableIndex()];
         preparedInStatement = mysqlConnector.getInsertStatement(
                 node.getTableIndex(), tables[node.getTableIndex()].getTableColSizeForInsert());
         preparedOutStatement = mysqlConnector.getDeleteStatement(node.getTableIndex());
@@ -24,7 +24,7 @@ public class ChangeTableSize extends BaseTransaction {
 
     @Override
     public void execute() throws SQLException {
-        if (r.nextDouble()> LoadConfig.getConfig().getTableSparsity()) {
+        if (r.nextDouble() > LoadConfig.getConfig().getTableSparsity()) {
             Object[] values = table.getInsertValue();
             int i = 1;
             for (Object value : values) {

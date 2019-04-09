@@ -1,7 +1,7 @@
 package ecnu.db.work.group;
 
-import ecnu.db.work.CheckType;
 import ecnu.db.scheme.Table;
+import ecnu.db.work.CheckType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,13 +12,13 @@ public class InitAllWorkGroup {
     public InitAllWorkGroup(Table[] tables, CheckType checkType) {
 
         ArrayList<WorkNode> workNodes = getWorkNodes(tables);
-        if(checkType.isCheckPhantomRead()){
-            BaseWorkGroup phantomReadWorkGroup=new PhantomReadWorkGroup(true);
+        if (checkType.isCheckPhantomRead()) {
+            BaseWorkGroup phantomReadWorkGroup = new PhantomReadWorkGroup(true);
             phantomReadWorkGroup.addInTuple(getWorkNode(workNodes.remove(0), tables));
             workGroups.add(phantomReadWorkGroup);
         }
         Collections.shuffle(workNodes);
-        int i=0;
+        int i = 0;
         if (checkType.isCheckWriteSkew()) {
             //writeSkew类型的工作组，只有测试Serializable时，才测试此事务
             BaseWorkGroup writeSkewWorkGroup = new WriteSkewWorkGroup();
@@ -56,25 +56,25 @@ public class InitAllWorkGroup {
         remittanceEachOtherWorkGroup.addOutTuple(getWorkNode(workNodes.get(i++), tables));
         workGroups.add(remittanceEachOtherWorkGroup);
 
-        ArrayList<WorkNode> valueChangeNodes=new ArrayList<>(workNodes.subList(0,i-1));
+        ArrayList<WorkNode> valueChangeNodes = new ArrayList<>(workNodes.subList(0, i - 1));
         Collections.shuffle(valueChangeNodes);
 
-        if(checkType.isCheckRepeatableRead()){
-            BaseWorkGroup repeatableRead=new RepeatableReadWorkGroup();
-            repeatableRead.addInTuple(getWorkNode(valueChangeNodes.get(0),tables));
+        if (checkType.isCheckRepeatableRead()) {
+            BaseWorkGroup repeatableRead = new RepeatableReadWorkGroup();
+            repeatableRead.addInTuple(getWorkNode(valueChangeNodes.get(0), tables));
             workGroups.add(repeatableRead);
             Collections.shuffle(workNodes);
         }
 
-        if(checkType.isCheckNoCommitted()){
-            BaseWorkGroup checkNoCommit=new NoCommitWorkGroup();
-            checkNoCommit.addInTuple(getWorkNode(valueChangeNodes.get(0),tables));
+        if (checkType.isCheckNoCommitted()) {
+            BaseWorkGroup checkNoCommit = new NoCommitWorkGroup();
+            checkNoCommit.addInTuple(getWorkNode(valueChangeNodes.get(0), tables));
             workGroups.add(checkNoCommit);
             Collections.shuffle(workNodes);
         }
 
-        if(checkType.isCheckPhantomRead()){
-            BaseWorkGroup phantomReadWorkGroup=new PhantomReadWorkGroup(false);
+        if (checkType.isCheckPhantomRead()) {
+            BaseWorkGroup phantomReadWorkGroup = new PhantomReadWorkGroup(false);
             phantomReadWorkGroup.addInTuple(getWorkNode(workNodes.get(0), tables));
             workGroups.add(phantomReadWorkGroup);
         }

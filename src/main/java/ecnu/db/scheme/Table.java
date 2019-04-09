@@ -1,7 +1,6 @@
 package ecnu.db.scheme;
 
 import ecnu.db.utils.LoadConfig;
-import org.apache.commons.math3.distribution.ZipfDistribution;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -15,34 +14,34 @@ import java.util.Random;
 public class Table {
 
     private final static Random R = new Random();
-    private ArrayList<AbstractTuple> tuples = new ArrayList<>();
+    private static final int RECORD_COL = 2;
+    private ArrayList<AbstractColumn> tuples = new ArrayList<>();
     private int tableIndex;
     private int tableSize;
     private double tableSparsity;
     private ArrayList<Integer> keys = new ArrayList<>();
     private int currentValueLine = 0;
     private Object[] lineRecord;
-    private static final int RECORD_COL=2;
 
     public Table(int tableIndex, int tableSize, int tupleSize) {
         this.tableIndex = tableIndex;
         this.tableSize = tableSize;
         //获取除主键外其他键值的数据信息
         this.tableSparsity = LoadConfig.getConfig().getTableSparsity();
-        double min = LoadConfig.getConfig().getTupleMin();
-        double range = LoadConfig.getConfig().getTupleRange();
-        lineRecord = new Object[tupleSize + 1+RECORD_COL];
-        lineRecord[lineRecord.length-1]=lineRecord[lineRecord.length-2]=0;
+        int min = LoadConfig.getConfig().getTupleMin();
+        int range = LoadConfig.getConfig().getTupleRange();
+        lineRecord = new Object[tupleSize + 1 + RECORD_COL];
+        lineRecord[lineRecord.length - 1] = lineRecord[lineRecord.length - 2] = 0;
         //数据的tuple从第二列开始，第一列作为主键列
         switch (LoadConfig.getConfig().getType()) {
             case "int":
                 for (int i = 0; i < tupleSize; i++) {
-                    tuples.add(new IntTuple(i + 1, (int) min, (int) range));
+                    tuples.add(new IntColumn((int) min, (int) range));
                 }
                 break;
             case "double":
                 for (int i = 0; i < tupleSize; i++) {
-                    tuples.add(new DoubleTuple(i + 1, min, range));
+                    tuples.add(new DecimalColumn(min, range));
                 }
                 break;
             default:
@@ -62,12 +61,13 @@ public class Table {
 
     public String getSQL() {
         StringBuilder sql = new StringBuilder("CREATE TABLE t" + tableIndex + "(tp0 INT,");
-        for (AbstractTuple tuple : tuples) {
-            sql.append(tuple.getTableSQL());
+        int i = 1;
+        for (AbstractColumn tuple : tuples) {
+            sql.append("tp").append(i++).append(" ").append(tuple.getTableSQL()).append(',');
         }
-        //将SQL句尾的逗号替换为括号
-        return sql + "checkNoCommit INT default 0," +
-                "checkRepeatableRead INT default 0,PRIMARY KEY ( `tp0` ));";
+        //增加用于辅助记录数据的列
+        sql.append("checkNoCommit INT default 0,checkRepeatableRead INT default 0,PRIMARY KEY ( `tp0` ));");
+        return sql.toString();
     }
 
     public int getTableIndex() {
@@ -78,8 +78,8 @@ public class Table {
         return tuples.size();
     }
 
-    public int getTableColSizeForInsert(){
-        return tuples.size()+RECORD_COL;
+    public int getTableColSizeForInsert() {
+        return tuples.size() + RECORD_COL;
     }
 
     public Object[] getValue() {
@@ -106,7 +106,7 @@ public class Table {
     }
 
     private Object[] getObjects() {
-        for (int i = 1; i < lineRecord.length-RECORD_COL; i++) {
+        for (int i = 1; i < lineRecord.length - RECORD_COL; i++) {
             lineRecord[i] = tuples.get(i - 1).getValue(true);
         }
         return lineRecord;

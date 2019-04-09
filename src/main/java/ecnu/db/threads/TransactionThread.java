@@ -1,10 +1,10 @@
 package ecnu.db.threads;
 
-import ecnu.db.work.CheckType;
-import ecnu.db.work.group.BaseWorkGroup;
 import ecnu.db.scheme.Table;
 import ecnu.db.transaction.*;
 import ecnu.db.utils.MysqlConnector;
+import ecnu.db.work.CheckType;
+import ecnu.db.work.group.BaseWorkGroup;
 import ecnu.db.work.group.PhantomReadWorkGroup;
 import org.apache.logging.log4j.LogManager;
 
@@ -81,18 +81,18 @@ public class TransactionThread implements Runnable {
                     transactions.add(selectNoCommitTransaction);
                     break;
                 case repeatableRead:
-                    BaseTransaction repeatableReadTransaction=new RepeatableReadTransaction(
-                            workGroup,mysqlConnector);
+                    BaseTransaction repeatableReadTransaction = new RepeatableReadTransaction(
+                            workGroup, mysqlConnector);
                     transactions.add(repeatableReadTransaction);
                     break;
                 case phantomRead:
-                    if(((PhantomReadWorkGroup)workGroup).isChangeTableSize()){
-                        BaseTransaction changeTableSize=new ChangeTableSize(tables,
-                                workGroup,mysqlConnector);
+                    if (((PhantomReadWorkGroup) workGroup).isChangeTableSize()) {
+                        BaseTransaction changeTableSize = new ChangeTableSize(tables,
+                                workGroup, mysqlConnector);
                         transactions.add(changeTableSize);
                     }
-                    BaseTransaction scanTransaction=new ScanTransaction(tables,
-                            workGroup,mysqlConnector);
+                    BaseTransaction scanTransaction = new ScanTransaction(tables,
+                            workGroup, mysqlConnector);
                     transactions.add(scanTransaction);
                     break;
                 default:
@@ -114,6 +114,9 @@ public class TransactionThread implements Runnable {
                 transactions.get(randomIndex).execute();
             } catch (SQLException e) {
                 LogManager.getLogger().error(e);
+            }
+            if (i % 100 == 0) {
+                System.out.println(i);
             }
         }
         count.countDown();

@@ -6,11 +6,15 @@ import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
+import java.util.List;
+import java.util.Random;
+
 /**
  * @author wangqingshuai
  * 读取配置文件的类
  */
 public class LoadConfig {
+    private static final Random R = new Random();
     private static LoadConfig instance;
     private Document document;
 
@@ -31,9 +35,25 @@ public class LoadConfig {
         instance = new LoadConfig(configFile);
     }
 
+    private int getValueFromHistogram(String histogramName) throws Exception {
+        double radio = R.nextDouble();
+        List<Node> nodeList = document.selectNodes("generator/schema/" + histogramName + "/HistogramItem");
+        double old = 0;
+        for (Node node : nodeList) {
+            old += Double.valueOf(node.valueOf("ratio"));
+            if (radio < old) {
+                int min = Integer.valueOf(node.valueOf("minValue"));
+                int max = Integer.valueOf(node.valueOf("maxValue"));
+                return min + R.nextInt(max - min + 1);
+            }
+        }
+        throw new Exception("此直方图的概率和小于1");
+    }
+
+
     //事务信息
 
-    public int getK(){
+    public int getK() {
         return Integer.valueOf(document.valueOf("//generator/functionK"));
     }
 
@@ -57,8 +77,8 @@ public class LoadConfig {
         return Integer.valueOf(document.valueOf("//generator/table/num"));
     }
 
-    public int getTableSize() {
-        return Integer.valueOf(document.valueOf("//generator/table/tableSize"));
+    public int getTableSize() throws Exception {
+        return getValueFromHistogram("tableSizeHistogram");
     }
 
     /**
@@ -74,15 +94,15 @@ public class LoadConfig {
         return document.valueOf("//generator/type");
     }
 
-    public int getTupleNum() {
-        return Integer.valueOf(document.valueOf("//generator/tuple/num"));
+    public int getColumnNum() throws Exception {
+        return getValueFromHistogram("columnNumHistogram");
     }
 
-    public double getTupleMin() {
+    public int getTupleMin() {
         return Integer.valueOf(document.valueOf("//generator/tuple/min"));
     }
 
-    public double getTupleRange() {
+    public int getTupleRange() {
         return Integer.valueOf(document.valueOf("//generator/tuple/max")) - getTupleMin();
     }
 }
