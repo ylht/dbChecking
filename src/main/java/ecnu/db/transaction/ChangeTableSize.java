@@ -16,8 +16,9 @@ public class ChangeTableSize extends BaseTransaction {
         super(mysqlConnector, false);
         WorkNode node = workGroup.getIn().get(0);
         table = tables[node.getTableIndex()];
-        preparedInStatement = mysqlConnector.getInsertStatement(
-                node.getTableIndex(), tables[node.getTableIndex()].getTableColSizeForInsert());
+        preparedInStatement = mysqlConnector.getInsertStatement(node.getTableIndex(),
+                tables[node.getTableIndex()].getTableColSize()
+                        +tables[node.getTableIndex()].getTableRecordSize());
         preparedOutStatement = mysqlConnector.getDeleteStatement(node.getTableIndex());
 
     }

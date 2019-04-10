@@ -88,7 +88,7 @@ public class InitAllWorkGroup {
         ArrayList<WorkNode> workNodes = new ArrayList<>();
         int i = 0;
         for (Table table : tables) {
-            for (int j = 1; j < table.getTableColSizeExceptKey() + 1; j++) {
+            for (int j = 1; j < table.getTableColSize() + 1; j++) {
                 workNodes.add(new WorkNode(i, j));
             }
             i++;

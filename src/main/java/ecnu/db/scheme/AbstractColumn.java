@@ -23,16 +23,11 @@ public abstract class AbstractColumn {
     final static Random R = new Random();
 
     /**
-     * 在int,decimal,float,date中代表数值下界，在char,varchar中代表长度下届
-     */
-    int min;
-    /**
-     * 在int,decimal,float,date中代表数值范围区间，在char,varchar中代表长度范围区间
+     * 在int,decimal,float,date中代表数值范围区间，在varchar中代表长度范围区间
      */
     int range;
 
-    AbstractColumn(int min, int range) {
-        this.min = min;
+    AbstractColumn(int range) {
         this.range = range;
     }
 

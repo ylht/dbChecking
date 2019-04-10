@@ -6,7 +6,6 @@ import ecnu.db.threads.TransactionThread;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.utils.LoadConfig;
 import ecnu.db.utils.MysqlConnector;
-import ecnu.db.utils.RandomTupleSize;
 import ecnu.db.work.group.BaseWorkGroup;
 import ecnu.db.work.group.InitAllWorkGroup;
 import org.apache.logging.log4j.LogManager;
@@ -25,30 +24,18 @@ public class DbChecking {
     private Table[] tables;
     private CheckType checkType;
 
-    public DbChecking(CheckType checkType) {
+    public DbChecking(CheckType checkType){
         //初始化数据表
         this.checkType = checkType;
-        tables = new Table[LoadConfig.getConfig().getTableNum()];
-        int tableSizes = LoadConfig.getConfig().getTableSize();
-
-        if (checkType.getCheckKind() == CheckType.CheckKind.Serializable) {
-            tables[0] = new Table(0, tableSizes, 1);
-            RandomTupleSize randomTupleSize = new RandomTupleSize(
-                    tables.length - 1,
-                    LoadConfig.getConfig().getColumnNum() - 1);
-            for (int i = 1; i < tables.length; i++) {
-                int colSize = randomTupleSize.getTupleSize();
-                tables[i] = new Table(i, tableSizes, colSize);
-            }
-        } else {
-            RandomTupleSize randomTupleSize = new RandomTupleSize(
-                    tables.length, LoadConfig.getConfig().getColumnNum());
+        try {
+            tables = new Table[LoadConfig.getConfig().getTableNum()];
+            ArrayList<ArrayList<Integer>> allKeys=new ArrayList<>();
             for (int i = 0; i < tables.length; i++) {
-                int colSize = randomTupleSize.getTupleSize();
-                tables[i] = new Table(i, tableSizes, colSize);
+                tables[i]=new Table(i,allKeys);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 
 

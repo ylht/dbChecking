@@ -14,7 +14,7 @@ public class DataOutputToFile {
 
     public DataOutputToFile(int tableIndex) {
         try {
-            file = new FileWriter("data/t" + tableIndex);
+            file = new FileWriter("data/t" + tableIndex+".csv");
         } catch (Exception e) {
             System.out.println("写入文件data/t" + tableIndex + "路径失败");
         }

@@ -4,6 +4,37 @@
 
         <tableSparsity>0.2</tableSparsity>
 
+        <tableNumHistogram>
+            <HistogramItem>
+                <minValue>1</minValue>
+                <maxValue>10</maxValue>
+                <ratio>0.45</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>11</minValue>
+                <maxValue>20</maxValue>
+                <ratio>0.5</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>21</minValue>
+                <maxValue>50</maxValue>
+                <ratio>0.05</ratio>
+            </HistogramItem>
+        </tableNumHistogram>
+
+        <foreignKeyNumHistogram>
+            <HistogramItem>
+                <minValue>0</minValue>
+                <maxValue>2</maxValue>
+                <ratio>0.5</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>3</minValue>
+                <maxValue>4</maxValue>
+                <ratio>0.5</ratio>
+            </HistogramItem>
+        </foreignKeyNumHistogram>
+
         <tableSizeHistogram>
             <HistogramItem>
                 <minValue>1000</minValue>
@@ -53,23 +84,15 @@
         <dataType2OccurProbability>
             <item>
                 <dataType>int</dataType>
-                <probability>0.2</probability>
-            </item>
-            <item>
-                <dataType>long</dataType>
-                <probability>0.1</probability>
+                <probability>0.3</probability>
             </item>
             <item>
                 <dataType>float</dataType>
                 <probability>0.05</probability>
             </item>
             <item>
-                <dataType>double</dataType>
-                <probability>0.1</probability>
-            </item>
-            <item>
                 <dataType>decimal</dataType>
-                <probability>0.2</probability>
+                <probability>0.4</probability>
             </item>
             <item>
                 <dataType>varchar</dataType>
@@ -77,13 +100,103 @@
             </item>
             <item>
                 <dataType>datetime</dataType>
-                <probability>0.1</probability>
-            </item>
-            <item>
-                <dataType>bool</dataType>
                 <probability>0.05</probability>
             </item>
         </dataType2OccurProbability>
+
+        <int>
+            <HistogramItem>
+                <minValue>30</minValue>
+                <maxValue>50</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>51</minValue>
+                <maxValue>100</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>101</minValue>
+                <maxValue>200</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>201</minValue>
+                <maxValue>500</maxValue>
+                <ratio>0.1</ratio>
+            </HistogramItem>
+        </int>
+
+        <decimal>
+            <pointMax>5</pointMax>
+            <HistogramItem>
+                <minValue>30</minValue>
+                <maxValue>50</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>51</minValue>
+                <maxValue>100</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>101</minValue>
+                <maxValue>200</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>201</minValue>
+                <maxValue>500</maxValue>
+                <ratio>0.1</ratio>
+            </HistogramItem>
+        </decimal>
+
+        <date>
+            <HistogramItem>
+                <minValue>30</minValue>
+                <maxValue>50</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>51</minValue>
+                <maxValue>100</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>101</minValue>
+                <maxValue>200</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>201</minValue>
+                <maxValue>500</maxValue>
+                <ratio>0.1</ratio>
+            </HistogramItem>
+        </date>
+
+
+        <varchar>
+            <HistogramItem>
+                <minValue>30</minValue>
+                <maxValue>50</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>51</minValue>
+                <maxValue>100</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>101</minValue>
+                <maxValue>200</maxValue>
+                <ratio>0.3</ratio>
+            </HistogramItem>
+            <HistogramItem>
+                <minValue>201</minValue>
+                <maxValue>500</maxValue>
+                <ratio>0.1</ratio>
+            </HistogramItem>
+        </varchar>
     </schema>
 
 

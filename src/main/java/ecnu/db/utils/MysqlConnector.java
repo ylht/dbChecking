@@ -75,9 +75,11 @@ public class MysqlConnector {
     //表格相关操作
 
     public void loadData(int tableIndex) throws SQLException {
-        String sql = "load data local infile 'data/t" + tableIndex +
-                "' replace into table t" + tableIndex + " columns terminated by ',' ";
+        executeSql("SET FOREIGN_KEY_CHECKS = 0;");
+        String sql = "load data CONCURRENT local infile 'data/t" + tableIndex +
+                ".csv' replace into table t" + tableIndex + " columns terminated by ',' ";
         executeSql(sql);
+        executeSql("SET FOREIGN_KEY_CHECKS = 1;");
     }
 
     /**
@@ -88,7 +90,8 @@ public class MysqlConnector {
      */
     public void dropTables(int num) throws SQLException {
         String sql = "DROP TABLE IF EXISTS t";
-        for (int i = 0; i < num; i++) {
+        int max=LoadConfig.getConfig().getMaxTableNum();
+        for (int i = max; i >= 0; i--) {
             executeSql(sql + i);
         }
         sql = "DROP TABLE IF EXISTS order_item";

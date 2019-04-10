@@ -3,7 +3,11 @@ package ecnu.db.scheme;
 import ecnu.db.utils.LoadConfig;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
  * @author wangqingshuai
@@ -14,59 +18,123 @@ import java.util.Random;
 public class Table {
 
     private final static Random R = new Random();
-    private static final int RECORD_COL = 2;
-    private ArrayList<AbstractColumn> tuples = new ArrayList<>();
+
+    /**
+     * 主键数量，默认为1
+     */
+    private final static int KEY_NUM = 1;
+
+    /**
+     * 记录列，用于记录各种值
+     */
+    private final static String[] RECORD_COLUMNS =
+            new String[]{"checkNoCommit INT default 0", "checkRepeatableRead INT default 0"};
+
     private int tableIndex;
     private int tableSize;
-    private double tableSparsity;
-    private ArrayList<Integer> keys = new ArrayList<>();
-    private int currentValueLine = 0;
-    private Object[] lineRecord;
+    private int foreignKeyNum;
 
-    public Table(int tableIndex, int tableSize, int tupleSize) {
+
+    private ArrayList<Integer> keys = new ArrayList<>();
+    private ArrayList<Integer> foreignKeys;
+    private ArrayList<AbstractColumn> columns = new ArrayList<>();
+
+    private AtomicInteger currentLineNum=new AtomicInteger();
+
+
+    public Table(int tableIndex,ArrayList<ArrayList<Integer>> allKeys) throws Exception {
         this.tableIndex = tableIndex;
-        this.tableSize = tableSize;
-        //获取除主键外其他键值的数据信息
-        this.tableSparsity = LoadConfig.getConfig().getTableSparsity();
-        int min = LoadConfig.getConfig().getTupleMin();
-        int range = LoadConfig.getConfig().getTupleRange();
-        lineRecord = new Object[tupleSize + 1 + RECORD_COL];
-        lineRecord[lineRecord.length - 1] = lineRecord[lineRecord.length - 2] = 0;
-        //数据的tuple从第二列开始，第一列作为主键列
-        switch (LoadConfig.getConfig().getType()) {
-            case "int":
-                for (int i = 0; i < tupleSize; i++) {
-                    tuples.add(new IntColumn((int) min, (int) range));
-                }
-                break;
-            case "double":
-                for (int i = 0; i < tupleSize; i++) {
-                    tuples.add(new DecimalColumn(min, range));
-                }
-                break;
-            default:
-                System.out.println("配置文件错误");
-                System.exit(-1);
+        double tableSparsity = LoadConfig.getConfig().getTableSparsity();
+
+        this.foreignKeyNum = Math.min(LoadConfig.getConfig().getForeignKeyNum(),allKeys.size());
+
+        if(foreignKeyNum>0){
+            ArrayList<Integer> arrays=new ArrayList<>();
+            for (int i = 0; i < allKeys.size(); i++) {
+                arrays.add(i);
+            }
+            Collections.shuffle(arrays);
+            this.foreignKeys=new ArrayList<>(arrays.subList(0,foreignKeyNum));
+            for (int i = 0; i < foreignKeyNum; i++) {
+                columns.add(new IntColumn(allKeys.get(foreignKeys.get(i))));
+            }
         }
+
+
+        //从配置文件中获取基本信息
+        tableSize = LoadConfig.getConfig().getTableSize();
+        for (int i = 0; i < tableSize; i++) {
+            if(R.nextDouble()< tableSparsity){
+                keys.add(i);
+            }
+        }
+        allKeys.add(keys);
+
+
+
+        int tableColumnNum = LoadConfig.getConfig().getColumnNum();
+        for (int i = 0; i < tableColumnNum; i++) {
+            //数据的tuple从第二列开始，第一列作为主键列
+            String type = LoadConfig.getConfig().getColumnType();
+            switch (type) {
+                case "int":
+                    columns.add(new IntColumn(LoadConfig.getConfig().getRange("int")));
+                    break;
+                case "decimal":
+                    columns.add(new DecimalColumn(LoadConfig.getConfig().getRange("decimal"),
+                            LoadConfig.getConfig().getDecimalPoint()));
+                    break;
+                case "float":
+                    columns.add(new DecimalColumn(LoadConfig.getConfig().getRange("decimal")));
+                    break;
+                case "varchar":
+                    columns.add(new VarcharColumn(LoadConfig.getConfig().getRange("varchar")));
+                    break;
+                case "datetime":
+                    columns.add(new DateColumn(LoadConfig.getConfig().getRange("date")));
+                    break;
+                default:
+                    throw new Exception("配置文件错误,匹配到的项为：" + type);
+            }
+        }
+
+
     }
 
-
+    /**
+     * @return 存在主键的一个拷贝
+     */
     public ArrayList<Integer> getKeys() {
         return keys;
     }
 
+    /**
+     * @return 一个随机的key，只保证数据生成时，该主键存在过。
+     */
     public int getRandomKey() {
-        return R.nextInt(tableSize);
+        return keys.get(R.nextInt(keys.size()));
     }
 
+    /**
+     * @return 创建该表格的Sql
+     */
     public String getSQL() {
         StringBuilder sql = new StringBuilder("CREATE TABLE t" + tableIndex + "(tp0 INT,");
-        int i = 1;
-        for (AbstractColumn tuple : tuples) {
-            sql.append("tp").append(i++).append(" ").append(tuple.getTableSQL()).append(',');
+        int index = KEY_NUM;
+        for (AbstractColumn tuple : columns) {
+            sql.append("tp").append(index++).append(" ").append(tuple.getTableSQL()).append(',');
         }
         //增加用于辅助记录数据的列
-        sql.append("checkNoCommit INT default 0,checkRepeatableRead INT default 0,PRIMARY KEY ( `tp0` ));");
+        for (String recordColumn : RECORD_COLUMNS) {
+            sql.append(recordColumn).append(',');
+        }
+        for (int i=0; i< foreignKeyNum; i++) {
+            sql.append("FOREIGN KEY (tp").append(i+KEY_NUM).append(") REFERENCES t")
+                    .append(foreignKeys.get(i)).append("(tp0),");
+        }
+
+        sql.append("PRIMARY KEY ( `tp0` ));");
+
         return sql.toString();
     }
 
@@ -74,49 +142,58 @@ public class Table {
         return tableIndex;
     }
 
-    public int getTableColSizeExceptKey() {
-        return tuples.size();
+    public int getTableColSize() {
+        return columns.size();
     }
 
-    public int getTableColSizeForInsert() {
-        return tuples.size() + RECORD_COL;
+    public int getTableRecordSize() {
+        return RECORD_COLUMNS.length;
     }
 
+    /**
+     * 用于生成数据时获取每一行的数据
+     *
+     * @return 获取每一行的数据
+     */
     public Object[] getValue() {
-        if (currentValueLine == tableSize) {
-            return null;
-        } else {
-            do {
-                lineRecord[0] = currentValueLine++;
-            }
-            //如果随机到的数值小于给定的数值，则跳过该主键，给定数值为1时表为空
-            while (R.nextDouble() < tableSparsity && currentValueLine != tableSize);
-            if (currentValueLine == tableSize) {
-                return null;
-            }
-            //记录所有一开始有值的主键
-            keys.add((Integer) lineRecord[0]);
-            return getObjects();
+        Object[] lineRecord = new Object[KEY_NUM + columns.size() + RECORD_COLUMNS.length];
+        for (int i = KEY_NUM; i <= RECORD_COLUMNS.length; i++) {
+            lineRecord[lineRecord.length - i] = 0;
         }
+        int temp=currentLineNum.getAndIncrement();
+        if(temp>=keys.size()){
+            return null;
+        }
+        lineRecord[0]=keys.get(temp);
+        return getObjects(lineRecord);
     }
 
+    /**
+     * 用于插入数据时获取每一行的数据
+     *
+     * @return 一行的数据
+     */
     public Object[] getInsertValue() {
+        Object[] lineRecord = new Object[KEY_NUM + columns.size() + RECORD_COLUMNS.length];
+        for (int i = KEY_NUM; i <= RECORD_COLUMNS.length; i++) {
+            lineRecord[lineRecord.length - i] = 0;
+        }
         lineRecord[0] = R.nextInt(tableSize);
-        return getObjects();
+        return getObjects(lineRecord);
     }
 
-    private Object[] getObjects() {
-        for (int i = 1; i < lineRecord.length - RECORD_COL; i++) {
-            lineRecord[i] = tuples.get(i - 1).getValue(true);
+    private Object[] getObjects(Object[] lineRecord) {
+        for (int i = KEY_NUM; i < lineRecord.length - RECORD_COLUMNS.length; i++) {
+            lineRecord[i] = columns.get(i - KEY_NUM).getValue(true);
         }
         return lineRecord;
     }
 
     public Double getTransactionValue(int tupleIndex) {
-        return Double.valueOf(tuples.get(tupleIndex - 1).getValue(false).toString());
+        return Double.valueOf(columns.get(tupleIndex - KEY_NUM).getValue(false).toString());
     }
 
     public Double getRandomValue(int tupleIndex) {
-        return Double.parseDouble(tuples.get(tupleIndex - 1).getValue(true).toString());
+        return Double.parseDouble(columns.get(tupleIndex - KEY_NUM).getValue(true).toString());
     }
 }
