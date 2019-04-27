@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<generator>
+    <thread>
+        <!--每个cpu核心上分配到的事务线程数-->
+        <runThreadNumOnCore>10</runThreadNumOnCore>
+        <runCount>1000</runCount>
+    </thread>
+
+    <transaction>
+        <zipf>2</zipf>
+    </transaction>
+</generator>

@@ -1,28 +1,25 @@
 package ecnu.db.scheme;
 
 
-import org.apache.commons.math3.distribution.ZipfDistribution;
+import ecnu.db.utils.ZipDistributionList;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author wangqingshuai
  * int的tuple相关类
  */
 public class IntColumn extends AbstractColumn {
-    private ZipfDistribution zipfDistribution;
-    private ArrayList<Integer> foreignKeys;
+
+    private ZipDistributionList zipDistributionList;
+
     IntColumn(int range) {
-        super(range);
+        super(range, ColumnType.INT);
     }
 
     IntColumn(ArrayList<Integer> foreignKeys) {
-        super(-1);
-        this.foreignKeys=new ArrayList<>(foreignKeys);
-        Collections.shuffle(this.foreignKeys);
-        zipfDistribution=new ZipfDistribution(foreignKeys.size(),1);
+        super(-1, ColumnType.INT);
+        zipDistributionList = new ZipDistributionList(foreignKeys, false);
     }
 
     @Override
@@ -31,14 +28,10 @@ public class IntColumn extends AbstractColumn {
     }
 
     @Override
-    public Object getValue(boolean processingTableData) {
-        if (zipfDistribution != null) {
-            return foreignKeys.get(zipfDistribution.sample()-1);
+    public Object getValue() {
+        if (zipDistributionList != null) {
+            return zipDistributionList.getValue();
         }
-        if (processingTableData) {
-            return R.nextInt(range);
-        } else {
-            return R.nextInt(range / RANGE_RANDOM_COUNT);
-        }
+        return R.nextInt(range);
     }
 }

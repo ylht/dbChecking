@@ -10,7 +10,7 @@ public class DateColumn extends AbstractColumn {
     private static final DateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     DateColumn(int range) {
-        super(range);
+        super(range, ColumnType.DATE);
     }
 
     @Override
@@ -19,7 +19,7 @@ public class DateColumn extends AbstractColumn {
     }
 
     @Override
-    public Object getValue(boolean processingTableData) {
-        return SIMPLE_DATE_FORMAT.format(System.currentTimeMillis() +1000* R.nextInt(range));
+    public Object getValue() {
+        return SIMPLE_DATE_FORMAT.format(System.currentTimeMillis() + 1000 * R.nextInt(range));
     }
 }

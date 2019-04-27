@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<transaction>
+    <!--该事务是否要运行在已经有事务操作的数据列上-->
+    <workOnWorked>0</workOnWorked>
+
+    <!--需要检测几种隔离级别，数值1为检测，0为不检测。
+    从左到右分别代表，readUncommitted,readCommitted,
+    repeatableRead,serializable-->
+    <checkType>0000</checkType>
+
+    <!--在执行时，该组事务需要操作几个列,用概率直方图的方式表示-->
+    <columnNum>
+        <HistogramItem>
+            <minValue>1</minValue>
+            <maxValue>5</maxValue>
+            <ratio>0.7</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>6</minValue>
+            <maxValue>10</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+    </columnNum>
+
+    <!--在执行时，该组事务能操作的数据列的类型，用了概率直方图的方式表示，
+    配置项全为小写，支持int,decimal,varchar,float,date五种-->
+    <columnType>
+        <HistogramItem>
+            <type>int</type>
+            <ratio>0.5</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <type>decimal</type>
+            <ratio>0.5</ratio>
+        </HistogramItem>
+    </columnType>
+</transaction>

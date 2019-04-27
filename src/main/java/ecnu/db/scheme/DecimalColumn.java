@@ -2,7 +2,6 @@ package ecnu.db.scheme;
 
 
 import java.text.DecimalFormat;
-import java.text.Format;
 
 /**
  * @author wangqingshuai
@@ -10,42 +9,29 @@ import java.text.Format;
  */
 public class DecimalColumn extends AbstractColumn {
 
-    public static DecimalFormat df;
-
+    private static DecimalFormat df;
     private static int allPointLength = -1;
 
-    private boolean isFloat=true;
-
-    DecimalColumn(int range) {
-        super(range);
+    DecimalColumn(int range, int pointLength) {
+        super(range, ColumnType.DECIMAL);
+        if (allPointLength < 0) {
+            allPointLength = pointLength;
+            df = new DecimalFormat("0." + "0".repeat(Math.max(0, allPointLength)));
+        }
     }
 
-    DecimalColumn(int range, int pointLength) {
-        super(range);
-        isFloat=false;
-        if(allPointLength<0){
-            allPointLength = pointLength;
-            df=new DecimalFormat("0." + "0".repeat(Math.max(0, allPointLength)));
-        }
+    public static DecimalFormat getDf() {
+        return df;
     }
 
     @Override
     public String getTableSQL() {
-        if (isFloat) {
-            return "FLOAT";
-        } else {
-            int decimalLength = String.valueOf(range).length() + allPointLength;
-            return "DECIMAL (" + decimalLength + ',' + allPointLength + ')';
-        }
-
+        int decimalLength = String.valueOf(range).length() + allPointLength;
+        return "DECIMAL (" + decimalLength + ',' + allPointLength + ')';
     }
 
     @Override
-    public Object getValue(boolean processingTableData) {
-        if (processingTableData) {
-            return df.format(R.nextDouble() * range);
-        } else {
-            return df.format(R.nextDouble() * range / RANGE_RANDOM_COUNT);
-        }
+    public Object getValue() {
+        return df.format(R.nextDouble() * range);
     }
 }

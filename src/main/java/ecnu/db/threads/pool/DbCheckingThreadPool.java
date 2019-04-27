@@ -1,5 +1,7 @@
 package ecnu.db.threads.pool;
 
+import ecnu.db.config.SystemConfig;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -9,8 +11,9 @@ import java.util.concurrent.TimeUnit;
  * 全局线程池的基本配置信息
  */
 public class DbCheckingThreadPool {
-    private static final int CORE_NUM = 4 * Runtime.getRuntime().availableProcessors();
-    private static final int MAX_POOL_SIZE = 8 * CORE_NUM;
+    private static final int CORE_NUM = SystemConfig.getConfig().getRunThreadNumOnCore()
+            * Runtime.getRuntime().availableProcessors();
+    private static final int MAX_POOL_SIZE = 2 * CORE_NUM;
     private static final int KEEP_ALIVE_TIME = 5000;
     /**
      * 线程池

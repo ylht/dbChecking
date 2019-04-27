@@ -1,6 +1,7 @@
 package ecnu.db.utils;
 
-import ecnu.db.work.group.WorkNode;
+import ecnu.db.check.WorkNode;
+import ecnu.db.config.TableConfig;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,11 +20,11 @@ public class MysqlConnector {
 
     public MysqlConnector() {
 
-        String dbUrl = "jdbc:mysql://10.11.1.193:13306/databaseChecking?useSSL=false";
+        String dbUrl = "jdbc:mysql://biui.me/databaseChecking?useSSL=false&allowPublicKeyRetrieval=true";
 
         // 数据库的用户名与密码，需要根据自己的设置
-        String user = "root";
-        String pass = "root";
+        String user = "qswang";
+        String pass = "Biui1227..";
 
         try {
             conn = DriverManager.getConnection(dbUrl, user, pass);
@@ -68,6 +69,10 @@ public class MysqlConnector {
         }
     }
 
+    public PreparedStatement getPrepareStatement(String sql) throws SQLException {
+        return conn.prepareStatement(sql);
+    }
+
     public void executeSql(String sql) throws SQLException {
         stmt.execute(sql);
     }
@@ -76,8 +81,8 @@ public class MysqlConnector {
 
     public void loadData(int tableIndex) throws SQLException {
         executeSql("SET FOREIGN_KEY_CHECKS = 0;");
-        String sql = "load data CONCURRENT local infile 'data/t" + tableIndex +
-                ".csv' replace into table t" + tableIndex + " columns terminated by ',' ";
+        String sql = "load data CONCURRENT LOCAL INFILE 'data/t" + tableIndex +
+                ".csv' into table t" + tableIndex + " COLUMNS TERMINATED BY ',' ";
         executeSql(sql);
         executeSql("SET FOREIGN_KEY_CHECKS = 1;");
     }
@@ -90,7 +95,7 @@ public class MysqlConnector {
      */
     public void dropTables(int num) throws SQLException {
         String sql = "DROP TABLE IF EXISTS t";
-        int max=LoadConfig.getConfig().getMaxTableNum();
+        int max = TableConfig.getConfig().getMaxTableNum();
         for (int i = max; i >= 0; i--) {
             executeSql(sql + i);
         }
@@ -108,141 +113,6 @@ public class MysqlConnector {
     public void createPhantomReadRecordTable() throws SQLException {
         String sql = "CREATE TABLE phantom_read_record (tableIndex int,type int)";
         executeSql(sql);
-    }
-
-
-    //基本事务语句
-
-    public PreparedStatement getSelect(boolean forUpdate, int tableIndex, int tupleIndex) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String sql = "select " + tupleName + " from " + tableName;
-        sql += " where tp0 =?";
-        if (forUpdate) {
-            sql += " for update";
-        }
-        return conn.prepareStatement(sql);
-    }
-
-    public PreparedStatement getRemittanceUpdate(boolean add, int tableIndex,
-                                                 int tupleIndex, boolean forSelect) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String sql = " update " + tableName + " set " + tupleName + "=";
-        if (!forSelect) {
-            if (add) {
-                sql += tupleName + "+";
-            } else {
-                sql += tupleName + "-";
-            }
-        }
-        sql += "? where tp0 = ? and " + tupleName;
-        if (!add) {
-            sql += " > ?";
-        }
-
-        return conn.prepareStatement(sql);
-
-    }
-
-    public PreparedStatement getOrderUpdate(int tableIndex, int tupleIndex, boolean forSelect) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String sql = "update " + tableName + " set " + tupleName + "=";
-        if (forSelect) {
-            sql += " ?";
-        } else {
-            sql += tupleName + "-1";
-        }
-        sql += " where tp0=? and " + tupleName + ">0";
-        return conn.prepareStatement(sql);
-    }
-
-    public PreparedStatement insertOrderItem(int tableIndex, int tupleIndex) throws SQLException {
-        String sql = "insert into order_item values (" + tableIndex + "," + tupleIndex + ")";
-        return conn.prepareStatement(sql);
-    }
-
-
-    public PreparedStatement getWriteSkewUpdate(int tableIndex, int tupleIndex) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String keyName = "tp0";
-        String sql = " update " + tableName +
-                " set " + tupleName + "=" + tupleName + "-?" +
-                " where " + keyName + "=?";
-        return conn.prepareStatement(sql);
-    }
-
-    //读已提交事务语句
-
-    public PreparedStatement getUpdateNoCommitStatement(int tableIndex, int tupleIndex) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String keyName = "tp0";
-        String sql = "update " + tableName +
-                " set " + tupleName + "= - " + tupleName +
-                " where " + keyName + " between ? and ?";
-
-        return conn.prepareStatement(sql);
-    }
-
-    public PreparedStatement getInsertNoCommitColStatement(int tableIndex) throws SQLException {
-        String sql = "update t" + tableIndex + " set checkNoCommit =? where tp0 =? and checkNoCommit>=0";
-        return conn.prepareStatement(sql);
-    }
-
-    //可重复读事务语句
-
-    public PreparedStatement getInsertRepeatableReadColStatement(int tableIndex) throws SQLException {
-        String sql = "update t" + tableIndex + " set checkRepeatableRead =checkRepeatableRead+? where tp0 =? and checkNoCommit>=0";
-        return conn.prepareStatement(sql);
-    }
-
-    //幻读事务语句
-
-    public PreparedStatement getScanStatement(int tableIndex, int tupleIndex) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String keyName = "tp0";
-        String sql = "select " + keyName + " from " + tableName +
-                " where " + tupleName + " between ? and ?";
-        return conn.prepareStatement(sql);
-    }
-
-    public PreparedStatement getInsertStatement(int tableIndex, int valueNum) throws SQLException {
-        String tableName = "t" + tableIndex;
-        StringBuilder sql = new StringBuilder("replace into " + tableName + " values(?");
-        for (int i = 0; i < valueNum; i++) {
-            sql.append(",?");
-        }
-        sql.append(")");
-        return conn.prepareStatement(sql.toString());
-    }
-
-    public PreparedStatement getDeleteStatement(int tableIndex) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String keyName = "tp0";
-        String sql = "delete from " + tableName + " where " + keyName + " =?";
-
-        return conn.prepareStatement(sql);
-
-    }
-
-    /**
-     * 将range范围内的所有数据加1
-     */
-    public PreparedStatement getUpdateAllStatement(int tableIndex, int tupleIndex) throws SQLException {
-        String tableName = "t" + tableIndex;
-        String tupleName = "tp" + tupleIndex;
-        String sql = "update " + tableName + " set " + tupleName + "=" + tupleName + " +1" +
-                " where " + tupleName + " between ? and ?";
-        return conn.prepareStatement(sql);
-    }
-
-    public PreparedStatement getInsertPhantomReadRecordStatement(int tableIndex) throws SQLException {
-        String sql = "insert into phantom_read_record values(" + tableIndex + ",?)";
-        return conn.prepareStatement(sql);
     }
 
 
@@ -289,7 +159,7 @@ public class MysqlConnector {
         }
         for (WorkNode workNode : workNodes) {
             sql.append('t').append(workNode.getTableIndex()).append('.').
-                    append("tp").append(workNode.getTupleIndex()).append('+');
+                    append("tp").append(workNode.getColumnIndex()).append('+');
         }
         sql.deleteCharAt(sql.length() - 1).append("<0");
 

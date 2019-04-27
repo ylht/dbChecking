@@ -22,7 +22,6 @@ public class LoadData implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("表" + table.getTableIndex() + "开始生成数据到本地文件");
         DataOutputToFile df = new DataOutputToFile(table.getTableIndex());
         while (true) {
             Object[] record = table.getValue();
@@ -32,8 +31,6 @@ public class LoadData implements Runnable {
             df.write(record);
         }
         df.close();
-        System.out.println("表" + table.getTableIndex() + "生成数据完成");
-        System.out.println("表" + table.getTableIndex() + "开始上传数据到数据库");
         MysqlConnector mysqlConnector = new MysqlConnector();
         try {
             mysqlConnector.loadData(table.getTableIndex());
@@ -42,7 +39,6 @@ public class LoadData implements Runnable {
             System.out.println("数据上传失败");
             System.exit(-1);
         }
-        System.out.println("表" + table.getTableIndex() + "上传数据完成");
         count.countDown();
     }
 }

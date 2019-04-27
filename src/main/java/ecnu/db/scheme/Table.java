@@ -1,13 +1,12 @@
 package ecnu.db.scheme;
 
-import ecnu.db.utils.LoadConfig;
+
+import ecnu.db.config.TableConfig;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
  * @author wangqingshuai
@@ -39,22 +38,22 @@ public class Table {
     private ArrayList<Integer> foreignKeys;
     private ArrayList<AbstractColumn> columns = new ArrayList<>();
 
-    private AtomicInteger currentLineNum=new AtomicInteger();
+    private AtomicInteger currentLineNum = new AtomicInteger();
 
 
-    public Table(int tableIndex,ArrayList<ArrayList<Integer>> allKeys) throws Exception {
+    public Table(int tableIndex, ArrayList<ArrayList<Integer>> allKeys) throws Exception {
         this.tableIndex = tableIndex;
-        double tableSparsity = LoadConfig.getConfig().getTableSparsity();
+        double tableSparsity = TableConfig.getConfig().getTableSparsity();
 
-        this.foreignKeyNum = Math.min(LoadConfig.getConfig().getForeignKeyNum(),allKeys.size());
+        this.foreignKeyNum = Math.min(TableConfig.getConfig().getForeignKeyNum(), allKeys.size());
 
-        if(foreignKeyNum>0){
-            ArrayList<Integer> arrays=new ArrayList<>();
+        if (foreignKeyNum > 0) {
+            ArrayList<Integer> arrays = new ArrayList<>();
             for (int i = 0; i < allKeys.size(); i++) {
                 arrays.add(i);
             }
             Collections.shuffle(arrays);
-            this.foreignKeys=new ArrayList<>(arrays.subList(0,foreignKeyNum));
+            this.foreignKeys = new ArrayList<>(arrays.subList(0, foreignKeyNum));
             for (int i = 0; i < foreignKeyNum; i++) {
                 columns.add(new IntColumn(allKeys.get(foreignKeys.get(i))));
             }
@@ -62,36 +61,35 @@ public class Table {
 
 
         //从配置文件中获取基本信息
-        tableSize = LoadConfig.getConfig().getTableSize();
+        tableSize = TableConfig.getConfig().getTableSize();
         for (int i = 0; i < tableSize; i++) {
-            if(R.nextDouble()< tableSparsity){
+            if (R.nextDouble() < tableSparsity) {
                 keys.add(i);
             }
         }
         allKeys.add(keys);
 
 
-
-        int tableColumnNum = LoadConfig.getConfig().getColumnNum();
+        int tableColumnNum = TableConfig.getConfig().getColumnNum();
         for (int i = 0; i < tableColumnNum; i++) {
             //数据的tuple从第二列开始，第一列作为主键列
-            String type = LoadConfig.getConfig().getColumnType();
+            String type = TableConfig.getConfig().getColumnType();
             switch (type) {
                 case "int":
-                    columns.add(new IntColumn(LoadConfig.getConfig().getRange("int")));
+                    columns.add(new IntColumn(TableConfig.getConfig().getRange("int")));
                     break;
                 case "decimal":
-                    columns.add(new DecimalColumn(LoadConfig.getConfig().getRange("decimal"),
-                            LoadConfig.getConfig().getDecimalPoint()));
+                    columns.add(new DecimalColumn(TableConfig.getConfig().getRange("decimal"),
+                            TableConfig.getConfig().getDecimalPoint()));
                     break;
                 case "float":
-                    columns.add(new DecimalColumn(LoadConfig.getConfig().getRange("decimal")));
+                    columns.add(new FloatColumn(TableConfig.getConfig().getRange("decimal")));
                     break;
                 case "varchar":
-                    columns.add(new VarcharColumn(LoadConfig.getConfig().getRange("varchar")));
+                    columns.add(new VarcharColumn(TableConfig.getConfig().getRange("varchar")));
                     break;
                 case "datetime":
-                    columns.add(new DateColumn(LoadConfig.getConfig().getRange("date")));
+                    columns.add(new DateColumn(TableConfig.getConfig().getRange("date")));
                     break;
                 default:
                     throw new Exception("配置文件错误,匹配到的项为：" + type);
@@ -102,7 +100,7 @@ public class Table {
     }
 
     /**
-     * @return 存在主键的一个拷贝
+     * @return 主键的一个引用
      */
     public ArrayList<Integer> getKeys() {
         return keys;
@@ -128,8 +126,8 @@ public class Table {
         for (String recordColumn : RECORD_COLUMNS) {
             sql.append(recordColumn).append(',');
         }
-        for (int i=0; i< foreignKeyNum; i++) {
-            sql.append("FOREIGN KEY (tp").append(i+KEY_NUM).append(") REFERENCES t")
+        for (int i = 0; i < foreignKeyNum; i++) {
+            sql.append("FOREIGN KEY (tp").append(i + KEY_NUM).append(") REFERENCES t")
                     .append(foreignKeys.get(i)).append("(tp0),");
         }
 
@@ -160,11 +158,11 @@ public class Table {
         for (int i = KEY_NUM; i <= RECORD_COLUMNS.length; i++) {
             lineRecord[lineRecord.length - i] = 0;
         }
-        int temp=currentLineNum.getAndIncrement();
-        if(temp>=keys.size()){
+        int temp = currentLineNum.getAndIncrement();
+        if (temp >= keys.size()) {
             return null;
         }
-        lineRecord[0]=keys.get(temp);
+        lineRecord[0] = keys.get(temp);
         return getObjects(lineRecord);
     }
 
@@ -184,16 +182,12 @@ public class Table {
 
     private Object[] getObjects(Object[] lineRecord) {
         for (int i = KEY_NUM; i < lineRecord.length - RECORD_COLUMNS.length; i++) {
-            lineRecord[i] = columns.get(i - KEY_NUM).getValue(true);
+            lineRecord[i] = columns.get(i - KEY_NUM).getValue();
         }
         return lineRecord;
     }
 
-    public Double getTransactionValue(int tupleIndex) {
-        return Double.valueOf(columns.get(tupleIndex - KEY_NUM).getValue(false).toString());
-    }
-
-    public Double getRandomValue(int tupleIndex) {
-        return Double.parseDouble(columns.get(tupleIndex - KEY_NUM).getValue(true).toString());
+    public ArrayList<AbstractColumn> getColumns() {
+        return columns;
     }
 }
