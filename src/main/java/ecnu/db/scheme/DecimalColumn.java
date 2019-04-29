@@ -11,9 +11,11 @@ public class DecimalColumn extends AbstractColumn {
 
     private static DecimalFormat df;
     private static int allPointLength = -1;
+    private double max;
 
     DecimalColumn(int range, int pointLength) {
         super(range, ColumnType.DECIMAL);
+        max = Math.pow(10,range);
         if (allPointLength < 0) {
             allPointLength = pointLength;
             df = new DecimalFormat("0." + "0".repeat(Math.max(0, allPointLength)));
@@ -26,12 +28,11 @@ public class DecimalColumn extends AbstractColumn {
 
     @Override
     public String getTableSQL() {
-        int decimalLength = String.valueOf(range).length() + allPointLength;
-        return "DECIMAL (" + decimalLength + ',' + allPointLength + ')';
+        return "DECIMAL (" + (range+allPointLength) + ',' + allPointLength + ')';
     }
 
     @Override
     public Object getValue() {
-        return df.format(R.nextDouble() * range);
+        return df.format(R.nextDouble() * max);
     }
 }

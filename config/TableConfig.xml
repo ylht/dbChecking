@@ -107,23 +107,23 @@
 
     <int>
         <HistogramItem>
-            <minValue>30</minValue>
-            <maxValue>50</maxValue>
+            <minValue>3000</minValue>
+            <maxValue>5000</maxValue>
             <ratio>0.3</ratio>
         </HistogramItem>
         <HistogramItem>
-            <minValue>51</minValue>
-            <maxValue>100</maxValue>
+            <minValue>5100</minValue>
+            <maxValue>10000</maxValue>
             <ratio>0.3</ratio>
         </HistogramItem>
         <HistogramItem>
-            <minValue>101</minValue>
-            <maxValue>200</maxValue>
+            <minValue>10100</minValue>
+            <maxValue>20000</maxValue>
             <ratio>0.3</ratio>
         </HistogramItem>
         <HistogramItem>
-            <minValue>201</minValue>
-            <maxValue>500</maxValue>
+            <minValue>20100</minValue>
+            <maxValue>50000</maxValue>
             <ratio>0.1</ratio>
         </HistogramItem>
     </int>
@@ -131,23 +131,23 @@
     <decimal>
         <pointMax>5</pointMax>
         <HistogramItem>
-            <minValue>30</minValue>
+            <minValue>3</minValue>
+            <maxValue>5</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>5</minValue>
+            <maxValue>10</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>10</minValue>
+            <maxValue>20</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>20</minValue>
             <maxValue>50</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>51</minValue>
-            <maxValue>100</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>101</minValue>
-            <maxValue>200</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>201</minValue>
-            <maxValue>500</maxValue>
             <ratio>0.1</ratio>
         </HistogramItem>
     </decimal>

@@ -41,15 +41,21 @@ public class TransactionConfig extends ReadConfig {
         }
     }
 
-    /**
-     * @return
-     */
-    public Byte getCheckType() throws Exception {
+    public Byte getTransactionCheckType() throws Exception {
+        return getCheckType("transaction/transactionCheckType");
+    }
+
+
+    public Byte getConfigCheckType(String configName) throws Exception {
+        return getCheckType("transaction/configType/"+configName);
+    }
+
+    private byte getCheckType(String configName) throws Exception {
         int checkType = 0;
-        String checkTypeString = document.valueOf("transaction/checkType");
-        for (int i = checkTypeString.length() - 1; i >= 0; i--) {
+        String checkTypeString = document.valueOf(configName);
+        for (int i =0; i < checkTypeString.length(); i++) {
             if (checkTypeString.charAt(i) == '1') {
-                checkType += Math.pow(2, i);
+                checkType += Math.pow(2, checkTypeString.length()-1-i);
             }
             if (checkTypeString.charAt(i) != '1' && checkTypeString.charAt(i) != '0') {
                 throw new Exception("配置项错误");
@@ -57,6 +63,7 @@ public class TransactionConfig extends ReadConfig {
         }
         return (byte) checkType;
     }
+
 
     /**
      * @return 该事务需要检测的列的类型，支持int,decimal,varchar,float,date五种
@@ -92,10 +99,15 @@ public class TransactionConfig extends ReadConfig {
     }
 
     public Integer getRangeRandomCount() {
-        return Integer.valueOf(document.valueOf("transaction/remittance/rangeRandomCount"));
+        return Integer.valueOf(document.valueOf("transaction/rangeRandomCount"));
     }
 
     public int getK() throws Exception {
-        return getValueFromHistogram("transaction/function/functionK");
+        return getValueFromHistogram("transaction/functionK");
     }
+
+    public boolean addOrNot(){
+        return R.nextDouble() < Double.valueOf(document.valueOf("transaction/add"));
+    }
+
 }

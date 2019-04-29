@@ -1,11 +1,14 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.WorkNode;
+import ecnu.db.config.SystemConfig;
 import ecnu.db.scheme.AbstractColumn;
+import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -15,32 +18,205 @@ public class Function extends BaseTransaction {
     private final static String ADD_AFTER_SELECT_SQL = "update t* set tp* = ? where tp0 = ? ";
     private final static String SUB_SQL = "update t* set tp* = tp* - ? where tp0 = ? and tp* > ?";
     private final static String SUB_AFTER_SELECT_SQL = "update t* set tp* = ? where tp0 = ? and tp* > ?";
-    private final static String SELECT_SQL = "select tp* from t * where tp0=?";
-    private final static String SELECT_FOR_UPDATE_SQL = "select tp* from t * where tp0=? for update";
+    private final static String SELECT_SQL = "select tp* from t* where tp0=?";
+    private final static String SELECT_FOR_UPDATE_SQL = "select tp* from t* where tp0=? for update";
     private AbstractColumn.ColumnType columnType;
+    private int k;
+    private boolean add;
     private int[] range;
-    private ZipDistributionList[] addKeys;
-    private ZipDistributionList[] subKeys;
-    private String[] addSQLs;
-    private PreparedStatement[] addPrepareStatements;
-    private String[] subSQLs;
-    private PreparedStatement[] subPrepareStatements;
-    private String[] selectSQLs;
-    private PreparedStatement[] selectPrepareStatements;
+    private ZipDistributionList[] xKeys;
+    private ZipDistributionList[] yKeys;
+    private String[] xSQLs;
+    private PreparedStatement[] xPrepareStatements;
+    private String[] ySQLs;
+    private PreparedStatement[] yPrepareStatements;
+    private String[] xSelectSQLs;
+    private PreparedStatement[] xSelectPrepareStatements;
+    private String[] ySelectSQLs;
+    private PreparedStatement[] ySelectPrepareStatements;
 
-    public Function(AbstractColumn.ColumnType columnType, ArrayList<WorkNode> workNodes,
-                    boolean isSelect, boolean forUpdate) {
+    public Function(AbstractColumn.ColumnType columnType,
+                    ArrayList<WorkNode> xNodes, ArrayList<WorkNode> yNodes,
+                    boolean isSelect, boolean forUpdate, boolean add, int k) {
+        this.columnType = columnType;
+        this.k = k;
+        this.add = add;
 
+        if (isSelect) {
+            xSelectSQLs = makeSelectInfo(forUpdate, xNodes);
+            ySelectSQLs = makeSelectInfo(forUpdate, yNodes);
+        }
+        xSQLs = makeUpdateInfo(isSelect, add, xNodes);
+        ySQLs = makeUpdateInfo(isSelect, add, yNodes);
+
+        xKeys = makeKeysInfo(xNodes);
+        yKeys = makeKeysInfo(yNodes);
+
+        range = new int[xNodes.size()];
+
+        for (int i = 0; i < range.length; i++) {
+            range[i] = xNodes.get(i).getRange();
+        }
+    }
+
+    private ZipDistributionList[] makeKeysInfo(ArrayList<WorkNode> workNodes) {
+        ZipDistributionList[] keys = new ZipDistributionList[workNodes.size()];
+        int i = 0;
+        for (WorkNode workNode : workNodes) {
+            keys[i] = new ZipDistributionList(workNode.getKeys(), true);
+            i++;
+        }
+        return keys;
+    }
+
+
+    private String[] makeSelectInfo(boolean forUpdate, ArrayList<WorkNode> workNodes) {
+        String[] selectSQLs = new String[workNodes.size()];
+        int i = 0;
+        for (WorkNode workNode : workNodes) {
+            if (forUpdate) {
+                selectSQLs[i] = SELECT_FOR_UPDATE_SQL;
+            } else {
+                selectSQLs[i] = SELECT_SQL;
+            }
+            selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
+            selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+            i++;
+        }
+        return selectSQLs;
+    }
+
+
+    private String[] makeUpdateInfo(boolean isSelect, boolean add, ArrayList<WorkNode> workNodes) {
+        String[] updateSQLs = new String[workNodes.size()];
+        int i = 0;
+        for (WorkNode workNode : workNodes) {
+            if (isSelect) {
+                if (add) {
+                    updateSQLs[i] = ADD_AFTER_SELECT_SQL;
+                } else {
+                    updateSQLs[i] = SUB_AFTER_SELECT_SQL;
+                }
+            } else {
+                if (add) {
+                    updateSQLs[i] = ADD_SQL;
+                } else {
+                    updateSQLs[i] = SUB_SQL;
+                }
+            }
+
+            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(workNode.getColumnIndex()));
+            i++;
+        }
+        return updateSQLs;
     }
 
 
     @Override
     public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-
+        this.mysqlConnector = mysqlConnector;
+        if (xSelectSQLs != null) {
+            xSelectPrepareStatements = getPreparedStatements(xSelectSQLs);
+            ySelectPrepareStatements = getPreparedStatements(ySelectSQLs);
+        }
+        xPrepareStatements = getPreparedStatements(xSQLs);
+        yPrepareStatements = getPreparedStatements(ySQLs);
     }
+
 
     @Override
     public void execute() throws SQLException {
+        if (xSelectPrepareStatements == null) {
+            int xIndex = R.nextInt(xPrepareStatements.length);
+            int yIndex = R.nextInt(yPrepareStatements.length);
+            Object xValue;
+            if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+                xValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[xIndex]));
+            } else {
+                xValue = R.nextInt(range[xIndex]);
+            }
+            xPrepareStatements[xIndex].setObject(1, xValue);
+            xPrepareStatements[xIndex].setInt(2, xKeys[xIndex].getValue());
+            if (!add) {
+                xPrepareStatements[xIndex].setObject(3, xValue);
+            }
+            if (xPrepareStatements[xIndex].executeUpdate() == 1) {
 
+                if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+                    yPrepareStatements[yIndex].setDouble(1, k * (double) xValue);
+                    if (!add) {
+                        yPrepareStatements[yIndex].setDouble(3, k * (double) xValue);
+                    }
+                } else {
+                    yPrepareStatements[yIndex].setInt(1, k * (int) xValue);
+                    if (!add) {
+                        yPrepareStatements[yIndex].setInt(3, k * (int) xValue);
+                    }
+                }
+                yPrepareStatements[yIndex].setInt(2, yKeys[yIndex].getValue());
+                if (yPrepareStatements[yIndex].executeUpdate() == 1) {
+                    mysqlConnector.commit();
+                    return;
+                }
+            }
+
+            mysqlConnector.rollback();
+        } else {
+            int xIndex = R.nextInt(xPrepareStatements.length);
+            int xKey = xKeys[xIndex].getValue();
+            xSelectPrepareStatements[xIndex].setInt(1, xKey);
+            ResultSet rs = xSelectPrepareStatements[xIndex].executeQuery();
+            if (rs.next()) {
+                Object xValue;
+                if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+                    xValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[xIndex]));
+                    if (add) {
+                        xPrepareStatements[xIndex].setDouble(1, rs.getDouble(1) + (double) xValue);
+                    } else {
+                        xPrepareStatements[xIndex].setDouble(1, rs.getDouble(1) - (double) xValue);
+                        xPrepareStatements[xIndex].setDouble(3, (double) xValue);
+                    }
+                } else {
+                    xValue = R.nextInt(range[xIndex]);
+                    if (add) {
+                        xPrepareStatements[xIndex].setInt(1, rs.getInt(1) + (int) xValue);
+                    } else {
+                        xPrepareStatements[xIndex].setInt(1, rs.getInt(1) - (int) xValue);
+                        xPrepareStatements[xIndex].setInt(3,  (int) xValue);
+                    }
+                }
+                xPrepareStatements[xIndex].setInt(2, xKey);
+                if (xPrepareStatements[xIndex].executeUpdate() == 1) {
+                    int yIndex = R.nextInt(xPrepareStatements.length);
+                    int yKey = yKeys[yIndex].getValue();
+                    ySelectPrepareStatements[yIndex].setInt(1, yKey);
+                    rs = ySelectPrepareStatements[yIndex].executeQuery();
+                    if (rs.next()) {
+                        if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+                            if (add) {
+                                yPrepareStatements[yIndex].setDouble(1, rs.getDouble(1) + k * (double) xValue);
+                            } else {
+                                yPrepareStatements[yIndex].setDouble(1, rs.getDouble(1) - k * (double) xValue);
+                                yPrepareStatements[yIndex].setDouble(3,  k * (double) xValue);
+                            }
+                        } else {
+                            if (add) {
+                                yPrepareStatements[yIndex].setInt(1, rs.getInt(1) +k* (int) xValue);
+                            } else {
+                                yPrepareStatements[yIndex].setInt(1, rs.getInt(1) - k*(int) xValue);
+                                yPrepareStatements[yIndex].setInt(3, k*(int) xValue);
+                            }
+                        }
+                        yPrepareStatements[yIndex].setInt(2, yKey);
+                        if (yPrepareStatements[yIndex].executeUpdate() == 1) {
+                            mysqlConnector.commit();
+                            return;
+                        }
+                    }
+                }
+                mysqlConnector.rollback();
+            }
+        }
     }
 }

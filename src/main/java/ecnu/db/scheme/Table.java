@@ -31,6 +31,11 @@ public class Table {
 
     private int tableIndex;
     private int tableSize;
+
+    public int getForeignKeyNum() {
+        return foreignKeyNum;
+    }
+
     private int foreignKeyNum;
 
 
@@ -69,6 +74,8 @@ public class Table {
         }
         allKeys.add(keys);
 
+        int decimalRange=TableConfig.getConfig().getRange("decimal");
+        int decimalPoint=TableConfig.getConfig().getDecimalPoint();
 
         int tableColumnNum = TableConfig.getConfig().getColumnNum();
         for (int i = 0; i < tableColumnNum; i++) {
@@ -79,8 +86,7 @@ public class Table {
                     columns.add(new IntColumn(TableConfig.getConfig().getRange("int")));
                     break;
                 case "decimal":
-                    columns.add(new DecimalColumn(TableConfig.getConfig().getRange("decimal"),
-                            TableConfig.getConfig().getDecimalPoint()));
+                    columns.add(new DecimalColumn(decimalRange,decimalPoint));
                     break;
                 case "float":
                     columns.add(new FloatColumn(TableConfig.getConfig().getRange("decimal")));
@@ -106,12 +112,6 @@ public class Table {
         return keys;
     }
 
-    /**
-     * @return 一个随机的key，只保证数据生成时，该主键存在过。
-     */
-    public int getRandomKey() {
-        return keys.get(R.nextInt(keys.size()));
-    }
 
     /**
      * @return 创建该表格的Sql
@@ -138,14 +138,6 @@ public class Table {
 
     public int getTableIndex() {
         return tableIndex;
-    }
-
-    public int getTableColSize() {
-        return columns.size();
-    }
-
-    public int getTableRecordSize() {
-        return RECORD_COLUMNS.length;
     }
 
     /**

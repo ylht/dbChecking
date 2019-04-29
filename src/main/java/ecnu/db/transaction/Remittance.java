@@ -2,6 +2,7 @@ package ecnu.db.transaction;
 
 import ecnu.db.check.WorkNode;
 import ecnu.db.scheme.AbstractColumn;
+import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
@@ -20,8 +21,8 @@ public class Remittance extends BaseTransaction {
     private final static String SUB_SQL = "update t* set tp* = tp* - ? where tp0 = ? and tp* > ?";
     private final static String ADD_AFTER_SELECT_SQL = "update t* set tp* = ? where tp0 = ? ";
     private final static String SUB_AFTER_SELECT_SQL = "update t* set tp* = ? where tp0 = ? and tp* > ?";
-    private final static String SELECT_SQL = "select tp* from t * where tp0=?";
-    private final static String SELECT_FOR_UPDATE_SQL = "select tp* from t * where tp0=? for update";
+    private final static String SELECT_SQL = "select tp* from t* where tp0=?";
+    private final static String SELECT_FOR_UPDATE_SQL = "select tp* from t* where tp0=? for update";
     /**
      * 事务在range范围内随机得到值时，range的大小，计算公式为
      * range= tupleRange/ rangeRandomCount
@@ -40,8 +41,9 @@ public class Remittance extends BaseTransaction {
 
 
     public Remittance(AbstractColumn.ColumnType columnType, ArrayList<WorkNode> workNodes,
-                      boolean isSelect, boolean forUpdate) {
+                      boolean isSelect, boolean forUpdate, int rangeRandomCount) {
         this.columnType = columnType;
+        this.rangeRandomCount = rangeRandomCount;
         range = new int[workNodes.size()];
         subKeys = new ZipDistributionList[workNodes.size()];
         addKeys = new ZipDistributionList[workNodes.size()];
@@ -63,6 +65,7 @@ public class Remittance extends BaseTransaction {
                 }
                 selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
                 selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+                i++;
             }
         }
         addSQLs = new String[workNodes.size()];
@@ -94,20 +97,10 @@ public class Remittance extends BaseTransaction {
     public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
         this.mysqlConnector = mysqlConnector;
         if (selectSQLs != null) {
-            selectPrepareStatements = new PreparedStatement[selectSQLs.length];
-            for (int i = 0; i < selectSQLs.length; i++) {
-                selectPrepareStatements[i] = mysqlConnector.getPrepareStatement(selectSQLs[i]);
-            }
+            selectPrepareStatements=getPreparedStatements(selectSQLs);
         }
-
-        subPrepareStatements = new PreparedStatement[subSQLs.length];
-        addPrepareStatements = new PreparedStatement[addSQLs.length];
-
-        for (int i = 0; i < subSQLs.length; i++) {
-            addPrepareStatements[i] = mysqlConnector.getPrepareStatement(addSQLs[i]);
-            subPrepareStatements[i] = mysqlConnector.getPrepareStatement(subSQLs[i]);
-        }
-
+        subPrepareStatements=getPreparedStatements(subSQLs);
+        addPrepareStatements=getPreparedStatements(addSQLs);
     }
 
 
@@ -117,7 +110,7 @@ public class Remittance extends BaseTransaction {
             int subIndex = R.nextInt(subPrepareStatements.length);
             Object subValue;
             if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                subValue = R.nextDouble() * range[subIndex] / rangeRandomCount;
+                subValue =Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[subIndex] / rangeRandomCount));
             } else {
                 subValue = R.nextInt(range[subIndex]) / rangeRandomCount;
             }
@@ -128,35 +121,34 @@ public class Remittance extends BaseTransaction {
                 int addIndex = R.nextInt(addPrepareStatements.length);
                 addPrepareStatements[addIndex].setObject(1, subValue);
                 addPrepareStatements[addIndex].setInt(2, addKeys[subIndex].getValue());
-                try {
-                    addPrepareStatements[addIndex].executeUpdate();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                if (addPrepareStatements[addIndex].executeUpdate() == 1) {
+                    mysqlConnector.commit();
+                    return;
                 }
-                mysqlConnector.commit();
-            } else {
-                mysqlConnector.rollback();
             }
+            mysqlConnector.rollback();
         } else {
             int subIndex = R.nextInt(subPrepareStatements.length);
-            selectPrepareStatements[subIndex].setInt(1, subKeys[subIndex].getValue());
+            int subKey=subKeys[subIndex].getValue();
+            selectPrepareStatements[subIndex].setInt(1, subKey);
             ResultSet rs = selectPrepareStatements[subIndex].executeQuery();
             if (rs.next()) {
                 Object subValue;
                 if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                    subValue = R.nextDouble() * range[subIndex] / rangeRandomCount;
+                    subValue =Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[subIndex] / rangeRandomCount));
                     subPrepareStatements[subIndex].setDouble(1, rs.getDouble(1) - (double) subValue);
-                    subPrepareStatements[subIndex].setDouble(3, rs.getDouble(1) - (double) subValue);
+                    subPrepareStatements[subIndex].setDouble(3, (double) subValue);
 
                 } else {
                     subValue = R.nextInt(range[subIndex]) / rangeRandomCount;
                     subPrepareStatements[subIndex].setInt(1, rs.getInt(1) - (int) subValue);
-                    subPrepareStatements[subIndex].setDouble(3, rs.getDouble(1) - (double) subValue);
+                    subPrepareStatements[subIndex].setInt(3,  (int)subValue);
                 }
                 subPrepareStatements[subIndex].setInt(2, subKeys[subIndex].getValue());
                 if (subPrepareStatements[subIndex].executeUpdate() == 1) {
                     int addIndex = R.nextInt(addPrepareStatements.length);
-                    selectPrepareStatements[addIndex].setInt(1, addKeys[addIndex].getValue());
+                    int addKey=addKeys[addIndex].getValue();
+                    selectPrepareStatements[addIndex].setInt(1, addKey);
                     rs = selectPrepareStatements[addIndex].executeQuery();
                     if (rs.next()) {
                         if (columnType == AbstractColumn.ColumnType.DECIMAL) {
@@ -164,10 +156,11 @@ public class Remittance extends BaseTransaction {
                         } else {
                             addPrepareStatements[addIndex].setInt(1, rs.getInt(1) + (int) subValue);
                         }
-                        addPrepareStatements[addIndex].setInt(2, addKeys[subIndex].getValue());
-                        addPrepareStatements[addIndex].executeUpdate();
-                        mysqlConnector.commit();
-                        return;
+                        addPrepareStatements[addIndex].setInt(2, addKey);
+                        if(addPrepareStatements[addIndex].executeUpdate()==1){
+                            mysqlConnector.commit();
+                            return;
+                        }
                     }
                 }
             }

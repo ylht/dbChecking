@@ -117,12 +117,15 @@ public class DbChecking {
         HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> workNodes = initWorkNodes();
         int tableIndex = 0;
         for (Table table : tables) {
+            int foreignKeyNum = table.getForeignKeyNum();
             ArrayList<Integer> keys = table.getKeys();
             ArrayList<AbstractColumn> columns = table.getColumns();
             int columnIndex = 1;
             for (AbstractColumn column : columns) {
-                workNodes.get(column.getColumnType()).add(
-                        new WorkNode(tableIndex, columnIndex++, keys, column.getRange()));
+                if(columnIndex>foreignKeyNum){
+                    workNodes.get(column.getColumnType()).add(
+                            new WorkNode(tableIndex, columnIndex++, keys, column.getRange()));
+                }
             }
             tableIndex++;
         }
@@ -179,7 +182,7 @@ public class DbChecking {
 
         printWorkGroup();
         try {
-            computeSum(true);
+            recordStartStatus();
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("无法记录数据初始状态");
@@ -188,12 +191,13 @@ public class DbChecking {
         printWorkGroup();
         work();
         try {
-            computeSum(false);
+            recordEndStatus();
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("无法记录数据结束状态");
             System.exit(-1);
         }
+        printWorkGroup();
         if (checkCorrect()) {
             System.out.println("当前隔离级别达到了" + checkKind);
         } else {
@@ -211,21 +215,16 @@ public class DbChecking {
         ArrayList<BaseTransaction> transactions = new ArrayList<>();
         for (BaseCheckCorrectness workGroup : workGroups) {
             workGroup.makeTransaction();
-            transactions.add(workGroup.getTransaction());
+            try {
+                transactions.add(workGroup.getTransaction());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("没有为"+workGroup.getClass().getSimpleName()+"设置事务");
+            }
         }
         for (int i = 0; i < threadsNum; i++) {
-
-            TransactionThread transactionThread = null;
-
-            try {
-
-                transactionThread = new TransactionThread(i, transactions, runCount, count);
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                System.out.println("线程组初始化失败");
-                System.exit(-1);
-            }
+            TransactionThread transactionThread = new TransactionThread(i, transactions, runCount, count);
+            //transactionThread.run();
             DbCheckingThreadPool.getThreadPoolExecutor().submit(transactionThread);
         }
         try {
@@ -242,11 +241,19 @@ public class DbChecking {
             System.out.println(workGroup);
         }
     }
-
-    private void computeSum(Boolean isBegin) throws SQLException {
+    private void recordStartStatus() throws SQLException {
         MysqlConnector mysqlConnector = new MysqlConnector();
         for (BaseCheckCorrectness workGroup : workGroups) {
-            workGroup.computeAllSum(isBegin, mysqlConnector);
+            workGroup.recordBeginStatus(mysqlConnector);
+        }
+        mysqlConnector.close();
+    }
+
+
+    private void recordEndStatus() throws SQLException {
+        MysqlConnector mysqlConnector = new MysqlConnector();
+        for (BaseCheckCorrectness workGroup : workGroups) {
+            workGroup.recordEndStatus(mysqlConnector);
         }
         mysqlConnector.close();
     }
@@ -256,7 +263,7 @@ public class DbChecking {
         for (BaseCheckCorrectness workGroup : workGroups) {
             boolean temp = workGroup.checkCorrect();
             if (!temp) {
-                System.out.println(workGroup.getClass() + "验证失败");
+                System.out.println(workGroup.getClass().getSimpleName() + "验证失败");
             }
             checkResult = checkResult & temp;
         }

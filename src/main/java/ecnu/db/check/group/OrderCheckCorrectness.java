@@ -16,20 +16,21 @@ public class OrderCheckCorrectness extends BaseCheckCorrectness {
 
     }
 
-
     @Override
-    public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
-        if (isBegin) {
-            for (WorkNode node : workNodes) {
-                node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
-            }
-        } else {
-            for (WorkNode node : workNodes) {
-                node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
-                node.setOrderNum(mysqlConnector.getOrderItem(node.getTableIndex(), node.getColumnIndex()));
-            }
+    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
+        for (WorkNode node : workNodes) {
+            node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
         }
     }
+
+    @Override
+    public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
+        for (WorkNode node : workNodes) {
+            node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
+            node.setOrderNum(mysqlConnector.getOrderItem(node.getTableIndex(), node.getColumnIndex()));
+        }
+    }
+
 
     @Override
     public boolean checkCorrect() {

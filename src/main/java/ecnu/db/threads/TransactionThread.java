@@ -1,11 +1,13 @@
 package ecnu.db.threads;
 
 import ecnu.db.transaction.BaseTransaction;
+import ecnu.db.transaction.Function;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
@@ -21,7 +23,7 @@ public class TransactionThread implements Runnable {
     private int threadID;
 
     public TransactionThread(int threadID, ArrayList<BaseTransaction> transactions,
-                             int runCount, CountDownLatch count) throws SQLException {
+                             int runCount, CountDownLatch count){
         this.runCount = runCount;
         this.count = count;
         this.threadID = threadID;
@@ -36,7 +38,11 @@ public class TransactionThread implements Runnable {
             }
         }
         for (BaseTransaction transaction : this.transactions) {
-            transaction.makePrepareStatement(mysqlConnector);
+            try {
+                transaction.makePrepareStatement(mysqlConnector);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -46,8 +52,14 @@ public class TransactionThread implements Runnable {
             int randomIndex = r.nextInt(transactions.size());
             try {
                 transactions.get(randomIndex).execute();
-            } catch (SQLException e) {
-                LogManager.getLogger().error("事务运行出错：", e);
+            } catch (Exception e) {
+                //LogManager.getLogger().error("事务运行出错：", e);
+                e.printStackTrace();
+                try {
+                    mysqlConnector.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
             if (i % 100 == 0) {
                 System.out.println("第" + threadID + "号线程执行到第" + i + "次");

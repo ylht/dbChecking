@@ -3,6 +3,7 @@ package ecnu.db.transaction;
 import ecnu.db.scheme.AbstractColumn;
 import ecnu.db.utils.MysqlConnector;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Random;
 
@@ -18,6 +19,14 @@ public abstract class BaseTransaction implements Cloneable {
      * @throws SQLException 数据库连接错误，或者SQL语法出错
      */
     public abstract void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException;
+
+    protected PreparedStatement[] getPreparedStatements(String[] sqls) throws SQLException {
+        PreparedStatement[] preparedStatements=new PreparedStatement[sqls.length];
+        for (int i = 0; i < sqls.length; i++) {
+            preparedStatements[i]=mysqlConnector.getPrepareStatement(sqls[i]);
+        }
+        return preparedStatements;
+    }
 
     /**
      * 执行本类事务

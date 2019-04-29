@@ -25,16 +25,18 @@ public class WriteSkewCheckCorrectness extends BaseCheckCorrectness {
     }
 
     @Override
+    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException { }
+
+    @Override
+    public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
+        errCount = mysqlConnector.getWriteSkewResult(workNodes);
+    }
+
+    @Override
     public int getColumnCount() {
         return 0;
     }
 
-    @Override
-    public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
-        if (!isBegin) {
-            errCount = mysqlConnector.getWriteSkewResult(workNodes);
-        }
-    }
 
     @Override
     public boolean checkCorrect() {

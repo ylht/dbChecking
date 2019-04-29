@@ -24,12 +24,12 @@ public class PhantomReadCheckCorrectness extends BaseCheckCorrectness {
     }
 
     @Override
-    public int getColumnCount() {
-        return 0;
+    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
+
     }
 
     @Override
-    public void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException {
+    public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
         errCount = mysqlConnector.getPhantomRecordNum();
     }
 

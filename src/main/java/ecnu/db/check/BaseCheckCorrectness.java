@@ -40,7 +40,7 @@ public abstract class BaseCheckCorrectness {
      * @return true为需要判定，false为不需要判定
      */
     public boolean checkOrNot(CheckKind checkKind) throws Exception {
-        Byte testType = config.getCheckType();
+        Byte testType = config.getTransactionCheckType();
         if (testType == null) {
             throw new Exception("需要为" + this.getClass().getSimpleName() + "测试样例指定测试级别");
         }
@@ -51,8 +51,11 @@ public abstract class BaseCheckCorrectness {
     /**
      * @return 获取该工作组的事务
      */
-    public BaseTransaction getTransaction() {
-        return transaction;
+    public BaseTransaction getTransaction() throws Exception {
+        if(transaction != null){
+            return transaction;
+        }
+        throw new Exception("没有初始化事务");
     }
 
     public void addWorkNode(WorkNode node) {
@@ -93,13 +96,20 @@ public abstract class BaseCheckCorrectness {
 
 
     /**
-     * 计算用于验证工作组正确性的相关数据
+     * 记录工作组开始执行前的数据库数据
      *
-     * @param isBegin        是否计算初始状态
      * @param mysqlConnector 加载数据库驱动
      * @throws SQLException 抛出异常
      */
-    public abstract void computeAllSum(boolean isBegin, MysqlConnector mysqlConnector) throws SQLException;
+    public abstract void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException;
+
+    /**
+     * 记录工作组执行之后的数据库数据
+     *
+     * @param mysqlConnector 加载数据库驱动
+     * @throws SQLException 抛出异常
+     */
+    public abstract void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException;
 
     /**
      * 该工作组是否维持了一致性
@@ -108,7 +118,18 @@ public abstract class BaseCheckCorrectness {
      */
     public abstract boolean checkCorrect();
 
-    protected Boolean workOnTheCheckKind(Byte workType, CheckKind checkKind) {
+    protected Boolean checkConfigWorkOrNot(String typeName) {
+        byte configType= 0;
+        try {
+            configType = config.getConfigCheckType(typeName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return workOnTheCheckKind(configType,checkKind);
+    }
+
+
+    private Boolean workOnTheCheckKind(Byte workType, CheckKind checkKind) {
         switch (checkKind) {
             case ReadUncommitted:
                 return (workType & 0b1000) == 0b1000;
@@ -126,11 +147,11 @@ public abstract class BaseCheckCorrectness {
 
     @Override
     public String toString() {
-        StringBuilder wordNodeInfo = new StringBuilder();
+        StringBuilder workNodeInfo = new StringBuilder();
         for (WorkNode workNode : workNodes) {
-            wordNodeInfo.append(workNode.toString());
+            workNodeInfo.append(workNode.toString());
         }
-        return this.getClass().getSimpleName() + " " + wordNodeInfo;
+        return this.getClass().getSimpleName() + " " + workNodeInfo;
     }
 
     public enum CheckKind {
