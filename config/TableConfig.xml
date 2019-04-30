@@ -9,12 +9,12 @@
         <HistogramItem>
             <minValue>1</minValue>
             <maxValue>10</maxValue>
-            <ratio>0.45</ratio>
+            <ratio>0.25</ratio>
         </HistogramItem>
         <HistogramItem>
             <minValue>11</minValue>
             <maxValue>20</maxValue>
-            <ratio>0.5</ratio>
+            <ratio>0.7</ratio>
         </HistogramItem>
         <HistogramItem>
             <minValue>21</minValue>
@@ -38,19 +38,19 @@
 
     <tableSizeHistogram>
         <HistogramItem>
+            <minValue>100</minValue>
+            <maxValue>1000</maxValue>
+            <ratio>0.75</ratio>
+        </HistogramItem>
+        <HistogramItem>
             <minValue>1000</minValue>
-            <maxValue>10000</maxValue>
-            <ratio>0.3</ratio>
+            <maxValue>2000</maxValue>
+            <ratio>0.2</ratio>
         </HistogramItem>
         <HistogramItem>
-            <minValue>10001</minValue>
-            <maxValue>20000</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>20001</minValue>
-            <maxValue>50000</maxValue>
-            <ratio>0.4</ratio>
+            <minValue>2000</minValue>
+            <maxValue>5000</maxValue>
+            <ratio>0.05</ratio>
         </HistogramItem>
     </tableSizeHistogram>
 
@@ -85,7 +85,7 @@
     <dataType2OccurProbability>
         <item>
             <dataType>int</dataType>
-            <probability>0.3</probability>
+            <probability>0.45</probability>
         </item>
         <item>
             <dataType>float</dataType>
@@ -97,7 +97,7 @@
         </item>
         <item>
             <dataType>varchar</dataType>
-            <probability>0.2</probability>
+            <probability>0.05</probability>
         </item>
         <item>
             <dataType>datetime</dataType>

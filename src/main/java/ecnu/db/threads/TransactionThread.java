@@ -53,8 +53,8 @@ public class TransactionThread implements Runnable {
             try {
                 transactions.get(randomIndex).execute();
             } catch (Exception e) {
-                //LogManager.getLogger().error("事务运行出错：", e);
-                e.printStackTrace();
+                LogManager.getLogger().error("事务运行出错：", e);
+                //e.printStackTrace();
                 try {
                     mysqlConnector.rollback();
                 } catch (SQLException ex) {

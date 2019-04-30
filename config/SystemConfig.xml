@@ -2,8 +2,8 @@
 <generator>
     <thread>
         <!--每个cpu核心上分配到的事务线程数-->
-        <runThreadNumOnCore>5</runThreadNumOnCore>
-        <runCount>1000</runCount>
+        <runThreadNumOnCore>15</runThreadNumOnCore>
+        <runCount>500</runCount>
     </thread>
 
     <transaction>

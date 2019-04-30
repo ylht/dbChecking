@@ -13,8 +13,10 @@
 
     <configType>
         <select>0001</select>
-        <selectWithForUpdate>0001</selectWithForUpdate>
+        <selectWithForUpdate>0000</selectWithForUpdate>
     </configType>
+
+    <minColumnNum>1</minColumnNum>
 
     <!--在执行时，该组事务需要操作几个列,用概率直方图的方式表示-->
     <columnNum>

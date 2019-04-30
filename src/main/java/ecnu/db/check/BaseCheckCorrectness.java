@@ -128,6 +128,10 @@ public abstract class BaseCheckCorrectness {
         return workOnTheCheckKind(configType,checkKind);
     }
 
+    public boolean columnNumEnough(){
+        return workNodes.size()>=config.getMinColumnNum();
+    }
+
 
     private Boolean workOnTheCheckKind(Byte workType, CheckKind checkKind) {
         switch (checkKind) {

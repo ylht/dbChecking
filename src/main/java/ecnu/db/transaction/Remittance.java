@@ -44,35 +44,17 @@ public class Remittance extends BaseTransaction {
                       boolean isSelect, boolean forUpdate, int rangeRandomCount) {
         this.columnType = columnType;
         this.rangeRandomCount = rangeRandomCount;
+
         range = new int[workNodes.size()];
         subKeys = new ZipDistributionList[workNodes.size()];
         addKeys = new ZipDistributionList[workNodes.size()];
-        int i = 0;
-        for (WorkNode workNode : workNodes) {
-            range[i] = workNode.getRange();
-            subKeys[i] = new ZipDistributionList(workNode.getKeys(), true);
-            addKeys[i++] = new ZipDistributionList(workNode.getKeys(), true);
-        }
-
-        if (isSelect) {
-            selectSQLs = new String[workNodes.size()];
-            i = 0;
-            for (WorkNode workNode : workNodes) {
-                if (forUpdate) {
-                    selectSQLs[i] = SELECT_FOR_UPDATE_SQL;
-                } else {
-                    selectSQLs[i] = SELECT_SQL;
-                }
-                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-                i++;
-            }
-        }
         addSQLs = new String[workNodes.size()];
         subSQLs = new String[workNodes.size()];
+        if (isSelect) {
+            selectSQLs = new String[workNodes.size()];
+        }
 
-
-        i = 0;
+        int i = 0;
         for (WorkNode workNode : workNodes) {
             if (!isSelect) {
                 addSQLs[i] = ADD_SQL;
@@ -80,6 +62,14 @@ public class Remittance extends BaseTransaction {
             } else {
                 addSQLs[i] = ADD_AFTER_SELECT_SQL;
                 subSQLs[i] = SUB_AFTER_SELECT_SQL;
+
+                if (forUpdate) {
+                    selectSQLs[i] = SELECT_FOR_UPDATE_SQL;
+                } else {
+                    selectSQLs[i] = SELECT_SQL;
+                }
+                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
+                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
             }
 
             addSQLs[i] = addSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
@@ -89,6 +79,10 @@ public class Remittance extends BaseTransaction {
             subSQLs[i] = subSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
             subSQLs[i] = subSQLs[i].replace("*", String.valueOf(workNode.getColumnIndex()));
 
+            range[i] = workNode.getRange();
+            subKeys[i] = new ZipDistributionList(workNode.getKeys(), true);
+            addKeys[i] = new ZipDistributionList(workNode.getKeys(), true);
+
             i++;
         }
     }
@@ -97,10 +91,10 @@ public class Remittance extends BaseTransaction {
     public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
         this.mysqlConnector = mysqlConnector;
         if (selectSQLs != null) {
-            selectPrepareStatements=getPreparedStatements(selectSQLs);
+            selectPrepareStatements = getPreparedStatements(selectSQLs);
         }
-        subPrepareStatements=getPreparedStatements(subSQLs);
-        addPrepareStatements=getPreparedStatements(addSQLs);
+        subPrepareStatements = getPreparedStatements(subSQLs);
+        addPrepareStatements = getPreparedStatements(addSQLs);
     }
 
 
@@ -110,7 +104,7 @@ public class Remittance extends BaseTransaction {
             int subIndex = R.nextInt(subPrepareStatements.length);
             Object subValue;
             if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                subValue =Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[subIndex] / rangeRandomCount));
+                subValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[subIndex] / rangeRandomCount));
             } else {
                 subValue = R.nextInt(range[subIndex]) / rangeRandomCount;
             }
@@ -129,25 +123,25 @@ public class Remittance extends BaseTransaction {
             mysqlConnector.rollback();
         } else {
             int subIndex = R.nextInt(subPrepareStatements.length);
-            int subKey=subKeys[subIndex].getValue();
+            int subKey = subKeys[subIndex].getValue();
             selectPrepareStatements[subIndex].setInt(1, subKey);
             ResultSet rs = selectPrepareStatements[subIndex].executeQuery();
             if (rs.next()) {
                 Object subValue;
                 if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                    subValue =Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[subIndex] / rangeRandomCount));
+                    subValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[subIndex] / rangeRandomCount));
                     subPrepareStatements[subIndex].setDouble(1, rs.getDouble(1) - (double) subValue);
                     subPrepareStatements[subIndex].setDouble(3, (double) subValue);
 
                 } else {
                     subValue = R.nextInt(range[subIndex]) / rangeRandomCount;
                     subPrepareStatements[subIndex].setInt(1, rs.getInt(1) - (int) subValue);
-                    subPrepareStatements[subIndex].setInt(3,  (int)subValue);
+                    subPrepareStatements[subIndex].setInt(3, (int) subValue);
                 }
-                subPrepareStatements[subIndex].setInt(2, subKeys[subIndex].getValue());
+                subPrepareStatements[subIndex].setInt(2, subKey);
                 if (subPrepareStatements[subIndex].executeUpdate() == 1) {
                     int addIndex = R.nextInt(addPrepareStatements.length);
-                    int addKey=addKeys[addIndex].getValue();
+                    int addKey = addKeys[addIndex].getValue();
                     selectPrepareStatements[addIndex].setInt(1, addKey);
                     rs = selectPrepareStatements[addIndex].executeQuery();
                     if (rs.next()) {
@@ -157,7 +151,7 @@ public class Remittance extends BaseTransaction {
                             addPrepareStatements[addIndex].setInt(1, rs.getInt(1) + (int) subValue);
                         }
                         addPrepareStatements[addIndex].setInt(2, addKey);
-                        if(addPrepareStatements[addIndex].executeUpdate()==1){
+                        if (addPrepareStatements[addIndex].executeUpdate() == 1) {
                             mysqlConnector.commit();
                             return;
                         }

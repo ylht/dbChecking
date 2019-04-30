@@ -1,7 +1,6 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.WorkNode;
-import ecnu.db.config.SystemConfig;
 import ecnu.db.scheme.AbstractColumn;
 import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
@@ -46,6 +45,7 @@ public class Function extends BaseTransaction {
             xSelectSQLs = makeSelectInfo(forUpdate, xNodes);
             ySelectSQLs = makeSelectInfo(forUpdate, yNodes);
         }
+
         xSQLs = makeUpdateInfo(isSelect, add, xNodes);
         ySQLs = makeUpdateInfo(isSelect, add, yNodes);
 
@@ -125,98 +125,108 @@ public class Function extends BaseTransaction {
     }
 
 
-    @Override
-    public void execute() throws SQLException {
-        if (xSelectPrepareStatements == null) {
-            int xIndex = R.nextInt(xPrepareStatements.length);
-            int yIndex = R.nextInt(yPrepareStatements.length);
+    private void executeUpdateTransaction() throws SQLException {
+        int xIndex = R.nextInt(xPrepareStatements.length);
+        int yIndex = R.nextInt(yPrepareStatements.length);
+        Object xValue;
+        if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+            xValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[xIndex]));
+        } else {
+            xValue = R.nextInt(range[xIndex]);
+        }
+        xPrepareStatements[xIndex].setObject(1, xValue);
+        xPrepareStatements[xIndex].setInt(2, xKeys[xIndex].getValue());
+        if (!add) {
+            xPrepareStatements[xIndex].setObject(3, xValue);
+        }
+        if (xPrepareStatements[xIndex].executeUpdate() == 1) {
+
+            if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+                yPrepareStatements[yIndex].setDouble(1, k * (double) xValue);
+                if (!add) {
+                    yPrepareStatements[yIndex].setDouble(3, k * (double) xValue);
+                }
+            } else {
+                yPrepareStatements[yIndex].setInt(1, k * (int) xValue);
+                if (!add) {
+                    yPrepareStatements[yIndex].setInt(3, k * (int) xValue);
+                }
+            }
+            yPrepareStatements[yIndex].setInt(2, yKeys[yIndex].getValue());
+            if (yPrepareStatements[yIndex].executeUpdate() == 1) {
+                mysqlConnector.commit();
+                return;
+            }
+        }
+        mysqlConnector.rollback();
+    }
+
+    private void executeTransactionWithSelect() throws SQLException {
+        int xIndex = R.nextInt(xPrepareStatements.length);
+        int xKey = xKeys[xIndex].getValue();
+        xSelectPrepareStatements[xIndex].setInt(1, xKey);
+        ResultSet rs = xSelectPrepareStatements[xIndex].executeQuery();
+        if (rs.next()) {
             Object xValue;
             if (columnType == AbstractColumn.ColumnType.DECIMAL) {
                 xValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[xIndex]));
+                if (add) {
+                    xPrepareStatements[xIndex].setDouble(1, rs.getDouble(1) + (double) xValue);
+                } else {
+                    xPrepareStatements[xIndex].setDouble(1, rs.getDouble(1) - (double) xValue);
+                    xPrepareStatements[xIndex].setDouble(3, (double) xValue);
+                }
             } else {
-                xValue = R.nextInt(range[xIndex]);
+                xValue = R.nextInt(range[xIndex])+1;
+                if (add) {
+                    xPrepareStatements[xIndex].setInt(1, rs.getInt(1) + (int) xValue);
+                } else {
+                    xPrepareStatements[xIndex].setInt(1, rs.getInt(1) - (int) xValue);
+                    xPrepareStatements[xIndex].setInt(3, (int) xValue);
+                }
             }
-            xPrepareStatements[xIndex].setObject(1, xValue);
-            xPrepareStatements[xIndex].setInt(2, xKeys[xIndex].getValue());
-            if (!add) {
-                xPrepareStatements[xIndex].setObject(3, xValue);
-            }
+
+            xPrepareStatements[xIndex].setInt(2, xKey);
             if (xPrepareStatements[xIndex].executeUpdate() == 1) {
-
-                if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                    yPrepareStatements[yIndex].setDouble(1, k * (double) xValue);
-                    if (!add) {
-                        yPrepareStatements[yIndex].setDouble(3, k * (double) xValue);
-                    }
-                } else {
-                    yPrepareStatements[yIndex].setInt(1, k * (int) xValue);
-                    if (!add) {
-                        yPrepareStatements[yIndex].setInt(3, k * (int) xValue);
-                    }
-                }
-                yPrepareStatements[yIndex].setInt(2, yKeys[yIndex].getValue());
-                if (yPrepareStatements[yIndex].executeUpdate() == 1) {
-                    mysqlConnector.commit();
-                    return;
-                }
-            }
-
-            mysqlConnector.rollback();
-        } else {
-            int xIndex = R.nextInt(xPrepareStatements.length);
-            int xKey = xKeys[xIndex].getValue();
-            xSelectPrepareStatements[xIndex].setInt(1, xKey);
-            ResultSet rs = xSelectPrepareStatements[xIndex].executeQuery();
-            if (rs.next()) {
-                Object xValue;
-                if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                    xValue = Double.valueOf(DecimalColumn.getDf().format(R.nextDouble() * range[xIndex]));
-                    if (add) {
-                        xPrepareStatements[xIndex].setDouble(1, rs.getDouble(1) + (double) xValue);
-                    } else {
-                        xPrepareStatements[xIndex].setDouble(1, rs.getDouble(1) - (double) xValue);
-                        xPrepareStatements[xIndex].setDouble(3, (double) xValue);
-                    }
-                } else {
-                    xValue = R.nextInt(range[xIndex]);
-                    if (add) {
-                        xPrepareStatements[xIndex].setInt(1, rs.getInt(1) + (int) xValue);
-                    } else {
-                        xPrepareStatements[xIndex].setInt(1, rs.getInt(1) - (int) xValue);
-                        xPrepareStatements[xIndex].setInt(3,  (int) xValue);
-                    }
-                }
-                xPrepareStatements[xIndex].setInt(2, xKey);
-                if (xPrepareStatements[xIndex].executeUpdate() == 1) {
-                    int yIndex = R.nextInt(xPrepareStatements.length);
-                    int yKey = yKeys[yIndex].getValue();
-                    ySelectPrepareStatements[yIndex].setInt(1, yKey);
-                    rs = ySelectPrepareStatements[yIndex].executeQuery();
-                    if (rs.next()) {
-                        if (columnType == AbstractColumn.ColumnType.DECIMAL) {
-                            if (add) {
-                                yPrepareStatements[yIndex].setDouble(1, rs.getDouble(1) + k * (double) xValue);
-                            } else {
-                                yPrepareStatements[yIndex].setDouble(1, rs.getDouble(1) - k * (double) xValue);
-                                yPrepareStatements[yIndex].setDouble(3,  k * (double) xValue);
-                            }
+                int yIndex = R.nextInt(yPrepareStatements.length);
+                int yKey = yKeys[yIndex].getValue();
+                ySelectPrepareStatements[yIndex].setInt(1, yKey);
+                rs = ySelectPrepareStatements[yIndex].executeQuery();
+                if (rs.next()) {
+                    if (columnType == AbstractColumn.ColumnType.DECIMAL) {
+                        if (add) {
+                            yPrepareStatements[yIndex].setDouble(1, rs.getDouble(1) + k * (double) xValue);
                         } else {
-                            if (add) {
-                                yPrepareStatements[yIndex].setInt(1, rs.getInt(1) +k* (int) xValue);
-                            } else {
-                                yPrepareStatements[yIndex].setInt(1, rs.getInt(1) - k*(int) xValue);
-                                yPrepareStatements[yIndex].setInt(3, k*(int) xValue);
-                            }
+                            yPrepareStatements[yIndex].setDouble(1, rs.getDouble(1) - k * (double) xValue);
+                            yPrepareStatements[yIndex].setDouble(3, k * (double) xValue);
                         }
-                        yPrepareStatements[yIndex].setInt(2, yKey);
-                        if (yPrepareStatements[yIndex].executeUpdate() == 1) {
-                            mysqlConnector.commit();
-                            return;
+                    } else {
+                        if (add) {
+                            yPrepareStatements[yIndex].setInt(1, rs.getInt(1) + k * (int) xValue);
+                        } else {
+                            yPrepareStatements[yIndex].setInt(1, rs.getInt(1) - k * (int) xValue);
+                            yPrepareStatements[yIndex].setInt(3, k * (int) xValue);
                         }
                     }
+                    yPrepareStatements[yIndex].setInt(2, yKey);
+                    if (yPrepareStatements[yIndex].executeUpdate() == 1) {
+                        mysqlConnector.commit();
+
+                        return;
+                    }
                 }
-                mysqlConnector.rollback();
             }
+            mysqlConnector.rollback();
+        }
+    }
+
+
+    @Override
+    public void execute() throws SQLException {
+        if (xSelectPrepareStatements == null) {
+            executeUpdateTransaction();
+        } else {
+            executeTransactionWithSelect();
         }
     }
 }

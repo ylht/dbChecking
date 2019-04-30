@@ -18,6 +18,11 @@ public class TransactionConfig extends ReadConfig {
         configFileDirectory = configFileDirectoryName;
     }
 
+    public int getMinColumnNum(){
+        return Integer.valueOf(document.valueOf("transaction/minColumnNum"));
+    }
+
+
     public synchronized static TransactionConfig getConfig(String configName) {
         return new TransactionConfig(Objects.requireNonNullElse(configFileDirectory, "config/transactionConfig/") + configName);
     }
@@ -98,9 +103,11 @@ public class TransactionConfig extends ReadConfig {
 
     }
 
+
     public Integer getRangeRandomCount() {
         return Integer.valueOf(document.valueOf("transaction/rangeRandomCount"));
     }
+
 
     public int getK() throws Exception {
         return getValueFromHistogram("transaction/functionK");
@@ -108,6 +115,11 @@ public class TransactionConfig extends ReadConfig {
 
     public boolean addOrNot(){
         return R.nextDouble() < Double.valueOf(document.valueOf("transaction/add"));
+    }
+
+
+    public int getOrderMaxCount(){
+        return Integer.valueOf(document.valueOf("transaction/orderMaxCount"));
     }
 
 }

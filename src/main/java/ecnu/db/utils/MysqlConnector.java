@@ -16,19 +16,17 @@ public class MysqlConnector {
      * JDBC 驱动名及数据库 URL
      */
     private Connection conn;
-    private Statement stmt;
 
     public MysqlConnector() {
 
-        String dbUrl = "jdbc:mysql://biui.me/databaseChecking?useSSL=false&allowPublicKeyRetrieval=true";
+        String dbUrl = "jdbc:mysql://10.11.1.193:13306/databaseChecking?useSSL=false&allowPublicKeyRetrieval=true";
 
         // 数据库的用户名与密码，需要根据自己的设置
-        String user = "qswang";
-        String pass = "Biui1227..";
+        String user = "root";
+        String pass = "root";
 
         try {
             conn = DriverManager.getConnection(dbUrl, user, pass);
-            stmt = conn.createStatement();
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("无法建立数据库连接");
@@ -74,7 +72,7 @@ public class MysqlConnector {
     }
 
     public void executeSql(String sql) throws SQLException {
-        stmt.execute(sql);
+        conn.createStatement().execute(sql);
     }
 
     //表格相关操作
@@ -106,7 +104,7 @@ public class MysqlConnector {
     }
 
     public void createOrderTable() throws SQLException {
-        String sql = "CREATE TABLE order_item (tableIndex INT,tupleIndex INT)";
+        String sql = "CREATE TABLE order_item (tableIndex INT,tupleIndex INT,num INT default 0)";
         executeSql(sql);
     }
 
@@ -120,21 +118,21 @@ public class MysqlConnector {
 
     public int getPhantomRecordNum() throws SQLException {
         String sql = "select count(*) from phantom_read_record";
-        ResultSet rs = stmt.executeQuery(sql);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
 
     public int getNoCommitCount(int tableIndex) throws SQLException {
         String sql = "select count(*) from t" + tableIndex + " where checkNoCommit<0";
-        ResultSet rs = stmt.executeQuery(sql);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
 
     public int getSumRepeatableRead(int tableIndex) throws SQLException {
         String sql = "select count(*) from t" + tableIndex + " where checkRepeatableRead!=0";
-        ResultSet rs = stmt.executeQuery(sql);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
@@ -163,16 +161,16 @@ public class MysqlConnector {
         }
         sql.deleteCharAt(sql.length() - 1).append("<0");
 
-        ResultSet rs = stmt.executeQuery(sql.toString());
+        ResultSet rs = conn.createStatement().executeQuery(sql.toString());
         rs.next();
         return rs.getInt(1);
 
     }
 
     public int getOrderItem(int tableIndex, int tupleIndex) throws SQLException {
-        String sql = "select count(*) from order_item" +
+        String sql = "select sum(num) from order_item" +
                 " where tableIndex=" + tableIndex + " and tupleIndex =" + tupleIndex;
-        ResultSet rs = stmt.executeQuery(sql);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
@@ -181,7 +179,7 @@ public class MysqlConnector {
         String tableName = "t" + tableIndex;
         String tupleName = "tp" + tupleIndex;
         String sql = "select sum(" + tupleName + ") from " + tableName;
-        ResultSet rs = stmt.executeQuery(sql);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         rs.next();
         return rs.getDouble(1);
     }

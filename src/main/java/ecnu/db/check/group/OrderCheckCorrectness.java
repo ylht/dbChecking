@@ -2,18 +2,20 @@ package ecnu.db.check.group;
 
 import ecnu.db.check.BaseCheckCorrectness;
 import ecnu.db.check.WorkNode;
+import ecnu.db.transaction.Order;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
 public class OrderCheckCorrectness extends BaseCheckCorrectness {
     public OrderCheckCorrectness() {
-        super("SampleConfig.xml");
+        super("OrderConfig.xml");
     }
 
     @Override
     public void makeTransaction() {
-
+        transaction=new Order(workNodes,checkConfigWorkOrNot("select"),
+                checkConfigWorkOrNot("selectWithForUpdate"),config.getOrderMaxCount());
     }
 
     @Override

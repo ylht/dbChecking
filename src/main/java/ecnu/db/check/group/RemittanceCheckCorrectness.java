@@ -6,6 +6,7 @@ import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.transaction.Remittance;
 import ecnu.db.utils.MysqlConnector;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -41,13 +42,13 @@ public class RemittanceCheckCorrectness extends BaseCheckCorrectness {
 
     @Override
     public boolean checkCorrect() {
-        Double beginSum = 0d;
-        Double endSum = 0d;
+        BigDecimal beginSum = new BigDecimal(0);
+        BigDecimal endSum = new BigDecimal(0);
 
         for (WorkNode node : workNodes) {
-            beginSum += node.getBeginSum();
-            endSum += node.getEndSum();
+            beginSum =beginSum.add(BigDecimal.valueOf(node.getBeginSum()));
+            endSum = endSum.add(BigDecimal.valueOf(node.getEndSum()));
         }
-        return DecimalColumn.getDf().format(beginSum).equals(DecimalColumn.getDf().format(endSum));
+        return beginSum.equals(endSum);
     }
 }

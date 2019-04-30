@@ -156,7 +156,7 @@ public class DbChecking {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            AbstractColumn.ColumnType columnType = null;
+            AbstractColumn.ColumnType columnType;
             try {
                 columnType = workGroup.columnType();
             } catch (Exception e) {
@@ -175,8 +175,13 @@ public class DbChecking {
                         hasWorkedNodes.get(columnType).add(workNode);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.out.println(workGroup.getClass().getSimpleName()+"没有workNode可供选择");
+                    break;
                 }
+            }
+            if(!workGroup.columnNumEnough()){
+                workGroups.remove(workGroup);
+                System.out.println("移除"+workGroup.getClass().getSimpleName());
             }
         }
 
