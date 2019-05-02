@@ -15,7 +15,7 @@ public class DecimalColumn extends AbstractColumn {
 
     DecimalColumn(int range, int pointLength) {
         super(range, ColumnType.DECIMAL);
-        max = Math.pow(10,range);
+        max = Math.pow(10, range);
         if (allPointLength < 0) {
             allPointLength = pointLength;
             df = new DecimalFormat("0." + "0".repeat(Math.max(0, allPointLength)));
@@ -28,7 +28,7 @@ public class DecimalColumn extends AbstractColumn {
 
     @Override
     public String getTableSQL() {
-        return "DECIMAL (" + (range+allPointLength) + ',' + allPointLength + ')';
+        return "DECIMAL (" + (range + allPointLength) + ',' + allPointLength + ')';
     }
 
     @Override

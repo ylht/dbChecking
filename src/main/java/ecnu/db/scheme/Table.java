@@ -27,24 +27,15 @@ public class Table {
      * 记录列，用于记录各种值
      */
     private final static String[] RECORD_COLUMNS =
-            new String[]{"checkNoCommit INT default 0", "checkRepeatableRead INT default 0"};
+            new String[]{"checkReadCommitted INT default 0", "checkRepeatableRead INT default 0"};
 
     private int tableIndex;
     private int tableSize;
-
-    public int getForeignKeyNum() {
-        return foreignKeyNum;
-    }
-
     private int foreignKeyNum;
-
-
     private ArrayList<Integer> keys = new ArrayList<>();
     private ArrayList<Integer> foreignKeys;
     private ArrayList<AbstractColumn> columns = new ArrayList<>();
-
     private AtomicInteger currentLineNum = new AtomicInteger();
-
 
     public Table(int tableIndex, ArrayList<ArrayList<Integer>> allKeys) throws Exception {
         this.tableIndex = tableIndex;
@@ -74,8 +65,8 @@ public class Table {
         }
         allKeys.add(keys);
 
-        int decimalRange=TableConfig.getConfig().getRange("decimal");
-        int decimalPoint=TableConfig.getConfig().getDecimalPoint();
+        int decimalRange = TableConfig.getConfig().getRange("decimal");
+        int decimalPoint = TableConfig.getConfig().getDecimalPoint();
 
         int tableColumnNum = TableConfig.getConfig().getColumnNum();
         for (int i = 0; i < tableColumnNum; i++) {
@@ -86,7 +77,7 @@ public class Table {
                     columns.add(new IntColumn(TableConfig.getConfig().getRange("int")));
                     break;
                 case "decimal":
-                    columns.add(new DecimalColumn(decimalRange,decimalPoint));
+                    columns.add(new DecimalColumn(decimalRange, decimalPoint));
                     break;
                 case "float":
                     columns.add(new FloatColumn(TableConfig.getConfig().getRange("decimal")));
@@ -103,6 +94,10 @@ public class Table {
         }
 
 
+    }
+
+    public int getForeignKeyNum() {
+        return foreignKeyNum;
     }
 
     /**

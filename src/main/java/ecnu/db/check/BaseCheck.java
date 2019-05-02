@@ -17,14 +17,14 @@ import java.util.ArrayList;
  * 2. y=kx+b事务，在两个列之间维持该关系式
  * 3. 订单事务，在单列上的tuple上累加，并写入日志，判定日志与服务器的数据是否一致。
  */
-public abstract class BaseCheckCorrectness {
+public abstract class BaseCheck {
     protected ArrayList<WorkNode> workNodes = new ArrayList<>();
     protected AbstractColumn.ColumnType columnType;
     protected BaseTransaction transaction;
     protected CheckKind checkKind;
     protected TransactionConfig config;
 
-    public BaseCheckCorrectness(String configName) {
+    public BaseCheck(String configName) {
         config = TransactionConfig.getConfig(configName);
         try {
             columnType = config.getColumnTypeForTransacion();
@@ -52,7 +52,7 @@ public abstract class BaseCheckCorrectness {
      * @return 获取该工作组的事务
      */
     public BaseTransaction getTransaction() throws Exception {
-        if(transaction != null){
+        if (transaction != null) {
             return transaction;
         }
         throw new Exception("没有初始化事务");
@@ -119,17 +119,25 @@ public abstract class BaseCheckCorrectness {
     public abstract boolean checkCorrect();
 
     protected Boolean checkConfigWorkOrNot(String typeName) {
-        byte configType= 0;
+        byte configType = 0;
         try {
             configType = config.getConfigCheckType(typeName);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return workOnTheCheckKind(configType,checkKind);
+        return workOnTheCheckKind(configType, checkKind);
     }
 
-    public boolean columnNumEnough(){
-        return workNodes.size()>=config.getMinColumnNum();
+    public boolean getWholeTable() {
+        return config.getWholeTable();
+    }
+
+    public boolean getColumnFromSameTable() {
+        return config.getColumnFromSameTable();
+    }
+
+    public boolean columnNumEnough() {
+        return workNodes.size() >= config.getMinColumnNum();
     }
 
 

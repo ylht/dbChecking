@@ -1,21 +1,26 @@
 package ecnu.db.check.group;
 
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
 import ecnu.db.check.WorkNode;
-import ecnu.db.transaction.Order;
+import ecnu.db.transaction.Remittance;
 import ecnu.db.utils.MysqlConnector;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 
-public class OrderCheckCorrectness extends BaseCheckCorrectness {
-    public OrderCheckCorrectness() {
-        super("OrderConfig.xml");
+public class RemittanceCheck extends BaseCheck {
+
+    public RemittanceCheck() {
+        super("RemittanceConfig.xml");
     }
+
 
     @Override
     public void makeTransaction() {
-        transaction=new Order(workNodes,checkConfigWorkOrNot("select"),
-                checkConfigWorkOrNot("selectWithForUpdate"),config.getOrderMaxCount());
+        transaction = new Remittance(columnType, workNodes,
+                checkConfigWorkOrNot("select"),
+                checkConfigWorkOrNot("selectWithForUpdate"),
+                config.getRangeRandomCount());
     }
 
     @Override
@@ -29,18 +34,19 @@ public class OrderCheckCorrectness extends BaseCheckCorrectness {
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
         for (WorkNode node : workNodes) {
             node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
-            node.setOrderNum(mysqlConnector.getOrderItem(node.getTableIndex(), node.getColumnIndex()));
         }
     }
 
 
     @Override
     public boolean checkCorrect() {
+        BigDecimal beginSum = new BigDecimal(0);
+        BigDecimal endSum = new BigDecimal(0);
+
         for (WorkNode node : workNodes) {
-            if (node.getOrderNum() != node.getBeginSum() - node.getEndSum()) {
-                return false;
-            }
+            beginSum = beginSum.add(BigDecimal.valueOf(node.getBeginSum()));
+            endSum = endSum.add(BigDecimal.valueOf(node.getEndSum()));
         }
-        return true;
+        return beginSum.equals(endSum);
     }
 }

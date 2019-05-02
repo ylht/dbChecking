@@ -81,15 +81,15 @@ public class Order extends BaseTransaction {
     public void execute() throws SQLException {
         int updateIndex = R.nextInt(updatePreparedStatements.length);
         int orderSubCount = R.nextInt(maxOrderItemCount) + 1;
-        int key=keys[updateIndex].getValue();
+        int key = keys[updateIndex].getValue();
         if (selectPreparedStatements == null) {
             updatePreparedStatements[updateIndex].setInt(1, orderSubCount);
         } else {
-            selectPreparedStatements[updateIndex].setInt(1,key);
-            ResultSet rs=selectPreparedStatements[updateIndex].executeQuery();
-            if(rs.next()){
-                updatePreparedStatements[updateIndex].setInt(1,rs.getInt(1)-orderSubCount);
-            }else {
+            selectPreparedStatements[updateIndex].setInt(1, key);
+            ResultSet rs = selectPreparedStatements[updateIndex].executeQuery();
+            if (rs.next()) {
+                updatePreparedStatements[updateIndex].setInt(1, rs.getInt(1) - orderSubCount);
+            } else {
                 mysqlConnector.rollback();
                 return;
             }

@@ -1,42 +1,34 @@
 package ecnu.db.check.group;
 
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
+import ecnu.db.transaction.WriteSkew;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
-public class WriteSkewCheckCorrectness extends BaseCheckCorrectness {
+//todo 考虑如何针对该事务引入同表的列进行操作
+
+public class WriteSkewCheck extends BaseCheck {
     private int errCount;
 
 
-    public WriteSkewCheckCorrectness() {
+    public WriteSkewCheck() {
         super("SampleConfig.xml");
     }
 
     @Override
-    public boolean workOnWorked() {
-        return false;
-    }
-
-
-    @Override
     public void makeTransaction() {
-
+        transaction = new WriteSkew(workNodes);
     }
 
     @Override
-    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException { }
+    public void recordBeginStatus(MysqlConnector mysqlConnector) {
+    }
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
         errCount = mysqlConnector.getWriteSkewResult(workNodes);
     }
-
-    @Override
-    public int getColumnCount() {
-        return 0;
-    }
-
 
     @Override
     public boolean checkCorrect() {

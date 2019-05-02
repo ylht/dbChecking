@@ -21,9 +21,9 @@ public abstract class BaseTransaction implements Cloneable {
     public abstract void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException;
 
     PreparedStatement[] getPreparedStatements(String[] sqls) throws SQLException {
-        PreparedStatement[] preparedStatements=new PreparedStatement[sqls.length];
+        PreparedStatement[] preparedStatements = new PreparedStatement[sqls.length];
         for (int i = 0; i < sqls.length; i++) {
-            preparedStatements[i]=mysqlConnector.getPrepareStatement(sqls[i]);
+            preparedStatements[i] = mysqlConnector.getPrepareStatement(sqls[i]);
         }
         return preparedStatements;
     }

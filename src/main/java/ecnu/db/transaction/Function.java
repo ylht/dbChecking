@@ -177,7 +177,7 @@ public class Function extends BaseTransaction {
                     xPrepareStatements[xIndex].setDouble(3, (double) xValue);
                 }
             } else {
-                xValue = R.nextInt(range[xIndex])+1;
+                xValue = R.nextInt(range[xIndex]) + 1;
                 if (add) {
                     xPrepareStatements[xIndex].setInt(1, rs.getInt(1) + (int) xValue);
                 } else {

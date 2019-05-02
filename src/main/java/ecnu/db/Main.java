@@ -1,6 +1,6 @@
 package ecnu.db;
 
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
 import org.apache.logging.log4j.LogManager;
 
 /**
@@ -13,7 +13,7 @@ public class Main {
         //初始化logger
         LogManager.getLogger();
         //项目执行的核心类
-        DbChecking dbChecking = new DbChecking(BaseCheckCorrectness.CheckKind.Serializable);
+        DbChecking dbChecking = new DbChecking(BaseCheck.CheckKind.Serializable);
         //初始化scheme
         dbChecking.createScheme();
         //载入数据

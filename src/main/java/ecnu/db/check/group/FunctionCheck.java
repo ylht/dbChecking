@@ -1,8 +1,7 @@
 package ecnu.db.check.group;
 
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
 import ecnu.db.check.WorkNode;
-import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.transaction.Function;
 import ecnu.db.utils.MysqlConnector;
 
@@ -10,13 +9,13 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class FunctionCheckCorrectness extends BaseCheckCorrectness {
+public class FunctionCheck extends BaseCheck {
     private int k;
     private boolean add;
     private ArrayList<WorkNode> xNodes;
     private ArrayList<WorkNode> yNodes;
 
-    public FunctionCheckCorrectness() {
+    public FunctionCheck() {
         super("FunctionConfig.xml");
     }
 
@@ -36,7 +35,7 @@ public class FunctionCheckCorrectness extends BaseCheckCorrectness {
         }
         try {
             k = config.getK();
-            if(k<1){
+            if (k < 1) {
                 throw new Exception("非法的k值");
             }
         } catch (Exception e) {
@@ -69,19 +68,19 @@ public class FunctionCheckCorrectness extends BaseCheckCorrectness {
         BigDecimal xEndSum = new BigDecimal(0);
 
         for (WorkNode xNode : xNodes) {
-            xBeginSum=xBeginSum.add(BigDecimal.valueOf(xNode.getBeginSum()));
-            xEndSum=xEndSum.add(BigDecimal.valueOf(xNode.getEndSum()));
+            xBeginSum = xBeginSum.add(BigDecimal.valueOf(xNode.getBeginSum()));
+            xEndSum = xEndSum.add(BigDecimal.valueOf(xNode.getEndSum()));
         }
 
-        BigDecimal yBeginSum=new BigDecimal(0);
-        BigDecimal yEndSum=new BigDecimal(0);
+        BigDecimal yBeginSum = new BigDecimal(0);
+        BigDecimal yEndSum = new BigDecimal(0);
 
         for (WorkNode yNode : yNodes) {
-            yBeginSum=yBeginSum.add(BigDecimal.valueOf(yNode.getBeginSum()));
-            yEndSum=yEndSum.add(BigDecimal.valueOf(yNode.getEndSum()));
+            yBeginSum = yBeginSum.add(BigDecimal.valueOf(yNode.getBeginSum()));
+            yEndSum = yEndSum.add(BigDecimal.valueOf(yNode.getEndSum()));
         }
-        BigDecimal xSub=xEndSum.subtract(xBeginSum);
-        BigDecimal ySub=yEndSum.subtract(yBeginSum);
+        BigDecimal xSub = xEndSum.subtract(xBeginSum);
+        BigDecimal ySub = yEndSum.subtract(yBeginSum);
         return (ySub).equals((xSub).multiply(new BigDecimal(k)));
     }
 }

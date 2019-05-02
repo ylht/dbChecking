@@ -1,29 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transaction>
-
+    <columnFromSameTable>1</columnFromSameTable>
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,
     repeatableRead,serializable-->
-    <transactionCheckType>0000</transactionCheckType>
+    <transactionCheckType>0001</transactionCheckType>
 
-    <configType>
-        <select>0001</select>
-        <selectWithForUpdate>0001</selectWithForUpdate>
-    </configType>
-
-    <minColumnNum>1</minColumnNum>
+    <minColumnNum>2</minColumnNum>
 
     <!--在执行时，该组事务需要操作几个列,用概率直方图的方式表示-->
     <columnNum>
         <HistogramItem>
-            <minValue>1</minValue>
-            <maxValue>5</maxValue>
-            <ratio>0.7</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>6</minValue>
-            <maxValue>10</maxValue>
-            <ratio>0.3</ratio>
+            <minValue>2</minValue>
+            <maxValue>2</maxValue>
+            <ratio>1</ratio>
         </HistogramItem>
     </columnNum>
 

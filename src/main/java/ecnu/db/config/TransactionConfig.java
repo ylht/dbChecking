@@ -18,32 +18,36 @@ public class TransactionConfig extends ReadConfig {
         configFileDirectory = configFileDirectoryName;
     }
 
-    public int getMinColumnNum(){
-        return Integer.valueOf(document.valueOf("transaction/minColumnNum"));
-    }
-
-
     public synchronized static TransactionConfig getConfig(String configName) {
         return new TransactionConfig(Objects.requireNonNullElse(configFileDirectory, "config/transactionConfig/") + configName);
     }
 
-    public int getColumnNumForTransaction() throws Exception {
-        return getValueFromHistogram("transaction/columnNum");
+
+    public boolean getColumnFromSameTable() {
+        String columnFromSameTableConfig = document.valueOf("transaction/columnFromSameTable");
+        if (columnFromSameTableConfig.length() != 0) {
+            return Boolean.valueOf(columnFromSameTableConfig);
+        } else {
+            return false;
+        }
     }
 
-    /**
-     * @return 该事务是否需要运行在已经有事务操作的数据列上
-     * @throws Exception 没有配置项，或者配置项错误
-     */
-    public boolean workOnWorked() throws Exception {
-        int status = Integer.valueOf(document.valueOf("transaction/workOnWorked"));
-        if (status == 0) {
-            return false;
-        } else if (status == 1) {
-            return true;
+    public boolean getWholeTable() {
+        String wholeTableConfig = document.valueOf("transaction/wholeTable");
+        if (wholeTableConfig.length() != 0) {
+            return Boolean.valueOf(wholeTableConfig);
         } else {
-            throw new Exception("没有配置workOnWorked，或配置错误");
+            return false;
         }
+    }
+
+
+    public int getMinColumnNum() {
+        return Integer.valueOf(document.valueOf("transaction/minColumnNum"));
+    }
+
+    public int getColumnNumForTransaction() throws Exception {
+        return getValueFromHistogram("transaction/columnNum");
     }
 
     public Byte getTransactionCheckType() throws Exception {
@@ -52,15 +56,15 @@ public class TransactionConfig extends ReadConfig {
 
 
     public Byte getConfigCheckType(String configName) throws Exception {
-        return getCheckType("transaction/configType/"+configName);
+        return getCheckType("transaction/configType/" + configName);
     }
 
     private byte getCheckType(String configName) throws Exception {
         int checkType = 0;
         String checkTypeString = document.valueOf(configName);
-        for (int i =0; i < checkTypeString.length(); i++) {
+        for (int i = 0; i < checkTypeString.length(); i++) {
             if (checkTypeString.charAt(i) == '1') {
-                checkType += Math.pow(2, checkTypeString.length()-1-i);
+                checkType += Math.pow(2, checkTypeString.length() - 1 - i);
             }
             if (checkTypeString.charAt(i) != '1' && checkTypeString.charAt(i) != '0') {
                 throw new Exception("配置项错误");
@@ -113,13 +117,23 @@ public class TransactionConfig extends ReadConfig {
         return getValueFromHistogram("transaction/functionK");
     }
 
-    public boolean addOrNot(){
+    public boolean addOrNot() {
         return R.nextDouble() < Double.valueOf(document.valueOf("transaction/add"));
     }
 
 
-    public int getOrderMaxCount(){
+    public int getOrderMaxCount() {
         return Integer.valueOf(document.valueOf("transaction/orderMaxCount"));
     }
+
+    public long getSleepMills() {
+        return Long.valueOf(document.valueOf("transaction/sleepMills"));
+    }
+
+
+    public double getReadWriteRadio() {
+        return Double.valueOf(document.valueOf("transaction/readWriteRadio"));
+    }
+
 
 }

@@ -1,30 +1,25 @@
 package ecnu.db.check.group;
 
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
+import ecnu.db.transaction.PhantomRead;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
-public class PhantomReadCheckCorrectness extends BaseCheckCorrectness {
+public class PhantomReadCheck extends BaseCheck {
     private int errCount;
 
-    public PhantomReadCheckCorrectness() {
+    public PhantomReadCheck() {
         super("SampleConfig.xml");
     }
 
     @Override
-    public boolean workOnWorked() {
-        return false;
-    }
-
-
-    @Override
     public void makeTransaction() {
-
+        transaction=new PhantomRead(workNodes.get(0),config.getSleepMills(),config.getReadWriteRadio());
     }
 
     @Override
-    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
+    public void recordBeginStatus(MysqlConnector mysqlConnector) {
 
     }
 

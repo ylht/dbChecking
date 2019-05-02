@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transaction>
+    <sleepMills>1000</sleepMills>
+
+    <readWriteRadio>0.95</readWriteRadio>
 
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,
     repeatableRead,serializable-->
-    <transactionCheckType>0000</transactionCheckType>
-
-    <configType>
-        <select>0001</select>
-        <selectWithForUpdate>0001</selectWithForUpdate>
-    </configType>
+    <transactionCheckType>0111</transactionCheckType>
 
     <minColumnNum>1</minColumnNum>
 
@@ -17,13 +15,8 @@
     <columnNum>
         <HistogramItem>
             <minValue>1</minValue>
-            <maxValue>5</maxValue>
-            <ratio>0.7</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>6</minValue>
-            <maxValue>10</maxValue>
-            <ratio>0.3</ratio>
+            <maxValue>1</maxValue>
+            <ratio>1</ratio>
         </HistogramItem>
     </columnNum>
 

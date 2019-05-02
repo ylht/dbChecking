@@ -2,9 +2,6 @@
 <transaction>
     <orderMaxCount>10</orderMaxCount>
 
-    <!--该事务是否要运行在已经有事务操作的数据列上-->
-    <workOnWorked>0</workOnWorked>
-
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,
     repeatableRead,serializable-->

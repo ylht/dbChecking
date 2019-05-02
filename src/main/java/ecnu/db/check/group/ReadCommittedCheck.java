@@ -1,25 +1,26 @@
 package ecnu.db.check.group;
 
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
+import ecnu.db.transaction.ReadCommitted;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
-public class NoCommitCheckCorrectness extends BaseCheckCorrectness {
+public class ReadCommittedCheck extends BaseCheck {
     private int errCount;
 
-    public NoCommitCheckCorrectness() {
-        super("SampleConfig.xml");
+    public ReadCommittedCheck() {
+        super("ReadCommittedConfig.xml");
     }
 
 
     @Override
     public void makeTransaction() {
-
+        transaction = new ReadCommitted(workNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override
-    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
+    public void recordBeginStatus(MysqlConnector mysqlConnector) {
 
     }
 

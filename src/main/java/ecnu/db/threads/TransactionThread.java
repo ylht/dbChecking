@@ -1,13 +1,10 @@
 package ecnu.db.threads;
 
 import ecnu.db.transaction.BaseTransaction;
-import ecnu.db.transaction.Function;
 import ecnu.db.utils.MysqlConnector;
-import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
@@ -23,7 +20,7 @@ public class TransactionThread implements Runnable {
     private int threadID;
 
     public TransactionThread(int threadID, ArrayList<BaseTransaction> transactions,
-                             int runCount, CountDownLatch count){
+                             int runCount, CountDownLatch count) {
         this.runCount = runCount;
         this.count = count;
         this.threadID = threadID;
@@ -53,8 +50,10 @@ public class TransactionThread implements Runnable {
             try {
                 transactions.get(randomIndex).execute();
             } catch (Exception e) {
-                LogManager.getLogger().error("事务运行出错：", e);
-                //e.printStackTrace();
+                //LogManager.getLogger().error("事务运行出错：", e);
+                if (!"Deadlock found when trying to get lock; try restarting transaction".equals(e.getMessage())) {
+                    e.printStackTrace();
+                }
                 try {
                     mysqlConnector.rollback();
                 } catch (SQLException ex) {

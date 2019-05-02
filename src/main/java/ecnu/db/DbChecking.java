@@ -1,7 +1,7 @@
 package ecnu.db;
 
 import com.google.common.reflect.ClassPath;
-import ecnu.db.check.BaseCheckCorrectness;
+import ecnu.db.check.BaseCheck;
 import ecnu.db.check.WorkNode;
 import ecnu.db.config.SystemConfig;
 import ecnu.db.config.TableConfig;
@@ -27,11 +27,11 @@ import java.util.concurrent.CountDownLatch;
  * 核心校验类，包含前置求和 后置求和 以及事务执行的相关代码
  */
 public class DbChecking {
-    private ArrayList<BaseCheckCorrectness> workGroups;
+    private ArrayList<BaseCheck> workGroups;
     private Table[] tables;
-    private BaseCheckCorrectness.CheckKind checkKind;
+    private BaseCheck.CheckKind checkKind;
 
-    public DbChecking(BaseCheckCorrectness.CheckKind checkKind) {
+    public DbChecking(BaseCheck.CheckKind checkKind) {
         //初始化数据表
         this.checkKind = checkKind;
         try {
@@ -61,7 +61,7 @@ public class DbChecking {
                 mysqlConnector.executeSql(table.getSQL());
             }
             mysqlConnector.createOrderTable();
-            if (checkKind == BaseCheckCorrectness.CheckKind.Serializable) {
+            if (checkKind == BaseCheck.CheckKind.Serializable) {
                 mysqlConnector.createPhantomReadRecordTable();
             }
             System.out.println("数据库scheme重建成功！");
@@ -90,12 +90,12 @@ public class DbChecking {
         }
     }
 
-    private ArrayList<BaseCheckCorrectness> getChecks() throws Exception {
-        ArrayList<BaseCheckCorrectness> checkCorrectnesses = new ArrayList<>();
+    private ArrayList<BaseCheck> getChecks() throws Exception {
+        ArrayList<BaseCheck> checkCorrectnesses = new ArrayList<>();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClasses()) {
             if (info.getName().startsWith("ecnu.db.check.group")) {
-                BaseCheckCorrectness checkCorrectness = (BaseCheckCorrectness) info
+                BaseCheck checkCorrectness = (BaseCheck) info
                         .load().getConstructor().newInstance();
                 if (checkCorrectness.checkOrNot(checkKind)) {
                     checkCorrectnesses.add(checkCorrectness);
@@ -113,8 +113,11 @@ public class DbChecking {
         return workNodes;
     }
 
-    private HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> getWorkNodes(Table[] tables) {
-        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> workNodes = initWorkNodes();
+    private HashMap<Integer,HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> getWorkNodes(Table[] tables) {
+        HashMap<Integer,HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes=new HashMap<>(tables.length);
+        for (int i = 0; i < tables.length; i++) {
+            workNodes.put(i,initWorkNodes());
+        }
         int tableIndex = 0;
         for (Table table : tables) {
             int foreignKeyNum = table.getForeignKeyNum();
@@ -122,15 +125,17 @@ public class DbChecking {
             ArrayList<AbstractColumn> columns = table.getColumns();
             int columnIndex = 1;
             for (AbstractColumn column : columns) {
-                if(columnIndex>foreignKeyNum){
-                    workNodes.get(column.getColumnType()).add(
+                if (columnIndex > foreignKeyNum) {
+                    workNodes.get(tableIndex).get(column.getColumnType()).add(
                             new WorkNode(tableIndex, columnIndex++, keys, column.getRange()));
                 }
             }
             tableIndex++;
         }
-        for (AbstractColumn.ColumnType value : AbstractColumn.ColumnType.values()) {
-            Collections.shuffle(workNodes.get(value));
+        for (int i = 0; i < tables.length; i++) {
+            for (AbstractColumn.ColumnType value : AbstractColumn.ColumnType.values()) {
+                Collections.shuffle(workNodes.get(i).get(value));
+            }
         }
         return workNodes;
     }
@@ -145,11 +150,67 @@ public class DbChecking {
             System.out.println("无法初始化工作组");
             System.out.println(-1);
         }
-        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> noWorkNodes = getWorkNodes(tables);
-        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> hasWorkedNodes = initWorkNodes();
+        HashMap<Integer,HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes = getWorkNodes(tables);
 
         Random r = new Random();
-        for (BaseCheckCorrectness workGroup : workGroups) {
+        for(BaseCheck workGroup:workGroups){
+            if(workGroup.getColumnFromSameTable()&&workGroup.getWholeTable()){
+                int columnCount = 0;
+                try {
+                    columnCount = workGroup.getColumnCount();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                AbstractColumn.ColumnType columnType;
+                try {
+                    columnType = workGroup.columnType();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("无法匹配当前工作组需要的列类型");
+                    continue;
+                }
+                int tableIndex=r.nextInt(tables.length);
+                for (int i = 0; i < columnCount; i++) {
+                    try {
+                        ArrayList<WorkNode> nodes=workNodes.get(tableIndex).get(columnType);
+                        workGroup.addWorkNode(nodes.get(r.nextInt(nodes.size())));
+                    } catch (Exception e) {
+                        System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
+                        break;
+                    }
+                }
+                workNodes.remove(tableIndex);
+            }
+        }
+        for(BaseCheck workGroup:workGroups){
+            if(workGroup.getColumnFromSameTable()){
+                int columnCount = 0;
+                try {
+                    columnCount = workGroup.getColumnCount();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                AbstractColumn.ColumnType columnType;
+                try {
+                    columnType = workGroup.columnType();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("无法匹配当前工作组需要的列类型");
+                    continue;
+                }
+                int tableIndex=r.nextInt(tables.length);
+                for (int i = 0; i < columnCount; i++) {
+                    try {
+                        ArrayList<WorkNode> nodes=workNodes.get(tableIndex).get(columnType);
+                        workGroup.addWorkNode(nodes.get(r.nextInt(nodes.size())));
+                    } catch (Exception e) {
+                        System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
+                        break;
+                    }
+                }
+            }
+        }
+        for (BaseCheck workGroup : workGroups) {
             int columnCount = 0;
             try {
                 columnCount = workGroup.getColumnCount();
@@ -166,22 +227,17 @@ public class DbChecking {
             }
             for (int i = 0; i < columnCount; i++) {
                 try {
-                    if (workGroup.workOnWorked()) {
-                        workGroup.addWorkNode(hasWorkedNodes.get(columnType).get(
-                                r.nextInt(hasWorkedNodes.get(columnType).size())));
-                    } else {
-                        WorkNode workNode = noWorkNodes.get(columnType).remove(0);
-                        workGroup.addWorkNode(workNode);
-                        hasWorkedNodes.get(columnType).add(workNode);
-                    }
+                    int tableIndex=r.nextInt(tables.length);
+                    ArrayList<WorkNode> nodes=workNodes.get(tableIndex).get(columnType);
+                    workGroup.addWorkNode(nodes.get(r.nextInt(nodes.size())));
                 } catch (Exception e) {
-                    System.out.println(workGroup.getClass().getSimpleName()+"没有workNode可供选择");
+                    System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
                     break;
                 }
             }
-            if(!workGroup.columnNumEnough()){
+            if (!workGroup.columnNumEnough()) {
                 workGroups.remove(workGroup);
-                System.out.println("移除"+workGroup.getClass().getSimpleName());
+                System.out.println("移除" + workGroup.getClass().getSimpleName());
             }
         }
 
@@ -218,13 +274,13 @@ public class DbChecking {
         int threadsNum = SystemConfig.getConfig().getThreadNum();
         CountDownLatch count = new CountDownLatch(threadsNum);
         ArrayList<BaseTransaction> transactions = new ArrayList<>();
-        for (BaseCheckCorrectness workGroup : workGroups) {
+        for (BaseCheck workGroup : workGroups) {
             workGroup.makeTransaction();
             try {
                 transactions.add(workGroup.getTransaction());
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("没有为"+workGroup.getClass().getSimpleName()+"设置事务");
+                System.out.println("没有为" + workGroup.getClass().getSimpleName() + "设置事务");
             }
         }
         for (int i = 0; i < threadsNum; i++) {
@@ -242,13 +298,14 @@ public class DbChecking {
     }
 
     private void printWorkGroup() {
-        for (BaseCheckCorrectness workGroup : workGroups) {
+        for (BaseCheck workGroup : workGroups) {
             System.out.println(workGroup);
         }
     }
+
     private void recordStartStatus() throws SQLException {
         MysqlConnector mysqlConnector = new MysqlConnector();
-        for (BaseCheckCorrectness workGroup : workGroups) {
+        for (BaseCheck workGroup : workGroups) {
             workGroup.recordBeginStatus(mysqlConnector);
         }
         mysqlConnector.close();
@@ -257,7 +314,7 @@ public class DbChecking {
 
     private void recordEndStatus() throws SQLException {
         MysqlConnector mysqlConnector = new MysqlConnector();
-        for (BaseCheckCorrectness workGroup : workGroups) {
+        for (BaseCheck workGroup : workGroups) {
             workGroup.recordEndStatus(mysqlConnector);
         }
         mysqlConnector.close();
@@ -265,7 +322,7 @@ public class DbChecking {
 
     private boolean checkCorrect() {
         boolean checkResult = true;
-        for (BaseCheckCorrectness workGroup : workGroups) {
+        for (BaseCheck workGroup : workGroups) {
             boolean temp = workGroup.checkCorrect();
             if (!temp) {
                 System.out.println(workGroup.getClass().getSimpleName() + "验证失败");

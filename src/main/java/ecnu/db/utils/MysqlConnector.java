@@ -124,7 +124,7 @@ public class MysqlConnector {
     }
 
     public int getNoCommitCount(int tableIndex) throws SQLException {
-        String sql = "select count(*) from t" + tableIndex + " where checkNoCommit<0";
+        String sql = "select count(*) from t" + tableIndex + " where checkReadCommitted<0";
         ResultSet rs = conn.createStatement().executeQuery(sql);
         rs.next();
         return rs.getInt(1);
