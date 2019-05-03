@@ -6,6 +6,14 @@
         <runCount>1000</runCount>
     </thread>
 
+    <database>
+        <url>biui.me</url>
+        <name>databaseChecking</name>
+        <user>qswang</user>
+        <password>Biui1227..</password>
+    </database>
+
+
     <transaction>
         <zipf>1</zipf>
     </transaction>

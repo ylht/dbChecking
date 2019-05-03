@@ -25,7 +25,8 @@ public class PhantomReadCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        errCount = mysqlConnector.getPhantomRecordNum();
+        String sql = "select count(*) from phantom_read_record";
+        errCount = mysqlConnector.getResult(sql);
     }
 
     @Override

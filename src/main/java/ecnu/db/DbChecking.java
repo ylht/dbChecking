@@ -13,10 +13,12 @@ import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.transaction.BaseTransaction;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
-import org.checkerframework.checker.units.qual.A;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -124,7 +126,7 @@ public class DbChecking {
             int columnIndex = 1;
             for (AbstractColumn column : columns) {
                 if (columnIndex > foreignKeyNum) {
-                    ArrayList<WorkNode>nodes=workNodes.get(tableIndex).get(column.getColumnType());
+                    ArrayList<WorkNode> nodes = workNodes.get(tableIndex).get(column.getColumnType());
                     nodes.add(new WorkNode(tableIndex, columnIndex, keys, column.getRange()));
                 }
                 columnIndex++;
@@ -140,8 +142,8 @@ public class DbChecking {
     }
 
     private HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> changeWorkNodeGroup(
-            HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes){
-        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> nodes=initWorkNodes();
+            HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes) {
+        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> nodes = initWorkNodes();
         for (Integer integer : workNodes.keySet()) {
             for (AbstractColumn.ColumnType value : AbstractColumn.ColumnType.values()) {
                 try {
@@ -167,7 +169,7 @@ public class DbChecking {
         HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes = getWorkNodes(tables);
         Random r = new Random();
         //可以运行的工作组添加到checks中
-        ArrayList<BaseCheck> checks=new ArrayList<>();
+        ArrayList<BaseCheck> checks = new ArrayList<>();
 
         for (BaseCheck workGroup : workGroups) {
             if (workGroup.getColumnFromSameTable() && workGroup.getWholeTable()) {
@@ -185,7 +187,7 @@ public class DbChecking {
                     System.out.println("无法匹配当前工作组需要的列类型");
                     continue;
                 }
-                int tableIndex = workNodes.size()-1;
+                int tableIndex = workNodes.size() - 1;
                 for (int i = 0; i < columnCount; i++) {
                     try {
                         ArrayList<WorkNode> nodes = workNodes.get(tableIndex).get(columnType);
@@ -198,7 +200,7 @@ public class DbChecking {
                 workNodes.remove(tableIndex);
                 if (!workGroup.columnNumEnough()) {
                     System.out.println("移除" + workGroup.getClass().getSimpleName());
-                }else{
+                } else {
                     checks.add(workGroup);
                 }
             }
@@ -206,7 +208,7 @@ public class DbChecking {
         }
 
         for (BaseCheck workGroup : workGroups) {
-            if (workGroup.getColumnFromSameTable()&&!workGroup.getWholeTable()) {
+            if (workGroup.getColumnFromSameTable() && !workGroup.getWholeTable()) {
                 int columnCount = 0;
                 try {
                     columnCount = workGroup.getColumnCount();
@@ -233,16 +235,16 @@ public class DbChecking {
                 }
                 if (!workGroup.columnNumEnough()) {
                     System.out.println("移除" + workGroup.getClass().getSimpleName());
-                }else{
+                } else {
                     checks.add(workGroup);
                 }
             }
         }
 
-        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> newWorksNodes=changeWorkNodeGroup(workNodes);
+        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> newWorksNodes = changeWorkNodeGroup(workNodes);
 
         for (BaseCheck workGroup : workGroups) {
-            if(workGroup.getColumnFromSameTable()){
+            if (workGroup.getColumnFromSameTable()) {
                 continue;
             }
             int columnCount = 0;
@@ -269,11 +271,11 @@ public class DbChecking {
             }
             if (!workGroup.columnNumEnough()) {
                 System.out.println("移除" + workGroup.getClass().getSimpleName());
-            }else{
+            } else {
                 checks.add(workGroup);
             }
         }
-        workGroups=checks;
+        workGroups = checks;
         try {
             recordStartStatus();
         } catch (SQLException e) {

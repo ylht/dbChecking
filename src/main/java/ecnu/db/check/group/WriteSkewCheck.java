@@ -27,7 +27,12 @@ public class WriteSkewCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        errCount = mysqlConnector.getWriteSkewResult(workNodes);
+        String tableName = "t" + workNodes.get(0).getTableIndex();
+        String columnName1 = "tp" + workNodes.get(0).getColumnIndex();
+        String columnName2 = "tp" + workNodes.get(1).getColumnIndex();
+
+        errCount = mysqlConnector.getResult("select count(*) from "
+                + tableName + " where " + columnName1 + " + " + columnName2 + " < 0 ;");
     }
 
     @Override

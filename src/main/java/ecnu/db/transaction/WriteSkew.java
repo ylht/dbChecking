@@ -31,9 +31,9 @@ public class WriteSkew extends BaseTransaction {
         for (WorkNode workNode : workNodes) {
             selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
         }
-        selectSQL=selectSQL.replaceFirst("\\*", String.valueOf(workNodes.get(0).getTableIndex()));
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNodes.get(0).getTableIndex()));
         updateSQLs = new String[workNodes.size()];
-        for (int i=0;i<workNodes.size();i++) {
+        for (int i = 0; i < workNodes.size(); i++) {
             updateSQLs[i] = UPDATE_SQL;
             updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(workNodes.get(i).getTableIndex()));
             updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(workNodes.get(i).getColumnIndex()));
@@ -43,7 +43,7 @@ public class WriteSkew extends BaseTransaction {
 
     @Override
     public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector=mysqlConnector;
+        this.mysqlConnector = mysqlConnector;
         selectPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
         updatePreparedStatements = getPreparedStatements(updateSQLs);
     }
@@ -57,11 +57,10 @@ public class WriteSkew extends BaseTransaction {
         if (rs.next()) {
             Double value1 = rs.getDouble(1);
             Double value2 = rs.getDouble(2);
-            if(value1 + value2>0){
+            if (value1 + value2 > 0) {
                 updatePreparedStatements[updateIndex].setObject(1, (K - 1) * (value1 + value2) / K);
                 updatePreparedStatements[updateIndex].setInt(2, workKey);
                 updatePreparedStatements[updateIndex].execute();
-                //System.out.println(selectPreparedStatement+"\n"+updatePreparedStatements[updateIndex]);
             }
         }
         mysqlConnector.commit();

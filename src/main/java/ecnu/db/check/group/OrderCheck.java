@@ -27,9 +27,15 @@ public class OrderCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
+
+
         for (WorkNode node : workNodes) {
             node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
-            node.setOrderNum(mysqlConnector.getOrderItem(node.getTableIndex(), node.getColumnIndex()));
+
+            String sql = "select sum(num) from order_item" +
+                    " where tableIndex=" + node.getTableIndex() + " and tupleIndex =" + node.getColumnIndex();
+
+            node.setOrderNum(mysqlConnector.getResult(sql));
         }
     }
 

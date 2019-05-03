@@ -1,11 +1,11 @@
 package ecnu.db.utils;
 
 import ecnu.db.check.WorkNode;
+import ecnu.db.config.SystemConfig;
 import ecnu.db.config.TableConfig;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 /**
  * @author wangqingshuai
@@ -19,12 +19,11 @@ public class MysqlConnector {
 
     public MysqlConnector() {
 
-        String dbUrl = "jdbc:mysql://biui.me/databaseChecking?useSSL=false&allowPublicKeyRetrieval=true";
+        String dbUrl = "jdbc:mysql://"+ SystemConfig.getConfig().getDatabaseURL() +"/"+SystemConfig.getConfig().getDatabaseName()+"?useSSL=false&allowPublicKeyRetrieval=true";
 
-        // 数据库的用户名与密码，需要根据自己的设置
-        String user = "qswang";
-        String pass = "Biui1227..";
-
+        // 数据库的用户名与密码
+        String user = SystemConfig.getConfig().getDatabaseUser();
+        String pass = SystemConfig.getConfig().getDatabasePassword();
         try {
             conn = DriverManager.getConnection(dbUrl, user, pass);
         } catch (SQLException e) {
@@ -113,45 +112,12 @@ public class MysqlConnector {
 
 
     //验证语句
-
-    public int getPhantomRecordNum() throws SQLException {
-        String sql = "select count(*) from phantom_read_record";
-        ResultSet rs = conn.createStatement().executeQuery(sql);
+    public int getResult(String testSQL) throws SQLException {
+        ResultSet rs = conn.createStatement().executeQuery(testSQL);
         rs.next();
         return rs.getInt(1);
     }
 
-    public int getNoCommitCount(int tableIndex) throws SQLException {
-        String sql = "select count(*) from t" + tableIndex + " where checkReadCommitted<0";
-        ResultSet rs = conn.createStatement().executeQuery(sql);
-        rs.next();
-        return rs.getInt(1);
-    }
-
-    public int getSumRepeatableRead(int tableIndex) throws SQLException {
-        String sql = "select count(*) from t" + tableIndex + " where checkRepeatableRead!=0";
-        ResultSet rs = conn.createStatement().executeQuery(sql);
-        rs.next();
-        return rs.getInt(1);
-    }
-
-    public int getWriteSkewResult(ArrayList<WorkNode> workNodes) throws SQLException {
-        String tableName="t"+workNodes.get(0).getTableIndex();
-        String columnName1="tp"+workNodes.get(0).getColumnIndex();
-        String columnName2="tp"+workNodes.get(1).getColumnIndex();
-        ResultSet rs = conn.createStatement().executeQuery("select count(*) from " + tableName + " where " + columnName1 + " + " + columnName2 + " < 0 ;");
-        rs.next();
-        return rs.getInt(1);
-
-    }
-
-    public int getOrderItem(int tableIndex, int tupleIndex) throws SQLException {
-        String sql = "select sum(num) from order_item" +
-                " where tableIndex=" + tableIndex + " and tupleIndex =" + tupleIndex;
-        ResultSet rs = conn.createStatement().executeQuery(sql);
-        rs.next();
-        return rs.getInt(1);
-    }
 
     public Double sumColumn(int tableIndex, int tupleIndex) throws SQLException {
         String tableName = "t" + tableIndex;

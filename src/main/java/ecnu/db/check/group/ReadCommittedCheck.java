@@ -26,7 +26,8 @@ public class ReadCommittedCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        errCount = mysqlConnector.getNoCommitCount(workNodes.get(0).getTableIndex());
+        String sql = "select count(*) from t" + workNodes.get(0).getTableIndex() + " where checkReadCommitted<0";
+        errCount = mysqlConnector.getResult(sql);
     }
 
 

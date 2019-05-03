@@ -68,7 +68,7 @@ public class PhantomRead extends BaseTransaction {
         deleteSQLPreparedStatement = mysqlConnector.getPrepareStatement(deleteSQL);
         updateSQLPreparedStatement = mysqlConnector.getPrepareStatement(updateSQL);
         firstSelectSQLPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
-        secondSelectSQLPreparedStatement=mysqlConnector.getPrepareStatement(selectSQL);
+        secondSelectSQLPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
         insertPhantomReadPreparedStatement = mysqlConnector.getPrepareStatement(insertPhantomRead);
     }
 
@@ -110,10 +110,10 @@ public class PhantomRead extends BaseTransaction {
                 if (firstRowCount > secondRowCount) {
                     insertPhantomReadPreparedStatement.setInt(1, 0);
                     insertPhantomReadPreparedStatement.executeUpdate();
-                } else if(firstRowCount < secondRowCount) {
+                } else if (firstRowCount < secondRowCount) {
                     insertPhantomReadPreparedStatement.setInt(1, 1);
                     insertPhantomReadPreparedStatement.executeUpdate();
-                }else {
+                } else {
                     while (firstResultSet.next() && secondResultSet.next()) {
                         if (firstResultSet.getInt(1) != secondResultSet.getInt(1) ||
                                 !firstResultSet.getObject(2).equals(secondResultSet.getObject(2))) {

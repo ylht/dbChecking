@@ -25,7 +25,8 @@ public class RepeatableReadCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        errCount = mysqlConnector.getSumRepeatableRead(workNodes.get(0).getTableIndex());
+        String sql = "select count(*) from t" + workNodes.get(0).getTableIndex() + " where checkRepeatableRead!=0";
+        errCount = mysqlConnector.getResult(sql);
     }
 
 
