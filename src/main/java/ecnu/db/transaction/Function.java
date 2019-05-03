@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.scheme.AbstractColumn;
 import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
@@ -35,7 +35,7 @@ public class Function extends BaseTransaction {
     private PreparedStatement[] ySelectPrepareStatements;
 
     public Function(AbstractColumn.ColumnType columnType,
-                    ArrayList<WorkNode> xNodes, ArrayList<WorkNode> yNodes,
+                    ArrayList<CheckNode> xNodes, ArrayList<CheckNode> yNodes,
                     boolean isSelect, boolean forUpdate, boolean add, int k) {
         this.columnType = columnType;
         this.k = k;
@@ -59,38 +59,38 @@ public class Function extends BaseTransaction {
         }
     }
 
-    private ZipDistributionList[] makeKeysInfo(ArrayList<WorkNode> workNodes) {
-        ZipDistributionList[] keys = new ZipDistributionList[workNodes.size()];
+    private ZipDistributionList[] makeKeysInfo(ArrayList<CheckNode> checkNodes) {
+        ZipDistributionList[] keys = new ZipDistributionList[checkNodes.size()];
         int i = 0;
-        for (WorkNode workNode : workNodes) {
-            keys[i] = new ZipDistributionList(workNode.getKeys(), true);
+        for (CheckNode checkNode : checkNodes) {
+            keys[i] = new ZipDistributionList(checkNode.getKeys(), true);
             i++;
         }
         return keys;
     }
 
 
-    private String[] makeSelectInfo(boolean forUpdate, ArrayList<WorkNode> workNodes) {
-        String[] selectSQLs = new String[workNodes.size()];
+    private String[] makeSelectInfo(boolean forUpdate, ArrayList<CheckNode> checkNodes) {
+        String[] selectSQLs = new String[checkNodes.size()];
         int i = 0;
-        for (WorkNode workNode : workNodes) {
+        for (CheckNode checkNode : checkNodes) {
             if (forUpdate) {
                 selectSQLs[i] = SELECT_FOR_UPDATE_SQL;
             } else {
                 selectSQLs[i] = SELECT_SQL;
             }
-            selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-            selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+            selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
+            selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
             i++;
         }
         return selectSQLs;
     }
 
 
-    private String[] makeUpdateInfo(boolean isSelect, boolean add, ArrayList<WorkNode> workNodes) {
-        String[] updateSQLs = new String[workNodes.size()];
+    private String[] makeUpdateInfo(boolean isSelect, boolean add, ArrayList<CheckNode> checkNodes) {
+        String[] updateSQLs = new String[checkNodes.size()];
         int i = 0;
-        for (WorkNode workNode : workNodes) {
+        for (CheckNode checkNode : checkNodes) {
             if (isSelect) {
                 if (add) {
                     updateSQLs[i] = ADD_AFTER_SELECT_SQL;
@@ -105,8 +105,8 @@ public class Function extends BaseTransaction {
                 }
             }
 
-            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(workNode.getColumnIndex()));
+            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(checkNode.getColumnIndex()));
             i++;
         }
         return updateSQLs;

@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
@@ -35,27 +35,27 @@ public class PhantomRead extends BaseTransaction {
     private long sleepMills;
     private double readWriteRadio;
 
-    public PhantomRead(WorkNode workNode, long sleepMills, double readWriteRadio) {
+    public PhantomRead(CheckNode checkNode, long sleepMills, double readWriteRadio) {
         insertSQL = INSERT_SQL;
-        insertSQL = insertSQL.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-        insertSQL = insertSQL.replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
+        insertSQL = insertSQL.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+        insertSQL = insertSQL.replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
 
         deleteSQL = DELETE_SQL;
-        deleteSQL = deleteSQL.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+        deleteSQL = deleteSQL.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
         updateSQL = UPDATE_SQL;
-        updateSQL = updateSQL.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-        updateSQL = updateSQL.replace("*", String.valueOf(workNode.getColumnIndex()));
+        updateSQL = updateSQL.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+        updateSQL = updateSQL.replace("*", String.valueOf(checkNode.getColumnIndex()));
 
         selectSQL = SELECT_SQL;
-        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
         insertPhantomRead = INSERT_PHANTOM_READ;
-        insertPhantomRead = insertPhantomRead.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+        insertPhantomRead = insertPhantomRead.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
-        key = new ZipDistributionList(workNode.getKeys(), true);
-        range = Collections.max(workNode.getKeys());
+        key = new ZipDistributionList(checkNode.getKeys(), true);
+        range = Collections.max(checkNode.getKeys());
         this.sleepMills = sleepMills;
         this.readWriteRadio = readWriteRadio;
     }

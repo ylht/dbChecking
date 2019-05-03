@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
@@ -32,20 +32,20 @@ public class RepeatableRead extends BaseTransaction {
     private long selectSleepMills;
     private double readWriteRadio;
 
-    public RepeatableRead(WorkNode workNode, long selectSleepMills, double readWriteRadio) {
+    public RepeatableRead(CheckNode checkNode, long selectSleepMills, double readWriteRadio) {
         updateInfluenceRead = UPDATE_INFLUENCE_READ;
-        updateInfluenceRead = updateInfluenceRead.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-        updateInfluenceRead = updateInfluenceRead.replace("*", String.valueOf(workNode.getColumnIndex()));
+        updateInfluenceRead = updateInfluenceRead.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+        updateInfluenceRead = updateInfluenceRead.replace("*", String.valueOf(checkNode.getColumnIndex()));
 
         selectSQL = SELECT_SQL;
-        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
         updateRepeatableRead = UPDATE_REPEATABLE_READ;
-        updateRepeatableRead = updateRepeatableRead.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+        updateRepeatableRead = updateRepeatableRead.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
-        key = new ZipDistributionList(workNode.getKeys(), true);
-        range = Collections.max(workNode.getKeys());
+        key = new ZipDistributionList(checkNode.getKeys(), true);
+        range = Collections.max(checkNode.getKeys());
         this.selectSleepMills = selectSleepMills;
         this.readWriteRadio = readWriteRadio;
     }

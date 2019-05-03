@@ -16,7 +16,7 @@ public class ReadCommittedCheck extends BaseCheck {
 
     @Override
     public void makeTransaction() {
-        transaction = new ReadCommitted(workNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
+        transaction = new ReadCommitted(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override
@@ -26,7 +26,7 @@ public class ReadCommittedCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        String sql = "select count(*) from t" + workNodes.get(0).getTableIndex() + " where checkReadCommitted<0";
+        String sql = "select count(*) from t" + checkNodes.get(0).getTableIndex() + " where checkReadCommitted<0";
         errCount = mysqlConnector.getResult(sql);
     }
 

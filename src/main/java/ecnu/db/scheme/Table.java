@@ -37,10 +37,15 @@ public class Table {
     private ArrayList<AbstractColumn> columns = new ArrayList<>();
     private AtomicInteger currentLineNum = new AtomicInteger();
 
+    public ArrayList<Integer> getForeignKeys() {
+        return foreignKeys;
+    }
+
     public Table(int tableIndex, ArrayList<ArrayList<Integer>> allKeys) throws Exception {
         this.tableIndex = tableIndex;
         double tableSparsity = TableConfig.getConfig().getTableSparsity();
 
+        //获取外键数量
         this.foreignKeyNum = Math.min(TableConfig.getConfig().getForeignKeyNum(), allKeys.size());
 
         if (foreignKeyNum > 0) {
@@ -49,6 +54,7 @@ public class Table {
                 arrays.add(i);
             }
             Collections.shuffle(arrays);
+            //记录外键引用表的index
             this.foreignKeys = new ArrayList<>(arrays.subList(0, foreignKeyNum));
             for (int i = 0; i < foreignKeyNum; i++) {
                 columns.add(new IntColumn(allKeys.get(foreignKeys.get(i))));

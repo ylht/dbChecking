@@ -1,11 +1,9 @@
 package ecnu.db.utils;
 
-import ecnu.db.check.WorkNode;
 import ecnu.db.config.SystemConfig;
 import ecnu.db.config.TableConfig;
 
 import java.sql.*;
-import java.util.ArrayList;
 
 /**
  * @author wangqingshuai

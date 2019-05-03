@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
@@ -31,25 +31,25 @@ public class ReadCommitted extends BaseTransaction {
     private double readWriteRadio;
     private int range;
 
-    public ReadCommitted(WorkNode workNode, long updateSleepMills, double readWriteRadio) {
+    public ReadCommitted(CheckNode checkNode, long updateSleepMills, double readWriteRadio) {
 
         this.updateSleepMills = updateSleepMills;
         this.readWriteRadio = readWriteRadio;
 
         updateNegative = UPDATE_NEGATIVE;
-        updateNegative = updateNegative.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-        updateNegative = updateNegative.replace("*", String.valueOf(workNode.getColumnIndex()));
+        updateNegative = updateNegative.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+        updateNegative = updateNegative.replace("*", String.valueOf(checkNode.getColumnIndex()));
 
         updateRecord = UPDATE_RECORD;
-        updateRecord = updateRecord.replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+        updateRecord = updateRecord.replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
         selectSQL = SELECT_SQL;
-        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-        selectSQL = selectSQL.replace("*", String.valueOf(workNode.getTableIndex()));
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
+        selectSQL = selectSQL.replace("*", String.valueOf(checkNode.getTableIndex()));
 
-        key = new ZipDistributionList(workNode.getKeys(), true);
+        key = new ZipDistributionList(checkNode.getKeys(), true);
 
-        range = Collections.max(workNode.getKeys());
+        range = Collections.max(checkNode.getKeys());
     }
 
     @Override

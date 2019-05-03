@@ -18,7 +18,7 @@ import java.util.ArrayList;
  * 3. 订单事务，在单列上的tuple上累加，并写入日志，判定日志与服务器的数据是否一致。
  */
 public abstract class BaseCheck {
-    protected ArrayList<WorkNode> workNodes = new ArrayList<>();
+    protected ArrayList<CheckNode> checkNodes = new ArrayList<>();
     protected AbstractColumn.ColumnType columnType;
     protected BaseTransaction transaction;
     protected CheckKind checkKind;
@@ -58,8 +58,8 @@ public abstract class BaseCheck {
         throw new Exception("没有初始化事务");
     }
 
-    public void addWorkNode(WorkNode node) {
-        workNodes.add(node);
+    public void addWorkNode(CheckNode node) {
+        checkNodes.add(node);
     }
 
 
@@ -129,7 +129,7 @@ public abstract class BaseCheck {
     }
 
     public boolean columnNumEnough() {
-        return workNodes.size() >= config.getMinColumnNum();
+        return checkNodes.size() >= config.getMinColumnNum();
     }
 
 
@@ -152,8 +152,8 @@ public abstract class BaseCheck {
     @Override
     public String toString() {
         StringBuilder workNodeInfo = new StringBuilder();
-        for (WorkNode workNode : workNodes) {
-            workNodeInfo.append(workNode.toString());
+        for (CheckNode checkNode : checkNodes) {
+            workNodeInfo.append(checkNode.toString());
         }
         return this.getClass().getSimpleName() + " " + workNodeInfo;
     }

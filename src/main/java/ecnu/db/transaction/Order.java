@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
@@ -31,17 +31,17 @@ public class Order extends BaseTransaction {
     private int maxOrderItemCount;
     private ZipDistributionList[] keys;
 
-    public Order(ArrayList<WorkNode> workNodes, boolean isSelect, boolean forUpdate, int maxOrderItemCount) {
+    public Order(ArrayList<CheckNode> checkNodes, boolean isSelect, boolean forUpdate, int maxOrderItemCount) {
         this.maxOrderItemCount = maxOrderItemCount;
 
         if (isSelect) {
-            selectSQLS = new String[workNodes.size()];
+            selectSQLS = new String[checkNodes.size()];
         }
-        updateSQLs = new String[workNodes.size()];
-        insertSQLs = new String[workNodes.size()];
-        keys = new ZipDistributionList[workNodes.size()];
+        updateSQLs = new String[checkNodes.size()];
+        insertSQLs = new String[checkNodes.size()];
+        keys = new ZipDistributionList[checkNodes.size()];
         int i = 0;
-        for (WorkNode workNode : workNodes) {
+        for (CheckNode checkNode : checkNodes) {
             if (isSelect) {
                 updateSQLs[i] = UPDATE_ORDER_AFTER_SELECT;
                 if (forUpdate) {
@@ -49,20 +49,20 @@ public class Order extends BaseTransaction {
                 } else {
                     selectSQLS[i] = SELECT_ORDER;
                 }
-                selectSQLS[i] = selectSQLS[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-                selectSQLS[i] = selectSQLS[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+                selectSQLS[i] = selectSQLS[i].replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
+                selectSQLS[i] = selectSQLS[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
 
             } else {
                 updateSQLs[i] = UPDATE_ORDER;
             }
-            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(workNode.getColumnIndex()));
+            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(checkNode.getColumnIndex()));
 
             insertSQLs[i] = INSERT_SQL;
-            insertSQLs[i] = insertSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-            insertSQLs[i] = insertSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
+            insertSQLs[i] = insertSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+            insertSQLs[i] = insertSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
 
-            keys[i] = new ZipDistributionList(workNodes.get(i).getKeys(), true);
+            keys[i] = new ZipDistributionList(checkNodes.get(i).getKeys(), true);
             i++;
         }
     }

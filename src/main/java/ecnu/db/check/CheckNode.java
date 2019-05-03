@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * @author wangqingshuai
  * 标记转移的列，并记录该列的起始和和终止和
  */
-public class WorkNode {
+public class CheckNode {
     private int tableIndex;
     private int columnIndex;
 
@@ -27,8 +27,8 @@ public class WorkNode {
     private int orderNum;
 
 
-    public WorkNode(int tableIndex, int columnIndex,
-                    ArrayList<Integer> keys, int range) {
+    public CheckNode(int tableIndex, int columnIndex,
+                     ArrayList<Integer> keys, int range) {
         this.tableIndex = tableIndex;
         this.columnIndex = columnIndex;
         this.keys = keys;

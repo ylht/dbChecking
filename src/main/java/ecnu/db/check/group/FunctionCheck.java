@@ -1,7 +1,7 @@
 package ecnu.db.check.group;
 
 import ecnu.db.check.BaseCheck;
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.transaction.Function;
 import ecnu.db.utils.MysqlConnector;
 
@@ -12,8 +12,8 @@ import java.util.ArrayList;
 public class FunctionCheck extends BaseCheck {
     private int k;
     private boolean add;
-    private ArrayList<WorkNode> xNodes;
-    private ArrayList<WorkNode> yNodes;
+    private ArrayList<CheckNode> xNodes;
+    private ArrayList<CheckNode> yNodes;
 
     public FunctionCheck() {
         super("FunctionConfig.xml");
@@ -25,11 +25,11 @@ public class FunctionCheck extends BaseCheck {
         xNodes = new ArrayList<>();
         yNodes = new ArrayList<>();
         boolean state = false;
-        for (WorkNode workNode : workNodes) {
+        for (CheckNode checkNode : checkNodes) {
             if (state) {
-                xNodes.add(workNode);
+                xNodes.add(checkNode);
             } else {
-                yNodes.add(workNode);
+                yNodes.add(checkNode);
             }
             state = !state;
         }
@@ -50,14 +50,14 @@ public class FunctionCheck extends BaseCheck {
 
     @Override
     public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
-        for (WorkNode node : workNodes) {
+        for (CheckNode node : checkNodes) {
             node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
         }
     }
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        for (WorkNode node : workNodes) {
+        for (CheckNode node : checkNodes) {
             node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
         }
     }
@@ -67,7 +67,7 @@ public class FunctionCheck extends BaseCheck {
         BigDecimal xBeginSum = new BigDecimal(0);
         BigDecimal xEndSum = new BigDecimal(0);
 
-        for (WorkNode xNode : xNodes) {
+        for (CheckNode xNode : xNodes) {
             xBeginSum = xBeginSum.add(BigDecimal.valueOf(xNode.getBeginSum()));
             xEndSum = xEndSum.add(BigDecimal.valueOf(xNode.getEndSum()));
         }
@@ -75,7 +75,7 @@ public class FunctionCheck extends BaseCheck {
         BigDecimal yBeginSum = new BigDecimal(0);
         BigDecimal yEndSum = new BigDecimal(0);
 
-        for (WorkNode yNode : yNodes) {
+        for (CheckNode yNode : yNodes) {
             yBeginSum = yBeginSum.add(BigDecimal.valueOf(yNode.getBeginSum()));
             yEndSum = yEndSum.add(BigDecimal.valueOf(yNode.getEndSum()));
         }

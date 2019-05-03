@@ -15,7 +15,7 @@ public class PhantomReadCheck extends BaseCheck {
 
     @Override
     public void makeTransaction() {
-        transaction = new PhantomRead(workNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
+        transaction = new PhantomRead(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override

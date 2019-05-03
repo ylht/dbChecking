@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 
@@ -23,22 +23,22 @@ public class WriteSkew extends BaseTransaction {
 
     private ZipDistributionList key;
 
-    public WriteSkew(ArrayList<WorkNode> workNodes) {
-        assert workNodes.size() == 2;
-        assert workNodes.get(0).getTableIndex() == workNodes.get(1).getTableIndex();
+    public WriteSkew(ArrayList<CheckNode> checkNodes) {
+        assert checkNodes.size() == 2;
+        assert checkNodes.get(0).getTableIndex() == checkNodes.get(1).getTableIndex();
 
         selectSQL = SELECT_SQL;
-        for (WorkNode workNode : workNodes) {
-            selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
+        for (CheckNode checkNode : checkNodes) {
+            selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
         }
-        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(workNodes.get(0).getTableIndex()));
-        updateSQLs = new String[workNodes.size()];
-        for (int i = 0; i < workNodes.size(); i++) {
+        selectSQL = selectSQL.replaceFirst("\\*", String.valueOf(checkNodes.get(0).getTableIndex()));
+        updateSQLs = new String[checkNodes.size()];
+        for (int i = 0; i < checkNodes.size(); i++) {
             updateSQLs[i] = UPDATE_SQL;
-            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(workNodes.get(i).getTableIndex()));
-            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(workNodes.get(i).getColumnIndex()));
+            updateSQLs[i] = updateSQLs[i].replaceFirst("\\*", String.valueOf(checkNodes.get(i).getTableIndex()));
+            updateSQLs[i] = updateSQLs[i].replace("*", String.valueOf(checkNodes.get(i).getColumnIndex()));
         }
-        key = new ZipDistributionList(workNodes.get(0).getKeys(), true);
+        key = new ZipDistributionList(checkNodes.get(0).getKeys(), true);
     }
 
     @Override

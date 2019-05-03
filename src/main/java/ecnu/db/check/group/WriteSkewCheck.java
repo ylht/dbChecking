@@ -18,7 +18,7 @@ public class WriteSkewCheck extends BaseCheck {
 
     @Override
     public void makeTransaction() {
-        transaction = new WriteSkew(workNodes);
+        transaction = new WriteSkew(checkNodes);
     }
 
     @Override
@@ -27,9 +27,9 @@ public class WriteSkewCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        String tableName = "t" + workNodes.get(0).getTableIndex();
-        String columnName1 = "tp" + workNodes.get(0).getColumnIndex();
-        String columnName2 = "tp" + workNodes.get(1).getColumnIndex();
+        String tableName = "t" + checkNodes.get(0).getTableIndex();
+        String columnName1 = "tp" + checkNodes.get(0).getColumnIndex();
+        String columnName2 = "tp" + checkNodes.get(1).getColumnIndex();
 
         errCount = mysqlConnector.getResult("select count(*) from "
                 + tableName + " where " + columnName1 + " + " + columnName2 + " < 0 ;");

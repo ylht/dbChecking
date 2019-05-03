@@ -15,7 +15,7 @@ public class RepeatableReadCheck extends BaseCheck {
 
     @Override
     public void makeTransaction() {
-        transaction = new RepeatableRead(workNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
+        transaction = new RepeatableRead(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override
@@ -25,7 +25,7 @@ public class RepeatableReadCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        String sql = "select count(*) from t" + workNodes.get(0).getTableIndex() + " where checkRepeatableRead!=0";
+        String sql = "select count(*) from t" + checkNodes.get(0).getTableIndex() + " where checkRepeatableRead!=0";
         errCount = mysqlConnector.getResult(sql);
     }
 

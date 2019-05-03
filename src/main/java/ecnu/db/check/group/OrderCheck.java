@@ -1,7 +1,7 @@
 package ecnu.db.check.group;
 
 import ecnu.db.check.BaseCheck;
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.transaction.Order;
 import ecnu.db.utils.MysqlConnector;
 
@@ -14,13 +14,13 @@ public class OrderCheck extends BaseCheck {
 
     @Override
     public void makeTransaction() {
-        transaction = new Order(workNodes, checkConfigWorkOrNot("select"),
+        transaction = new Order(checkNodes, checkConfigWorkOrNot("select"),
                 checkConfigWorkOrNot("selectWithForUpdate"), config.getOrderMaxCount());
     }
 
     @Override
     public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
-        for (WorkNode node : workNodes) {
+        for (CheckNode node : checkNodes) {
             node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
         }
     }
@@ -29,7 +29,7 @@ public class OrderCheck extends BaseCheck {
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
 
 
-        for (WorkNode node : workNodes) {
+        for (CheckNode node : checkNodes) {
             node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
 
             String sql = "select sum(num) from order_item" +
@@ -42,7 +42,7 @@ public class OrderCheck extends BaseCheck {
 
     @Override
     public boolean checkCorrect() {
-        for (WorkNode node : workNodes) {
+        for (CheckNode node : checkNodes) {
             if (node.getOrderNum() != node.getBeginSum() - node.getEndSum()) {
                 return false;
             }

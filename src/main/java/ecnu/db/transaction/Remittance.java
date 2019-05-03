@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.check.WorkNode;
+import ecnu.db.check.CheckNode;
 import ecnu.db.scheme.AbstractColumn;
 import ecnu.db.scheme.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
@@ -40,22 +40,22 @@ public class Remittance extends BaseTransaction {
     private PreparedStatement[] selectPrepareStatements;
 
 
-    public Remittance(AbstractColumn.ColumnType columnType, ArrayList<WorkNode> workNodes,
+    public Remittance(AbstractColumn.ColumnType columnType, ArrayList<CheckNode> checkNodes,
                       boolean isSelect, boolean forUpdate, int rangeRandomCount) {
         this.columnType = columnType;
         this.rangeRandomCount = rangeRandomCount;
 
-        range = new int[workNodes.size()];
-        subKeys = new ZipDistributionList[workNodes.size()];
-        addKeys = new ZipDistributionList[workNodes.size()];
-        addSQLs = new String[workNodes.size()];
-        subSQLs = new String[workNodes.size()];
+        range = new int[checkNodes.size()];
+        subKeys = new ZipDistributionList[checkNodes.size()];
+        addKeys = new ZipDistributionList[checkNodes.size()];
+        addSQLs = new String[checkNodes.size()];
+        subSQLs = new String[checkNodes.size()];
         if (isSelect) {
-            selectSQLs = new String[workNodes.size()];
+            selectSQLs = new String[checkNodes.size()];
         }
 
         int i = 0;
-        for (WorkNode workNode : workNodes) {
+        for (CheckNode checkNode : checkNodes) {
             if (!isSelect) {
                 addSQLs[i] = ADD_SQL;
                 subSQLs[i] = SUB_SQL;
@@ -68,20 +68,20 @@ public class Remittance extends BaseTransaction {
                 } else {
                     selectSQLs[i] = SELECT_SQL;
                 }
-                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getColumnIndex()));
-                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
+                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getColumnIndex()));
+                selectSQLs[i] = selectSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
             }
 
-            addSQLs[i] = addSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-            addSQLs[i] = addSQLs[i].replace("*", String.valueOf(workNode.getColumnIndex()));
+            addSQLs[i] = addSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+            addSQLs[i] = addSQLs[i].replace("*", String.valueOf(checkNode.getColumnIndex()));
 
 
-            subSQLs[i] = subSQLs[i].replaceFirst("\\*", String.valueOf(workNode.getTableIndex()));
-            subSQLs[i] = subSQLs[i].replace("*", String.valueOf(workNode.getColumnIndex()));
+            subSQLs[i] = subSQLs[i].replaceFirst("\\*", String.valueOf(checkNode.getTableIndex()));
+            subSQLs[i] = subSQLs[i].replace("*", String.valueOf(checkNode.getColumnIndex()));
 
-            range[i] = workNode.getRange();
-            subKeys[i] = new ZipDistributionList(workNode.getKeys(), true);
-            addKeys[i] = new ZipDistributionList(workNode.getKeys(), true);
+            range[i] = checkNode.getRange();
+            subKeys[i] = new ZipDistributionList(checkNode.getKeys(), true);
+            addKeys[i] = new ZipDistributionList(checkNode.getKeys(), true);
 
             i++;
         }
