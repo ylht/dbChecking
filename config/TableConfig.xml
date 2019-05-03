@@ -7,7 +7,7 @@
 
     <tableNumHistogram>
         <HistogramItem>
-            <minValue>1</minValue>
+            <minValue>5</minValue>
             <maxValue>10</maxValue>
             <ratio>0.25</ratio>
         </HistogramItem>
@@ -131,24 +131,9 @@
     <decimal>
         <pointMax>5</pointMax>
         <HistogramItem>
-            <minValue>3</minValue>
-            <maxValue>5</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>5</minValue>
+            <minValue>8</minValue>
             <maxValue>10</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>10</minValue>
-            <maxValue>20</maxValue>
-            <ratio>0.3</ratio>
-        </HistogramItem>
-        <HistogramItem>
-            <minValue>20</minValue>
-            <maxValue>50</maxValue>
-            <ratio>0.1</ratio>
+            <ratio>1</ratio>
         </HistogramItem>
     </decimal>
 

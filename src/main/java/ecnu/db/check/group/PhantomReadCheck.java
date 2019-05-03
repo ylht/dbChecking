@@ -10,12 +10,12 @@ public class PhantomReadCheck extends BaseCheck {
     private int errCount;
 
     public PhantomReadCheck() {
-        super("SampleConfig.xml");
+        super("PhantomReadConfig.xml");
     }
 
     @Override
     public void makeTransaction() {
-        transaction=new PhantomRead(workNodes.get(0),config.getSleepMills(),config.getReadWriteRadio());
+        transaction = new PhantomRead(workNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override

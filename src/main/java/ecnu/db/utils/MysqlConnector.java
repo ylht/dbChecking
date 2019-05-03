@@ -19,11 +19,11 @@ public class MysqlConnector {
 
     public MysqlConnector() {
 
-        String dbUrl = "jdbc:mysql://10.11.1.193:13306/databaseChecking?useSSL=false&allowPublicKeyRetrieval=true";
+        String dbUrl = "jdbc:mysql://biui.me/databaseChecking?useSSL=false&allowPublicKeyRetrieval=true";
 
         // 数据库的用户名与密码，需要根据自己的设置
-        String user = "root";
-        String pass = "root";
+        String user = "qswang";
+        String pass = "Biui1227..";
 
         try {
             conn = DriverManager.getConnection(dbUrl, user, pass);
@@ -88,10 +88,8 @@ public class MysqlConnector {
     /**
      * 在本项目中表的命名都用t开头，因此我们从t0开始删除指定数量的表，
      * 来进行本次执行的初始化
-     *
-     * @param num 需要删除的表的数量
      */
-    public void dropTables(int num) throws SQLException {
+    public void dropTables() throws SQLException {
         String sql = "DROP TABLE IF EXISTS t";
         int max = TableConfig.getConfig().getMaxTableNum();
         for (int i = max; i >= 0; i--) {
@@ -138,30 +136,10 @@ public class MysqlConnector {
     }
 
     public int getWriteSkewResult(ArrayList<WorkNode> workNodes) throws SQLException {
-        StringBuilder sql = new StringBuilder("select count(*) from ");
-        HashSet<Integer> allTable = new HashSet<>();
-        for (WorkNode workNode : workNodes) {
-            allTable.add(workNode.getTableIndex());
-        }
-        for (Integer integer : allTable) {
-            sql.append("t").append(integer).append(",");
-        }
-        sql.deleteCharAt(sql.length() - 1).append(" where ");
-        if (allTable.size() > 1) {
-            Integer[] tableIndex = allTable.toArray(new Integer[0]);
-            String firstTable = "t" + tableIndex[0] + ".tp0=";
-            for (int i = 1; i < tableIndex.length; i++) {
-                sql.append(firstTable).append('t').append(tableIndex[i])
-                        .append(".tp0").append(" and ");
-            }
-        }
-        for (WorkNode workNode : workNodes) {
-            sql.append('t').append(workNode.getTableIndex()).append('.').
-                    append("tp").append(workNode.getColumnIndex()).append('+');
-        }
-        sql.deleteCharAt(sql.length() - 1).append("<0");
-
-        ResultSet rs = conn.createStatement().executeQuery(sql.toString());
+        String tableName="t"+workNodes.get(0).getTableIndex();
+        String columnName1="tp"+workNodes.get(0).getColumnIndex();
+        String columnName2="tp"+workNodes.get(1).getColumnIndex();
+        ResultSet rs = conn.createStatement().executeQuery("select count(*) from " + tableName + " where " + columnName1 + " + " + columnName2 + " < 0 ;");
         rs.next();
         return rs.getInt(1);
 

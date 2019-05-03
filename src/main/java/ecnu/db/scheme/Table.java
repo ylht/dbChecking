@@ -27,7 +27,7 @@ public class Table {
      * 记录列，用于记录各种值
      */
     private final static String[] RECORD_COLUMNS =
-            new String[]{"checkReadCommitted INT default 0", "checkRepeatableRead INT default 0"};
+            new String[]{"checkReadCommitted double default 0", "checkRepeatableRead INT default 0"};
 
     private int tableIndex;
     private int tableSize;

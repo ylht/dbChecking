@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transaction>
-    <sleepMills>1000</sleepMills>
+    <sleepMills>100</sleepMills>
 
     <readWriteRadio>0.95</readWriteRadio>
 

@@ -13,7 +13,7 @@ public class WriteSkewCheck extends BaseCheck {
 
 
     public WriteSkewCheck() {
-        super("SampleConfig.xml");
+        super("WriteSkewConfig.xml");
     }
 
     @Override

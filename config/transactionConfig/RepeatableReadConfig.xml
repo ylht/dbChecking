@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transaction>
-    <sleepMills>1000</sleepMills>
+    <sleepMills>100</sleepMills>
 
-    <readWriteRadio>0.25</readWriteRadio>
+    <readWriteRadio>0.05</readWriteRadio>
 
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,

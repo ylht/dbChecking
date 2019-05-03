@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transaction>
-    <columnFromSameTable>1</columnFromSameTable>
+    <columnFromSameTable>true</columnFromSameTable>
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,
     repeatableRead,serializable-->

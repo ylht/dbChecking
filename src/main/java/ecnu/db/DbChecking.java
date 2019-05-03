@@ -13,12 +13,10 @@ import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.transaction.BaseTransaction;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
+import org.checkerframework.checker.units.qual.A;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -55,7 +53,7 @@ public class DbChecking {
         System.out.println("开始重建数据库scheme！");
         //删除之前的scheme
         try {
-            mysqlConnector.dropTables(tables.length);
+            mysqlConnector.dropTables();
             //为每张新表重建scheme
             for (Table table : tables) {
                 mysqlConnector.executeSql(table.getSQL());
@@ -113,10 +111,10 @@ public class DbChecking {
         return workNodes;
     }
 
-    private HashMap<Integer,HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> getWorkNodes(Table[] tables) {
-        HashMap<Integer,HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes=new HashMap<>(tables.length);
+    private HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> getWorkNodes(Table[] tables) {
+        HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes = new HashMap<>(tables.length);
         for (int i = 0; i < tables.length; i++) {
-            workNodes.put(i,initWorkNodes());
+            workNodes.put(i, initWorkNodes());
         }
         int tableIndex = 0;
         for (Table table : tables) {
@@ -126,9 +124,10 @@ public class DbChecking {
             int columnIndex = 1;
             for (AbstractColumn column : columns) {
                 if (columnIndex > foreignKeyNum) {
-                    workNodes.get(tableIndex).get(column.getColumnType()).add(
-                            new WorkNode(tableIndex, columnIndex++, keys, column.getRange()));
+                    ArrayList<WorkNode>nodes=workNodes.get(tableIndex).get(column.getColumnType());
+                    nodes.add(new WorkNode(tableIndex, columnIndex, keys, column.getRange()));
                 }
+                columnIndex++;
             }
             tableIndex++;
         }
@@ -138,6 +137,21 @@ public class DbChecking {
             }
         }
         return workNodes;
+    }
+
+    private HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> changeWorkNodeGroup(
+            HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes){
+        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> nodes=initWorkNodes();
+        for (Integer integer : workNodes.keySet()) {
+            for (AbstractColumn.ColumnType value : AbstractColumn.ColumnType.values()) {
+                try {
+                    nodes.get(value).addAll(workNodes.get(integer).get(value));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return nodes;
     }
 
 
@@ -150,11 +164,13 @@ public class DbChecking {
             System.out.println("无法初始化工作组");
             System.out.println(-1);
         }
-        HashMap<Integer,HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes = getWorkNodes(tables);
-
+        HashMap<Integer, HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>>> workNodes = getWorkNodes(tables);
         Random r = new Random();
-        for(BaseCheck workGroup:workGroups){
-            if(workGroup.getColumnFromSameTable()&&workGroup.getWholeTable()){
+        //可以运行的工作组添加到checks中
+        ArrayList<BaseCheck> checks=new ArrayList<>();
+
+        for (BaseCheck workGroup : workGroups) {
+            if (workGroup.getColumnFromSameTable() && workGroup.getWholeTable()) {
                 int columnCount = 0;
                 try {
                     columnCount = workGroup.getColumnCount();
@@ -169,21 +185,28 @@ public class DbChecking {
                     System.out.println("无法匹配当前工作组需要的列类型");
                     continue;
                 }
-                int tableIndex=r.nextInt(tables.length);
+                int tableIndex = workNodes.size()-1;
                 for (int i = 0; i < columnCount; i++) {
                     try {
-                        ArrayList<WorkNode> nodes=workNodes.get(tableIndex).get(columnType);
-                        workGroup.addWorkNode(nodes.get(r.nextInt(nodes.size())));
+                        ArrayList<WorkNode> nodes = workNodes.get(tableIndex).get(columnType);
+                        workGroup.addWorkNode(nodes.remove(0));
                     } catch (Exception e) {
                         System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
                         break;
                     }
                 }
                 workNodes.remove(tableIndex);
+                if (!workGroup.columnNumEnough()) {
+                    System.out.println("移除" + workGroup.getClass().getSimpleName());
+                }else{
+                    checks.add(workGroup);
+                }
             }
+
         }
-        for(BaseCheck workGroup:workGroups){
-            if(workGroup.getColumnFromSameTable()){
+
+        for (BaseCheck workGroup : workGroups) {
+            if (workGroup.getColumnFromSameTable()&&!workGroup.getWholeTable()) {
                 int columnCount = 0;
                 try {
                     columnCount = workGroup.getColumnCount();
@@ -198,19 +221,30 @@ public class DbChecking {
                     System.out.println("无法匹配当前工作组需要的列类型");
                     continue;
                 }
-                int tableIndex=r.nextInt(tables.length);
+                int tableIndex = r.nextInt(workNodes.size());
                 for (int i = 0; i < columnCount; i++) {
                     try {
-                        ArrayList<WorkNode> nodes=workNodes.get(tableIndex).get(columnType);
-                        workGroup.addWorkNode(nodes.get(r.nextInt(nodes.size())));
+                        ArrayList<WorkNode> nodes = workNodes.get(tableIndex).get(columnType);
+                        workGroup.addWorkNode(nodes.remove(0));
                     } catch (Exception e) {
                         System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
                         break;
                     }
                 }
+                if (!workGroup.columnNumEnough()) {
+                    System.out.println("移除" + workGroup.getClass().getSimpleName());
+                }else{
+                    checks.add(workGroup);
+                }
             }
         }
+
+        HashMap<AbstractColumn.ColumnType, ArrayList<WorkNode>> newWorksNodes=changeWorkNodeGroup(workNodes);
+
         for (BaseCheck workGroup : workGroups) {
+            if(workGroup.getColumnFromSameTable()){
+                continue;
+            }
             int columnCount = 0;
             try {
                 columnCount = workGroup.getColumnCount();
@@ -227,21 +261,19 @@ public class DbChecking {
             }
             for (int i = 0; i < columnCount; i++) {
                 try {
-                    int tableIndex=r.nextInt(tables.length);
-                    ArrayList<WorkNode> nodes=workNodes.get(tableIndex).get(columnType);
-                    workGroup.addWorkNode(nodes.get(r.nextInt(nodes.size())));
+                    workGroup.addWorkNode(newWorksNodes.get(columnType).remove(0));
                 } catch (Exception e) {
                     System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
                     break;
                 }
             }
             if (!workGroup.columnNumEnough()) {
-                workGroups.remove(workGroup);
                 System.out.println("移除" + workGroup.getClass().getSimpleName());
+            }else{
+                checks.add(workGroup);
             }
         }
-
-        printWorkGroup();
+        workGroups=checks;
         try {
             recordStartStatus();
         } catch (SQLException e) {

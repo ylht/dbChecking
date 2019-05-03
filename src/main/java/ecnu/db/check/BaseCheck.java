@@ -62,14 +62,6 @@ public abstract class BaseCheck {
         workNodes.add(node);
     }
 
-    /**
-     * 是否允许在已经有事务操作的列上跑事务
-     *
-     * @return true允许, false不允许
-     */
-    public boolean workOnWorked() throws Exception {
-        return config.workOnWorked();
-    }
 
     /**
      * 返回该工作组本次需要操作的数据列的类型
