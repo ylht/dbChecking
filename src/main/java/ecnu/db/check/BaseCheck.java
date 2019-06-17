@@ -1,7 +1,7 @@
 package ecnu.db.check;
 
 import ecnu.db.config.TransactionConfig;
-import ecnu.db.scheme.AbstractColumn;
+import ecnu.db.schema.AbstractColumn;
 import ecnu.db.transaction.BaseTransaction;
 import ecnu.db.utils.MysqlConnector;
 

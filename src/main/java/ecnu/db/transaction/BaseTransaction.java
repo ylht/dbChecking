@@ -1,6 +1,6 @@
 package ecnu.db.transaction;
 
-import ecnu.db.scheme.AbstractColumn;
+import ecnu.db.schema.AbstractColumn;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.PreparedStatement;

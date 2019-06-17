@@ -1,6 +1,6 @@
 package ecnu.db.config;
 
-import ecnu.db.scheme.AbstractColumn;
+import ecnu.db.schema.AbstractColumn;
 import org.dom4j.Node;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package ecnu.db.scheme;
+package ecnu.db.schema;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

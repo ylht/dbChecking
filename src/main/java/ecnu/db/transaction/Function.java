@@ -1,8 +1,8 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.CheckNode;
-import ecnu.db.scheme.AbstractColumn;
-import ecnu.db.scheme.DecimalColumn;
+import ecnu.db.schema.AbstractColumn;
+import ecnu.db.schema.DecimalColumn;
 import ecnu.db.utils.MysqlConnector;
 import ecnu.db.utils.ZipDistributionList;
 

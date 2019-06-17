@@ -1,4 +1,4 @@
-package ecnu.db.scheme;
+package ecnu.db.schema;
 
 /**
  * @author wangqingshuai

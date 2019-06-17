@@ -1,6 +1,6 @@
 package ecnu.db.utils;
 
-import ecnu.db.scheme.Table;
+import ecnu.db.schema.Table;
 
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
