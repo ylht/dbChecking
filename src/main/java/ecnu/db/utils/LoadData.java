@@ -1,8 +1,6 @@
 package ecnu.db.utils;
 
 import ecnu.db.scheme.Table;
-import ecnu.db.utils.DataOutputToFile;
-import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;

@@ -7,10 +7,10 @@ import ecnu.db.config.SystemConfig;
 import ecnu.db.config.TableConfig;
 import ecnu.db.scheme.AbstractColumn;
 import ecnu.db.scheme.Table;
-import ecnu.db.utils.LoadData;
 import ecnu.db.threads.TransactionThread;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.transaction.BaseTransaction;
+import ecnu.db.utils.LoadData;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
 
@@ -175,14 +175,14 @@ public class DbChecking {
         ArrayList<BaseCheck> checks = new ArrayList<>();
         ArrayList<Integer> allIndex = new ArrayList<>();
         for (int i = 0; i < tables.length; i++) {
-            if(tables[i].getCheckNodes()!=null){
+            if (tables[i].getCheckNodes() != null) {
                 allIndex.add(i);
             }
         }
         for (BaseCheck checkGroup : checkGroups) {
             if (checkGroup.getColumnFromSameTable() && !checkGroup.getWholeTable()) {
                 int columnCount = checkGroup.getColumnCount();
-                AbstractColumn.ColumnType columnType=checkGroup.columnType();
+                AbstractColumn.ColumnType columnType = checkGroup.columnType();
 
                 int tableIndex = allIndex.get(new Random().nextInt(allIndex.size()));
                 addCheckGroup(checkGroup, columnCount, columnType, tableIndex);
@@ -200,8 +200,8 @@ public class DbChecking {
         ArrayList<BaseCheck> checks = new ArrayList<>();
         HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> allCheckNodes = getAllCheckNodes();
         for (BaseCheck checkGroup : checkGroups) {
-            int columnCount  = checkGroup.getColumnCount();
-            AbstractColumn.ColumnType columnType= checkGroup.columnType();
+            int columnCount = checkGroup.getColumnCount();
+            AbstractColumn.ColumnType columnType = checkGroup.columnType();
             for (int i = 0; i < columnCount; i++) {
                 try {
                     checkGroup.addCheckNode(allCheckNodes.get(columnType).remove(0));
@@ -241,12 +241,12 @@ public class DbChecking {
             System.out.println("无法初始化检测组");
             System.out.println(-1);
         }
-        ArrayList<BaseCheck> checks=new ArrayList<>();
+        ArrayList<BaseCheck> checks = new ArrayList<>();
         //可以运行的工作组添加到checks中
         checks.addAll(getCheckGroupsOnWholeTable());
         checks.addAll(getCheckGroupsOnSameTable());
         checks.addAll(getNormalCheckGroups());
-        checkGroups=checks;
+        checkGroups = checks;
         try {
             recordStartStatus();
         } catch (SQLException e) {

@@ -21,8 +21,8 @@ public abstract class BaseCheck {
     protected ArrayList<CheckNode> checkNodes = new ArrayList<>();
     protected AbstractColumn.ColumnType columnType;
     protected BaseTransaction transaction;
-    private CheckKind checkKind;
     protected TransactionConfig config;
+    private CheckKind checkKind;
 
     public BaseCheck(String configName) {
         config = TransactionConfig.getConfig(configName);
@@ -79,9 +79,9 @@ public abstract class BaseCheck {
      */
     public int getColumnCount() {
         int columnCount = 0;
-        try{
-            columnCount=config.getColumnNumForTransaction();
-        }catch (Exception e){
+        try {
+            columnCount = config.getColumnNumForTransaction();
+        } catch (Exception e) {
             System.out.println("读取columnCount失败");
         }
         return columnCount;

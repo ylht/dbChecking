@@ -18,19 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Table {
 
-    private final Random R = new Random();
-
     /**
      * 主键数量，默认为1
      */
     private final static int KEY_NUM = 1;
-
     /**
      * 记录列，用于记录各种值
      */
     private final static String[] RECORD_COLUMNS =
             new String[]{"checkReadCommitted double default 0", "checkRepeatableRead INT default 0"};
-
+    private final Random R = new Random();
     private int tableIndex;
     private int tableSize;
     private int foreignKeyNum;

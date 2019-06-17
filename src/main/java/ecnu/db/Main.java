@@ -19,6 +19,5 @@ public class Main {
         //载入数据
         dbChecking.loadData();
         dbChecking.check();
-
     }
 }
