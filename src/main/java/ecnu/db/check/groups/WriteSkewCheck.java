@@ -1,4 +1,4 @@
-package ecnu.db.check.group;
+package ecnu.db.check.groups;
 
 import ecnu.db.check.BaseCheck;
 import ecnu.db.transaction.WriteSkew;

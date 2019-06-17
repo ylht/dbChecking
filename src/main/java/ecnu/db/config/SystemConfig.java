@@ -18,19 +18,19 @@ public class SystemConfig extends ReadConfig {
         config = new SystemConfig(configFileName);
     }
 
-    public String getDatabaseURL(){
+    public String getDatabaseURL() {
         return document.valueOf("generator/database/url");
     }
 
-    public String getDatabaseName(){
+    public String getDatabaseName() {
         return document.valueOf("generator/database/name");
     }
 
-    public String getDatabaseUser(){
+    public String getDatabaseUser() {
         return document.valueOf("generator/database/user");
     }
 
-    public String getDatabasePassword(){
+    public String getDatabasePassword() {
         return document.valueOf("generator/database/password");
     }
 

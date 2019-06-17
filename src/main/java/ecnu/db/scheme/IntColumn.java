@@ -4,6 +4,7 @@ package ecnu.db.scheme;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * @author wangqingshuai
@@ -32,6 +33,6 @@ public class IntColumn extends AbstractColumn {
         if (zipDistributionList != null) {
             return zipDistributionList.getValue();
         }
-        return R.nextInt(range);
+        return new Random().nextInt(range);
     }
 }

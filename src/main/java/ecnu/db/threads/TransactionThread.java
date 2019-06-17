@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
  * @author wangqingshuai
  */
 public class TransactionThread implements Runnable {
-    private static Random r = new Random();
+    private Random r = new Random();
     private ArrayList<BaseTransaction> transactions = new ArrayList<>();
     private int runCount;
     private CountDownLatch count;

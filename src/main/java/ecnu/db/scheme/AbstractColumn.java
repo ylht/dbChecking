@@ -1,19 +1,11 @@
 package ecnu.db.scheme;
 
-
-import java.util.Random;
-
 /**
  * @author wangqingshuai
  * 该类为所有tuple的抽象类
  */
 
 public abstract class AbstractColumn {
-
-    /**
-     * 所有的tuple同用一个随机数生成器
-     */
-    final static Random R = new Random();
 
     /**
      * 在int,decimal,float,date中代表数值范围区间，在varchar中代表长度范围区间

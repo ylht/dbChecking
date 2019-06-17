@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  * @author wangqingshuai
- * 标记转移的列，并记录该列的起始和和终止和
+ * 用于计算的Node的基础类
  */
 public class CheckNode {
     private int tableIndex;
@@ -33,7 +33,6 @@ public class CheckNode {
         this.columnIndex = columnIndex;
         this.keys = keys;
         this.range = range;
-
     }
 
     public ArrayList<Integer> getKeys() {

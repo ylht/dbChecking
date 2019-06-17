@@ -2,6 +2,7 @@ package ecnu.db.scheme;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Random;
 
 public class DateColumn extends AbstractColumn {
     /**
@@ -20,6 +21,6 @@ public class DateColumn extends AbstractColumn {
 
     @Override
     public Object getValue() {
-        return SIMPLE_DATE_FORMAT.format(System.currentTimeMillis() + 1000 * R.nextInt(range));
+        return SIMPLE_DATE_FORMAT.format(System.currentTimeMillis() + 1000 * new Random().nextInt(range));
     }
 }

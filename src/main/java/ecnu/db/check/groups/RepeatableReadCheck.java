@@ -1,22 +1,21 @@
-package ecnu.db.check.group;
+package ecnu.db.check.groups;
 
 import ecnu.db.check.BaseCheck;
-import ecnu.db.transaction.ReadCommitted;
+import ecnu.db.transaction.RepeatableRead;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
-public class ReadCommittedCheck extends BaseCheck {
+public class RepeatableReadCheck extends BaseCheck {
     private int errCount;
 
-    public ReadCommittedCheck() {
-        super("ReadCommittedConfig.xml");
+    public RepeatableReadCheck() {
+        super("RepeatableReadConfig.xml");
     }
-
 
     @Override
     public void makeTransaction() {
-        transaction = new ReadCommitted(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
+        transaction = new RepeatableRead(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override
@@ -26,7 +25,7 @@ public class ReadCommittedCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        String sql = "select count(*) from t" + checkNodes.get(0).getTableIndex() + " where checkReadCommitted<0";
+        String sql = "select count(*) from t" + checkNodes.get(0).getTableIndex() + " where checkRepeatableRead!=0";
         errCount = mysqlConnector.getResult(sql);
     }
 

@@ -12,6 +12,6 @@ public class FloatColumn extends AbstractColumn {
 
     @Override
     Object getValue() {
-        return R.nextDouble() * range;
+        return Math.random() * range;
     }
 }

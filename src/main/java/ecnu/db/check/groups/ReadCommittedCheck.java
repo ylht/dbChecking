@@ -1,21 +1,22 @@
-package ecnu.db.check.group;
+package ecnu.db.check.groups;
 
 import ecnu.db.check.BaseCheck;
-import ecnu.db.transaction.PhantomRead;
+import ecnu.db.transaction.ReadCommitted;
 import ecnu.db.utils.MysqlConnector;
 
 import java.sql.SQLException;
 
-public class PhantomReadCheck extends BaseCheck {
+public class ReadCommittedCheck extends BaseCheck {
     private int errCount;
 
-    public PhantomReadCheck() {
-        super("PhantomReadConfig.xml");
+    public ReadCommittedCheck() {
+        super("ReadCommittedConfig.xml");
     }
+
 
     @Override
     public void makeTransaction() {
-        transaction = new PhantomRead(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
+        transaction = new ReadCommitted(checkNodes.get(0), config.getSleepMills(), config.getReadWriteRadio());
     }
 
     @Override
@@ -25,9 +26,10 @@ public class PhantomReadCheck extends BaseCheck {
 
     @Override
     public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
-        String sql = "select count(*) from phantom_read_record";
+        String sql = "select count(*) from t" + checkNodes.get(0).getTableIndex() + " where checkReadCommitted<0";
         errCount = mysqlConnector.getResult(sql);
     }
+
 
     @Override
     public boolean checkCorrect() {

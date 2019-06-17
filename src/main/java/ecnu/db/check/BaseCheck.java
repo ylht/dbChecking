@@ -21,7 +21,7 @@ public abstract class BaseCheck {
     protected ArrayList<CheckNode> checkNodes = new ArrayList<>();
     protected AbstractColumn.ColumnType columnType;
     protected BaseTransaction transaction;
-    protected CheckKind checkKind;
+    private CheckKind checkKind;
     protected TransactionConfig config;
 
     public BaseCheck(String configName) {
@@ -68,7 +68,7 @@ public abstract class BaseCheck {
      *
      * @return 数据列类型。
      */
-    public AbstractColumn.ColumnType columnType() throws Exception {
+    public AbstractColumn.ColumnType columnType() {
         return columnType;
     }
 
@@ -77,8 +77,14 @@ public abstract class BaseCheck {
      *
      * @return 该工作组需要操作几个列
      */
-    public int getColumnCount() throws Exception {
-        return config.getColumnNumForTransaction();
+    public int getColumnCount() {
+        int columnCount = 0;
+        try{
+            columnCount=config.getColumnNumForTransaction();
+        }catch (Exception e){
+            System.out.println("读取columnCount失败");
+        }
+        return columnCount;
     }
 
     /**
@@ -128,8 +134,8 @@ public abstract class BaseCheck {
         return config.getColumnFromSameTable();
     }
 
-    public boolean columnNumEnough() {
-        return checkNodes.size() >= config.getMinColumnNum();
+    public boolean columnNumNotEnough() {
+        return checkNodes.size() < config.getMinColumnNum();
     }
 
 

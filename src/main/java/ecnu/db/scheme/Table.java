@@ -1,10 +1,12 @@
 package ecnu.db.scheme;
 
 
+import ecnu.db.check.CheckNode;
 import ecnu.db.config.TableConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Table {
 
-    private final static Random R = new Random();
+    private final Random R = new Random();
 
     /**
      * 主键数量，默认为1
@@ -36,10 +38,8 @@ public class Table {
     private ArrayList<Integer> foreignKeys;
     private ArrayList<AbstractColumn> columns = new ArrayList<>();
     private AtomicInteger currentLineNum = new AtomicInteger();
-
-    public ArrayList<Integer> getForeignKeys() {
-        return foreignKeys;
-    }
+    private HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> checkNodes =
+            new HashMap<>(AbstractColumn.ColumnType.values().length);
 
     public Table(int tableIndex, ArrayList<ArrayList<Integer>> allKeys) throws Exception {
         this.tableIndex = tableIndex;
@@ -73,33 +73,59 @@ public class Table {
 
         int decimalRange = TableConfig.getConfig().getRange("decimal");
         int decimalPoint = TableConfig.getConfig().getDecimalPoint();
-
         int tableColumnNum = TableConfig.getConfig().getColumnNum();
-        for (int i = 0; i < tableColumnNum; i++) {
+        //初始化checkNodes
+        for (int i = 0; i < AbstractColumn.ColumnType.values().length; i++) {
+            checkNodes.put(AbstractColumn.ColumnType.values()[i], new ArrayList<>());
+        }
+
+        for (int i = foreignKeyNum + 1; i < tableColumnNum + foreignKeyNum + 1; i++) {
             //数据的tuple从第二列开始，第一列作为主键列
             String type = TableConfig.getConfig().getColumnType();
-            switch (type) {
-                case "int":
-                    columns.add(new IntColumn(TableConfig.getConfig().getRange("int")));
-                    break;
-                case "decimal":
-                    columns.add(new DecimalColumn(decimalRange, decimalPoint));
-                    break;
-                case "float":
-                    columns.add(new FloatColumn(TableConfig.getConfig().getRange("decimal")));
-                    break;
-                case "varchar":
-                    columns.add(new VarcharColumn(TableConfig.getConfig().getRange("varchar")));
-                    break;
-                case "datetime":
-                    columns.add(new DateColumn(TableConfig.getConfig().getRange("date")));
-                    break;
-                default:
-                    throw new Exception("配置文件错误,匹配到的项为：" + type);
+            if (!"decimal".equals(type)) {
+                int range = TableConfig.getConfig().getRange(type);
+                switch (type) {
+                    case "int":
+                        checkNodes.get(AbstractColumn.ColumnType.INT).add(new CheckNode(tableIndex, i, keys, range));
+                        columns.add(new IntColumn(range));
+                        break;
+                    case "float":
+                        checkNodes.get(AbstractColumn.ColumnType.FLOAT).add(new CheckNode(tableIndex, i, keys, range));
+                        columns.add(new FloatColumn(range));
+                        break;
+                    case "varchar":
+                        checkNodes.get(AbstractColumn.ColumnType.VARCHAR).add(new CheckNode(tableIndex, i, keys, range));
+                        columns.add(new VarcharColumn(range));
+                        break;
+                    case "datetime":
+                        checkNodes.get(AbstractColumn.ColumnType.DATE).add(new CheckNode(tableIndex, i, keys, range));
+                        columns.add(new DateColumn(range));
+                        break;
+                    default:
+                        throw new Exception("配置文件错误,匹配到的项为：" + type);
+                }
+            } else {
+                checkNodes.get(AbstractColumn.ColumnType.DECIMAL).add(new CheckNode(tableIndex, i, keys, decimalRange));
+                columns.add(new DecimalColumn(decimalRange, decimalPoint));
             }
         }
 
+        for (AbstractColumn.ColumnType value : AbstractColumn.ColumnType.values()) {
+            Collections.shuffle(checkNodes.get(value));
+        }
 
+    }
+
+    public HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> getCheckNodes() {
+        return checkNodes;
+    }
+
+    public void setNoCheckNodes() {
+        this.checkNodes = null;
+    }
+
+    public ArrayList<Integer> getForeignKeys() {
+        return foreignKeys;
     }
 
     public int getForeignKeyNum() {
@@ -156,24 +182,6 @@ public class Table {
             return null;
         }
         lineRecord[0] = keys.get(temp);
-        return getObjects(lineRecord);
-    }
-
-    /**
-     * 用于插入数据时获取每一行的数据
-     *
-     * @return 一行的数据
-     */
-    public Object[] getInsertValue() {
-        Object[] lineRecord = new Object[KEY_NUM + columns.size() + RECORD_COLUMNS.length];
-        for (int i = KEY_NUM; i <= RECORD_COLUMNS.length; i++) {
-            lineRecord[lineRecord.length - i] = 0;
-        }
-        lineRecord[0] = R.nextInt(tableSize);
-        return getObjects(lineRecord);
-    }
-
-    private Object[] getObjects(Object[] lineRecord) {
         for (int i = KEY_NUM; i < lineRecord.length - RECORD_COLUMNS.length; i++) {
             lineRecord[i] = columns.get(i - KEY_NUM).getValue();
         }

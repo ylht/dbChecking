@@ -17,7 +17,7 @@ public class MysqlConnector {
 
     public MysqlConnector() {
 
-        String dbUrl = "jdbc:mysql://"+ SystemConfig.getConfig().getDatabaseURL() +"/"+SystemConfig.getConfig().getDatabaseName()+"?useSSL=false&allowPublicKeyRetrieval=true";
+        String dbUrl = "jdbc:mysql://" + SystemConfig.getConfig().getDatabaseURL() + "/" + SystemConfig.getConfig().getDatabaseName() + "?useSSL=false&allowPublicKeyRetrieval=true";
 
         // 数据库的用户名与密码
         String user = SystemConfig.getConfig().getDatabaseUser();

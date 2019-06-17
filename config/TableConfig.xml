@@ -128,6 +128,29 @@
         </HistogramItem>
     </int>
 
+    <float>
+        <HistogramItem>
+            <minValue>3000</minValue>
+            <maxValue>5000</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>5100</minValue>
+            <maxValue>10000</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>10100</minValue>
+            <maxValue>20000</maxValue>
+            <ratio>0.3</ratio>
+        </HistogramItem>
+        <HistogramItem>
+            <minValue>20100</minValue>
+            <maxValue>50000</maxValue>
+            <ratio>0.1</ratio>
+        </HistogramItem>
+    </float>
+
     <decimal>
         <pointMax>5</pointMax>
         <HistogramItem>
@@ -137,7 +160,7 @@
         </HistogramItem>
     </decimal>
 
-    <date>
+    <datetime>
         <HistogramItem>
             <minValue>30</minValue>
             <maxValue>50</maxValue>
@@ -158,7 +181,7 @@
             <maxValue>500</maxValue>
             <ratio>0.1</ratio>
         </HistogramItem>
-    </date>
+    </datetime>
 
 
     <varchar>

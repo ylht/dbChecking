@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 class ReadConfig {
-    static final Random R = new Random();
+    final Random R = new Random();
     Document document;
 
     ReadConfig(String fileName) {
