@@ -74,7 +74,7 @@ public class MysqlConnector {
 
     //表格相关操作
 
-    public void loadData(int tableIndex) throws SQLException {
+    void loadData(int tableIndex) throws SQLException {
         executeSql("SET FOREIGN_KEY_CHECKS = 0;");
         String sql = "load data CONCURRENT LOCAL INFILE 'data/t" + tableIndex +
                 ".csv' into table t" + tableIndex + " COLUMNS TERMINATED BY ',' ";
@@ -108,8 +108,6 @@ public class MysqlConnector {
         executeSql(sql);
     }
 
-
-    //验证语句
     public int getResult(String testSQL) throws SQLException {
         ResultSet rs = conn.createStatement().executeQuery(testSQL);
         rs.next();

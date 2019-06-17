@@ -50,7 +50,6 @@ public class TransactionThread implements Runnable {
             try {
                 transactions.get(randomIndex).execute();
             } catch (Exception e) {
-                //LogManager.getLogger().error("事务运行出错：", e);
                 if (!"Deadlock found when trying to get lock; try restarting transaction".equals(e.getMessage())) {
                     e.printStackTrace();
                 }
