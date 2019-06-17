@@ -7,13 +7,12 @@ import ecnu.db.config.SystemConfig;
 import ecnu.db.config.TableConfig;
 import ecnu.db.scheme.AbstractColumn;
 import ecnu.db.scheme.Table;
-import ecnu.db.threads.LoadData;
+import ecnu.db.utils.LoadData;
 import ecnu.db.threads.TransactionThread;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.transaction.BaseTransaction;
 import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
-import org.checkerframework.checker.units.qual.A;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -111,7 +110,7 @@ public class DbChecking {
     }
 
 
-    private HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> getAllWorkNodes() {
+    private HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> getAllCheckNodes() {
         HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> checkNodes =
                 new HashMap<>(AbstractColumn.ColumnType.values().length);
         for (int i = 0; i < AbstractColumn.ColumnType.values().length; i++) {
@@ -147,20 +146,20 @@ public class DbChecking {
         }
         tableNotRef.removeAll(tableRefIndex);
 
-        for (BaseCheck workGroup : checkGroups) {
-            if (workGroup.getWholeTable()) {
+        for (BaseCheck checkGroup : checkGroups) {
+            if (checkGroup.getWholeTable()) {
                 //获取该工作组需要的列数量
-                int columnCount = workGroup.getColumnCount();
+                int columnCount = checkGroup.getColumnCount();
                 //获取该工作组需要的列类型
-                AbstractColumn.ColumnType columnType = workGroup.columnType();
+                AbstractColumn.ColumnType columnType = checkGroup.columnType();
                 int getIndex = new Random().nextInt(tableNotRef.size());
                 int tableIndex = tableNotRef.get(getIndex);
-                addCheckGroup(workGroup, columnCount, columnType, tableIndex);
+                addCheckGroup(checkGroup, columnCount, columnType, tableIndex);
                 tables[tableIndex].setNoCheckNodes();
-                if (workGroup.columnNumNotEnough()) {
-                    System.out.println("移除" + workGroup.getClass().getSimpleName());
+                if (checkGroup.columnNumNotEnough()) {
+                    System.out.println("移除" + checkGroup.getClass().getSimpleName());
                 } else {
-                    checks.add(workGroup);
+                    checks.add(checkGroup);
                 }
                 tableNotRef.remove(getIndex);
                 if (tableNotRef.size() == 0) {
@@ -180,17 +179,17 @@ public class DbChecking {
                 allIndex.add(i);
             }
         }
-        for (BaseCheck workGroup : checkGroups) {
-            if (workGroup.getColumnFromSameTable() && !workGroup.getWholeTable()) {
-                int columnCount = workGroup.getColumnCount();
-                AbstractColumn.ColumnType columnType=workGroup.columnType();
+        for (BaseCheck checkGroup : checkGroups) {
+            if (checkGroup.getColumnFromSameTable() && !checkGroup.getWholeTable()) {
+                int columnCount = checkGroup.getColumnCount();
+                AbstractColumn.ColumnType columnType=checkGroup.columnType();
 
                 int tableIndex = allIndex.get(new Random().nextInt(allIndex.size()));
-                addCheckGroup(workGroup, columnCount, columnType, tableIndex);
-                if (workGroup.columnNumNotEnough()) {
-                    System.out.println("移除" + workGroup.getClass().getSimpleName());
+                addCheckGroup(checkGroup, columnCount, columnType, tableIndex);
+                if (checkGroup.columnNumNotEnough()) {
+                    System.out.println("移除" + checkGroup.getClass().getSimpleName());
                 } else {
-                    checks.add(workGroup);
+                    checks.add(checkGroup);
                 }
             }
         }
@@ -199,38 +198,35 @@ public class DbChecking {
 
     private ArrayList<BaseCheck> getNormalCheckGroups() {
         ArrayList<BaseCheck> checks = new ArrayList<>();
-        HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> newWorksNodes = getAllWorkNodes();
-        for (BaseCheck workGroup : checkGroups) {
-            if (workGroup.getColumnFromSameTable()||workGroup.getWholeTable()) {
-                continue;
-            }
-            int columnCount  = workGroup.getColumnCount();
-            AbstractColumn.ColumnType columnType= workGroup.columnType();
+        HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> allCheckNodes = getAllCheckNodes();
+        for (BaseCheck checkGroup : checkGroups) {
+            int columnCount  = checkGroup.getColumnCount();
+            AbstractColumn.ColumnType columnType= checkGroup.columnType();
             for (int i = 0; i < columnCount; i++) {
                 try {
-                    workGroup.addWorkNode(newWorksNodes.get(columnType).remove(0));
+                    checkGroup.addCheckNode(allCheckNodes.get(columnType).remove(0));
                 } catch (Exception e) {
-                    System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
+                    System.out.println(checkGroup.getClass().getSimpleName() + "没有checkNode可供选择");
                     break;
                 }
             }
-            if (workGroup.columnNumNotEnough()) {
-                System.out.println("移除" + workGroup.getClass().getSimpleName());
+            if (checkGroup.columnNumNotEnough()) {
+                System.out.println("移除" + checkGroup.getClass().getSimpleName());
             } else {
-                checks.add(workGroup);
+                checks.add(checkGroup);
             }
         }
         return checks;
     }
 
 
-    private void addCheckGroup(BaseCheck workGroup, int columnCount, AbstractColumn.ColumnType columnType, int tableIndex) {
+    private void addCheckGroup(BaseCheck checkGroup, int columnCount, AbstractColumn.ColumnType columnType, int tableIndex) {
         for (int i = 0; i < columnCount; i++) {
             try {
                 ArrayList<CheckNode> nodes = tables[tableIndex].getCheckNodes().get(columnType);
-                workGroup.addWorkNode(nodes.remove(0));
+                checkGroup.addCheckNode(nodes.remove(0));
             } catch (Exception e) {
-                System.out.println(workGroup.getClass().getSimpleName() + "没有workNode可供选择");
+                System.out.println(checkGroup.getClass().getSimpleName() + "没有checkNode可供选择");
                 break;
             }
         }
@@ -258,8 +254,8 @@ public class DbChecking {
             System.out.println("无法记录数据初始状态");
             System.exit(-1);
         }
-        printWorkGroup();
-        work();
+        printCheckGroups();
+        runTransactions();
         try {
             recordEndStatus();
         } catch (SQLException e) {
@@ -267,7 +263,7 @@ public class DbChecking {
             System.out.println("无法记录数据结束状态");
             System.exit(-1);
         }
-        printWorkGroup();
+        printCheckGroups();
         if (checkCorrect()) {
             System.out.println("当前隔离级别达到了" + checkKind);
         } else {
@@ -277,19 +273,19 @@ public class DbChecking {
         DbCheckingThreadPool.closeThreadPool();
     }
 
-    private void work() {
+    private void runTransactions() {
         System.out.println("开始执行事务");
         int runCount = SystemConfig.getConfig().getRunCount();
         int threadsNum = SystemConfig.getConfig().getThreadNum();
         CountDownLatch count = new CountDownLatch(threadsNum);
         ArrayList<BaseTransaction> transactions = new ArrayList<>();
-        for (BaseCheck workGroup : checkGroups) {
-            workGroup.makeTransaction();
+        for (BaseCheck checkGroup : checkGroups) {
+            checkGroup.makeTransaction();
             try {
-                transactions.add(workGroup.getTransaction());
+                transactions.add(checkGroup.getTransaction());
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("没有为" + workGroup.getClass().getSimpleName() + "设置事务");
+                System.out.println("没有为" + checkGroup.getClass().getSimpleName() + "设置事务");
             }
         }
         for (int i = 0; i < threadsNum; i++) {
@@ -305,7 +301,7 @@ public class DbChecking {
 
     }
 
-    private void printWorkGroup() {
+    private void printCheckGroups() {
         for (BaseCheck checkGroup : checkGroups) {
             System.out.println(checkGroup);
         }

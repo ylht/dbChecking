@@ -1,4 +1,4 @@
-package ecnu.db.threads;
+package ecnu.db.utils;
 
 import ecnu.db.scheme.Table;
 import ecnu.db.utils.DataOutputToFile;

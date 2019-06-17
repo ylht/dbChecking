@@ -58,7 +58,7 @@ public abstract class BaseCheck {
         throw new Exception("没有初始化事务");
     }
 
-    public void addWorkNode(CheckNode node) {
+    public void addCheckNode(CheckNode node) {
         checkNodes.add(node);
     }
 
