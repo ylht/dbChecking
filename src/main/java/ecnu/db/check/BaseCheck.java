@@ -3,7 +3,7 @@ package ecnu.db.check;
 import ecnu.db.config.TransactionConfig;
 import ecnu.db.schema.AbstractColumn;
 import ecnu.db.transaction.BaseTransaction;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -96,18 +96,18 @@ public abstract class BaseCheck {
     /**
      * 记录工作组开始执行前的数据库数据
      *
-     * @param mysqlConnector 加载数据库驱动
+     * @param databaseConnector 加载数据库驱动
      * @throws SQLException 抛出异常
      */
-    public abstract void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException;
+    public abstract void recordBeginStatus(DatabaseConnector databaseConnector) throws SQLException;
 
     /**
      * 记录工作组执行之后的数据库数据
      *
-     * @param mysqlConnector 加载数据库驱动
+     * @param databaseConnector 加载数据库驱动
      * @throws SQLException 抛出异常
      */
-    public abstract void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException;
+    public abstract void recordEndStatus(DatabaseConnector databaseConnector) throws SQLException;
 
     /**
      * 该工作组是否维持了一致性

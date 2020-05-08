@@ -26,7 +26,7 @@ public class Table {
      * 记录列，用于记录各种值
      */
     private final static String[] RECORD_COLUMNS =
-            new String[]{"checkReadCommitted double default 0", "checkRepeatableRead INT default 0"};
+            new String[]{"checkReadCommitted decimal(20,5) default 0", "checkRepeatableRead INT default 0"};
     private final Random R = new Random();
     private int tableIndex;
     private int tableSize;
@@ -155,7 +155,7 @@ public class Table {
                     .append(foreignKeys.get(i)).append("(tp0),");
         }
 
-        sql.append("PRIMARY KEY ( `tp0` ));");
+        sql.append("PRIMARY KEY ( tp0 ));");
 
         return sql.toString();
     }

@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.CheckNode;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -42,9 +42,9 @@ public class WriteSkew extends BaseTransaction {
     }
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
-        selectPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
+        selectPreparedStatement = databaseConnector.getPrepareStatement(selectSQL);
         updatePreparedStatements = getPreparedStatements(updateSQLs);
     }
 
@@ -63,6 +63,7 @@ public class WriteSkew extends BaseTransaction {
                 updatePreparedStatements[updateIndex].execute();
             }
         }
-        mysqlConnector.commit();
+        databaseConnector.commit();
+        System.out.println(selectPreparedStatement.toString()+"\n"+updatePreparedStatements[updateIndex].toString());
     }
 }

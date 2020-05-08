@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
 import ecnu.db.schema.AbstractColumn;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -9,21 +9,21 @@ import java.util.Random;
 
 public abstract class BaseTransaction implements Cloneable {
     protected final Random R = new Random();
-    MysqlConnector mysqlConnector;
+    DatabaseConnector databaseConnector;
     AbstractColumn.ColumnType columnType;
 
     /**
      * 将本地的SQL语句构建为PrepareStatement
      *
-     * @param mysqlConnector 用于构建PrepareStatement
+     * @param databaseConnector 用于构建PrepareStatement
      * @throws SQLException 数据库连接错误，或者SQL语法出错
      */
-    public abstract void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException;
+    public abstract void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException;
 
     PreparedStatement[] getPreparedStatements(String[] sqls) throws SQLException {
         PreparedStatement[] preparedStatements = new PreparedStatement[sqls.length];
         for (int i = 0; i < sqls.length; i++) {
-            preparedStatements[i] = mysqlConnector.getPrepareStatement(sqls[i]);
+            preparedStatements[i] = databaseConnector.getPrepareStatement(sqls[i]);
         }
         return preparedStatements;
     }

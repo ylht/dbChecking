@@ -29,9 +29,9 @@ public class LoadData implements Runnable {
             df.write(record);
         }
         df.close();
-        MysqlConnector mysqlConnector = new MysqlConnector();
+        DatabaseConnector databaseConnector = new DatabaseConnector();
         try {
-            mysqlConnector.loadData(table.getTableIndex());
+            databaseConnector.loadData(table.getTableIndex());
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("数据上传失败");

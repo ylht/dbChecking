@@ -6,7 +6,7 @@
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,
     repeatableRead,serializable-->
-    <transactionCheckType>1111</transactionCheckType>
+    <transactionCheckType>1110</transactionCheckType>
 
     <configType>
         <select>0001</select>

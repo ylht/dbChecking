@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.CheckNode;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 
 public class PhantomRead extends BaseTransaction {
-    private static final String INSERT_SQL = "replace into t* (tp0,tp*) values(?,?)";
+    private static final String INSERT_SQL = "insert into t* (tp0,tp*) values(?,?)";
     private static final String DELETE_SQL = "delete from t* where tp0=?";
     private static final String UPDATE_SQL = "update t* set tp* = tp* + 1 where tp0 =?";
     private static final String SELECT_SQL = "select tp0,tp* from t* where tp0 between ? and ? order by tp0";
@@ -62,14 +62,14 @@ public class PhantomRead extends BaseTransaction {
 
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
-        insertSQLPreparedStatement = mysqlConnector.getPrepareStatement(insertSQL);
-        deleteSQLPreparedStatement = mysqlConnector.getPrepareStatement(deleteSQL);
-        updateSQLPreparedStatement = mysqlConnector.getPrepareStatement(updateSQL);
-        firstSelectSQLPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
-        secondSelectSQLPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
-        insertPhantomReadPreparedStatement = mysqlConnector.getPrepareStatement(insertPhantomRead);
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
+        insertSQLPreparedStatement = databaseConnector.getPrepareStatement(insertSQL);
+        deleteSQLPreparedStatement = databaseConnector.getPrepareStatement(deleteSQL);
+        updateSQLPreparedStatement = databaseConnector.getPrepareStatement(updateSQL);
+        firstSelectSQLPreparedStatement = databaseConnector.getPrepareStatement(selectSQL);
+        secondSelectSQLPreparedStatement = databaseConnector.getPrepareStatement(selectSQL);
+        insertPhantomReadPreparedStatement = databaseConnector.getPrepareStatement(insertPhantomRead);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class PhantomRead extends BaseTransaction {
                 secondSelectSQLPreparedStatement.setInt(1, min);
                 secondSelectSQLPreparedStatement.setInt(2, max);
                 ResultSet secondResultSet = secondSelectSQLPreparedStatement.executeQuery();
-                mysqlConnector.commit();
+                databaseConnector.commit();
                 int firstRowCount = 0;
                 if (firstResultSet.last()) {
                     firstRowCount = firstResultSet.getRow();
@@ -123,7 +123,7 @@ public class PhantomRead extends BaseTransaction {
                         }
                     }
                 }
-                mysqlConnector.commit();
+                databaseConnector.commit();
             }
         } else {
             int workKey = key.getValue();
@@ -144,7 +144,7 @@ public class PhantomRead extends BaseTransaction {
                 default:
                     System.out.println("没有改操作类型");
             }
-            mysqlConnector.commit();
+            databaseConnector.commit();
         }
     }
 }

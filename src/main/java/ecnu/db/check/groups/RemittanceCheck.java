@@ -3,7 +3,7 @@ package ecnu.db.check.groups;
 import ecnu.db.check.BaseCheck;
 import ecnu.db.check.CheckNode;
 import ecnu.db.transaction.Remittance;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -24,16 +24,16 @@ public class RemittanceCheck extends BaseCheck {
     }
 
     @Override
-    public void recordBeginStatus(MysqlConnector mysqlConnector) throws SQLException {
+    public void recordBeginStatus(DatabaseConnector databaseConnector) throws SQLException {
         for (CheckNode node : checkNodes) {
-            node.setBeginSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
+            node.setBeginSum(databaseConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
         }
     }
 
     @Override
-    public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
+    public void recordEndStatus(DatabaseConnector databaseConnector) throws SQLException {
         for (CheckNode node : checkNodes) {
-            node.setEndSum(mysqlConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
+            node.setEndSum(databaseConnector.sumColumn(node.getTableIndex(), node.getColumnIndex()));
         }
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <generator>
+    <database>postgresql</database>
     <thread>
         <!--每个cpu核心上分配到的事务线程数-->
         <runThreadNumOnCore>10</runThreadNumOnCore>
@@ -7,10 +8,10 @@
     </thread>
 
     <database>
-        <url>biui.me</url>
+        <url>10.11.6.121:5432</url>
         <name>databaseChecking</name>
-        <user>qswang</user>
-        <password>Biui1227..</password>
+        <user>zsy</user>
+        <password>zsy</password>
     </database>
 
 

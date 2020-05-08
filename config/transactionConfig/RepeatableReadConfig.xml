@@ -7,7 +7,7 @@
     <!--需要检测几种隔离级别，数值1为检测，0为不检测。
     从左到右分别代表，readUncommitted,readCommitted,
     repeatableRead,serializable-->
-    <transactionCheckType>0011</transactionCheckType>
+    <transactionCheckType>0010</transactionCheckType>
 
     <minColumnNum>1</minColumnNum>
 

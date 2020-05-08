@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.CheckNode;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -51,11 +51,11 @@ public class RepeatableRead extends BaseTransaction {
     }
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
-        updateInfluenceReadPreparedStatement = mysqlConnector.getPrepareStatement(updateInfluenceRead);
-        selectSQLPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
-        updateRepeatableReadPreparedStatement = mysqlConnector.getPrepareStatement(updateRepeatableRead);
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
+        updateInfluenceReadPreparedStatement = databaseConnector.getPrepareStatement(updateInfluenceRead);
+        selectSQLPreparedStatement = databaseConnector.getPrepareStatement(selectSQL);
+        updateRepeatableReadPreparedStatement = databaseConnector.getPrepareStatement(updateRepeatableRead);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class RepeatableRead extends BaseTransaction {
                 updateRepeatableReadPreparedStatement.setObject(1, Math.abs(firstValue - secondValue));
                 updateRepeatableReadPreparedStatement.setInt(2, selectKey);
                 updateRepeatableReadPreparedStatement.execute();
-                mysqlConnector.commit();
+                databaseConnector.commit();
             }
         } else {
             int min = R.nextInt(range);
@@ -90,7 +90,7 @@ public class RepeatableRead extends BaseTransaction {
             updateInfluenceReadPreparedStatement.setInt(1, min);
             updateInfluenceReadPreparedStatement.setInt(2, max);
             updateInfluenceReadPreparedStatement.execute();
-            mysqlConnector.commit();
+            databaseConnector.commit();
         }
     }
 }

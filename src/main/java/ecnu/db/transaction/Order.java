@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.CheckNode;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -68,8 +68,8 @@ public class Order extends BaseTransaction {
     }
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
         if (selectSQLS != null) {
             selectPreparedStatements = getPreparedStatements(selectSQLS);
         }
@@ -90,7 +90,7 @@ public class Order extends BaseTransaction {
             if (rs.next()) {
                 updatePreparedStatements[updateIndex].setInt(1, rs.getInt(1) - orderSubCount);
             } else {
-                mysqlConnector.rollback();
+                databaseConnector.rollback();
                 return;
             }
         }
@@ -99,10 +99,10 @@ public class Order extends BaseTransaction {
         if (updatePreparedStatements[updateIndex].executeUpdate() == 1) {
             insertPreparedStatements[updateIndex].setInt(1, orderSubCount);
             if (insertPreparedStatements[updateIndex].executeUpdate() == 1) {
-                mysqlConnector.commit();
+                databaseConnector.commit();
                 return;
             }
         }
-        mysqlConnector.rollback();
+        databaseConnector.rollback();
     }
 }

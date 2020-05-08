@@ -3,7 +3,7 @@ package ecnu.db.transaction;
 import ecnu.db.check.CheckNode;
 import ecnu.db.schema.AbstractColumn;
 import ecnu.db.schema.DecimalColumn;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -88,8 +88,8 @@ public class Remittance extends BaseTransaction {
     }
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
         if (selectSQLs != null) {
             selectPrepareStatements = getPreparedStatements(selectSQLs);
         }
@@ -116,11 +116,11 @@ public class Remittance extends BaseTransaction {
                 addPrepareStatements[addIndex].setObject(1, subValue);
                 addPrepareStatements[addIndex].setInt(2, addKeys[subIndex].getValue());
                 if (addPrepareStatements[addIndex].executeUpdate() == 1) {
-                    mysqlConnector.commit();
+                    databaseConnector.commit();
                     return;
                 }
             }
-            mysqlConnector.rollback();
+            databaseConnector.rollback();
         } else {
             int subIndex = R.nextInt(subPrepareStatements.length);
             int subKey = subKeys[subIndex].getValue();
@@ -152,13 +152,13 @@ public class Remittance extends BaseTransaction {
                         }
                         addPrepareStatements[addIndex].setInt(2, addKey);
                         if (addPrepareStatements[addIndex].executeUpdate() == 1) {
-                            mysqlConnector.commit();
+                            databaseConnector.commit();
                             return;
                         }
                     }
                 }
             }
-            mysqlConnector.rollback();
+            databaseConnector.rollback();
         }
     }
 }

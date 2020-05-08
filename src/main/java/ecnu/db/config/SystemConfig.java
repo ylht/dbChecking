@@ -14,11 +14,15 @@ public class SystemConfig extends ReadConfig {
         return config;
     }
 
+    public String getDatabaseVersion() {
+        return document.valueOf("generator/database");
+    }
+
     public static void setConfig(String configFileName) {
         config = new SystemConfig(configFileName);
     }
 
-    public String getDatabaseURL() {
+    public String getDatabaseurl() {
         return document.valueOf("generator/database/url");
     }
 
@@ -35,12 +39,12 @@ public class SystemConfig extends ReadConfig {
     }
 
     public double getZipf() {
-        return Double.valueOf(document.valueOf("generator/transaction/zipf"));
+        return Double.parseDouble(document.valueOf("generator/transaction/zipf"));
     }
 
 
     public int getRunThreadNumOnCore() {
-        return Integer.valueOf(document.valueOf("generator/thread/runThreadNumOnCore"));
+        return Integer.parseInt(document.valueOf("generator/thread/runThreadNumOnCore"));
     }
 
     public int getThreadNum() {
@@ -48,7 +52,7 @@ public class SystemConfig extends ReadConfig {
     }
 
     public int getRunCount() {
-        return Integer.valueOf(document.valueOf("generator/thread/runCount"));
+        return Integer.parseInt(document.valueOf("generator/thread/runCount"));
     }
 
 

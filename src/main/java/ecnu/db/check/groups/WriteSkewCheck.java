@@ -2,7 +2,7 @@ package ecnu.db.check.groups;
 
 import ecnu.db.check.BaseCheck;
 import ecnu.db.transaction.WriteSkew;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 
 import java.sql.SQLException;
 
@@ -22,16 +22,16 @@ public class WriteSkewCheck extends BaseCheck {
     }
 
     @Override
-    public void recordBeginStatus(MysqlConnector mysqlConnector) {
+    public void recordBeginStatus(DatabaseConnector databaseConnector) {
     }
 
     @Override
-    public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
+    public void recordEndStatus(DatabaseConnector databaseConnector) throws SQLException {
         String tableName = "t" + checkNodes.get(0).getTableIndex();
         String columnName1 = "tp" + checkNodes.get(0).getColumnIndex();
         String columnName2 = "tp" + checkNodes.get(1).getColumnIndex();
 
-        errCount = mysqlConnector.getResult("select count(*) from "
+        errCount = databaseConnector.getResult("select count(*) from "
                 + tableName + " where " + columnName1 + " + " + columnName2 + " < 0 ;");
     }
 

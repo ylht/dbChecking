@@ -10,8 +10,8 @@ import ecnu.db.schema.Table;
 import ecnu.db.threads.TransactionThread;
 import ecnu.db.threads.pool.DbCheckingThreadPool;
 import ecnu.db.transaction.BaseTransaction;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.LoadData;
-import ecnu.db.utils.MysqlConnector;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.SQLException;
@@ -49,22 +49,23 @@ public class DbChecking {
      * 重建scheme
      */
     void createScheme() {
-        MysqlConnector mysqlConnector = new MysqlConnector();
+        DatabaseConnector databaseConnector = new DatabaseConnector();
         System.out.println("数据库连接成功！");
         System.out.println("开始重建数据库scheme！");
         //删除之前的scheme
         try {
-            mysqlConnector.dropTables();
+            databaseConnector.dropTables();
             //为每张新表重建scheme
             for (Table table : tables) {
-                mysqlConnector.executeSql(table.getSQL());
+                System.out.println(table.getSQL());
+                databaseConnector.executeSql(table.getSQL());
             }
-            mysqlConnector.createOrderTable();
+            databaseConnector.createOrderTable();
             if (checkKind == BaseCheck.CheckKind.Serializable) {
-                mysqlConnector.createPhantomReadRecordTable();
+                databaseConnector.createPhantomReadRecordTable();
             }
             System.out.println("数据库scheme重建成功！");
-            mysqlConnector.close();
+            databaseConnector.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -79,7 +80,11 @@ public class DbChecking {
         CountDownLatch count = new CountDownLatch(tables.length);
         for (int i = 0; i < tables.length; i++) {
             loadData[i] = new LoadData(tables[i], count);
-            DbCheckingThreadPool.getThreadPoolExecutor().submit(loadData[i]);
+            if ("postgresql".equals(SystemConfig.getConfig().getDatabaseVersion())) {
+                loadData[i].run();
+            } else {
+                DbCheckingThreadPool.getThreadPoolExecutor().submit(loadData[i]);
+            }
         }
         try {
             count.await();
@@ -183,7 +188,6 @@ public class DbChecking {
             if (checkGroup.getColumnFromSameTable() && !checkGroup.getWholeTable()) {
                 int columnCount = checkGroup.getColumnCount();
                 AbstractColumn.ColumnType columnType = checkGroup.columnType();
-
                 int tableIndex = allIndex.get(new Random().nextInt(allIndex.size()));
                 addCheckGroup(checkGroup, columnCount, columnType, tableIndex);
                 if (checkGroup.columnNumNotEnough()) {
@@ -200,20 +204,22 @@ public class DbChecking {
         ArrayList<BaseCheck> checks = new ArrayList<>();
         HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> allCheckNodes = getAllCheckNodes();
         for (BaseCheck checkGroup : checkGroups) {
-            int columnCount = checkGroup.getColumnCount();
-            AbstractColumn.ColumnType columnType = checkGroup.columnType();
-            for (int i = 0; i < columnCount; i++) {
-                try {
-                    checkGroup.addCheckNode(allCheckNodes.get(columnType).remove(0));
-                } catch (Exception e) {
-                    System.out.println(checkGroup.getClass().getSimpleName() + "没有checkNode可供选择");
-                    break;
+            if (!checkGroup.getColumnFromSameTable() && !checkGroup.getWholeTable()) {
+                int columnCount = checkGroup.getColumnCount();
+                AbstractColumn.ColumnType columnType = checkGroup.columnType();
+                for (int i = 0; i < columnCount; i++) {
+                    try {
+                        checkGroup.addCheckNode(allCheckNodes.get(columnType).remove(0));
+                    } catch (Exception e) {
+                        System.out.println(checkGroup.getClass().getSimpleName() + "没有checkNode可供选择");
+                        break;
+                    }
                 }
-            }
-            if (checkGroup.columnNumNotEnough()) {
-                System.out.println("移除" + checkGroup.getClass().getSimpleName());
-            } else {
-                checks.add(checkGroup);
+                if (checkGroup.columnNumNotEnough()) {
+                    System.out.println("移除" + checkGroup.getClass().getSimpleName());
+                } else {
+                    checks.add(checkGroup);
+                }
             }
         }
         return checks;
@@ -308,20 +314,20 @@ public class DbChecking {
     }
 
     private void recordStartStatus() throws SQLException {
-        MysqlConnector mysqlConnector = new MysqlConnector();
+        DatabaseConnector databaseConnector = new DatabaseConnector();
         for (BaseCheck checkGroup : checkGroups) {
-            checkGroup.recordBeginStatus(mysqlConnector);
+            checkGroup.recordBeginStatus(databaseConnector);
         }
-        mysqlConnector.close();
+        databaseConnector.close();
     }
 
 
     private void recordEndStatus() throws SQLException {
-        MysqlConnector mysqlConnector = new MysqlConnector();
+        DatabaseConnector databaseConnector = new DatabaseConnector();
         for (BaseCheck checkGroup : checkGroups) {
-            checkGroup.recordEndStatus(mysqlConnector);
+            checkGroup.recordEndStatus(databaseConnector);
         }
-        mysqlConnector.close();
+        databaseConnector.close();
     }
 
     private boolean checkCorrect() {

@@ -1,7 +1,7 @@
 package ecnu.db.transaction;
 
 import ecnu.db.check.CheckNode;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -53,11 +53,11 @@ public class ReadCommitted extends BaseTransaction {
     }
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
-        updateNegativePreparedStatement = mysqlConnector.getPrepareStatement(updateNegative);
-        updateRecordPreparedStatement = mysqlConnector.getPrepareStatement(updateRecord);
-        selectSQLPreparedStatement = mysqlConnector.getPrepareStatement(selectSQL);
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
+        updateNegativePreparedStatement = databaseConnector.getPrepareStatement(updateNegative);
+        updateRecordPreparedStatement = databaseConnector.getPrepareStatement(updateRecord);
+        selectSQLPreparedStatement = databaseConnector.getPrepareStatement(selectSQL);
     }
 
     @Override
@@ -70,9 +70,9 @@ public class ReadCommitted extends BaseTransaction {
                 updateRecordPreparedStatement.setObject(1, rs.getObject(1));
                 updateRecordPreparedStatement.setInt(2, selectKey);
                 updateRecordPreparedStatement.executeUpdate();
-                mysqlConnector.commit();
+                databaseConnector.commit();
             }
-            mysqlConnector.rollback();
+            databaseConnector.rollback();
         } else {
             int min = R.nextInt(range);
             int max = R.nextInt(range);
@@ -89,7 +89,7 @@ public class ReadCommitted extends BaseTransaction {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            mysqlConnector.rollback();
+            databaseConnector.rollback();
         }
     }
 }

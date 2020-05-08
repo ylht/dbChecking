@@ -3,7 +3,7 @@ package ecnu.db.transaction;
 import ecnu.db.check.CheckNode;
 import ecnu.db.schema.AbstractColumn;
 import ecnu.db.schema.DecimalColumn;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 import ecnu.db.utils.ZipDistributionList;
 
 import java.sql.PreparedStatement;
@@ -114,8 +114,8 @@ public class Function extends BaseTransaction {
 
 
     @Override
-    public void makePrepareStatement(MysqlConnector mysqlConnector) throws SQLException {
-        this.mysqlConnector = mysqlConnector;
+    public void makePrepareStatement(DatabaseConnector databaseConnector) throws SQLException {
+        this.databaseConnector = databaseConnector;
         if (xSelectSQLs != null) {
             xSelectPrepareStatements = getPreparedStatements(xSelectSQLs);
             ySelectPrepareStatements = getPreparedStatements(ySelectSQLs);
@@ -154,11 +154,11 @@ public class Function extends BaseTransaction {
             }
             yPrepareStatements[yIndex].setInt(2, yKeys[yIndex].getValue());
             if (yPrepareStatements[yIndex].executeUpdate() == 1) {
-                mysqlConnector.commit();
+                databaseConnector.commit();
                 return;
             }
         }
-        mysqlConnector.rollback();
+        databaseConnector.rollback();
     }
 
     private void executeTransactionWithSelect() throws SQLException {
@@ -210,13 +210,13 @@ public class Function extends BaseTransaction {
                     }
                     yPrepareStatements[yIndex].setInt(2, yKey);
                     if (yPrepareStatements[yIndex].executeUpdate() == 1) {
-                        mysqlConnector.commit();
+                        databaseConnector.commit();
 
                         return;
                     }
                 }
             }
-            mysqlConnector.rollback();
+            databaseConnector.rollback();
         }
     }
 

@@ -2,22 +2,40 @@ package ecnu.db.utils;
 
 import ecnu.db.config.SystemConfig;
 import ecnu.db.config.TableConfig;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
 
 /**
  * @author wangqingshuai
  * 数据库驱动连接器
  */
-public class MysqlConnector {
+public class DatabaseConnector {
     /**
      * JDBC 驱动名及数据库 URL
      */
     private Connection conn;
 
-    public MysqlConnector() {
-
-        String dbUrl = "jdbc:mysql://" + SystemConfig.getConfig().getDatabaseURL() + "/" + SystemConfig.getConfig().getDatabaseName() + "?useSSL=false&allowPublicKeyRetrieval=true";
+    public DatabaseConnector() {
+        String dbUrl = null;
+        switch (SystemConfig.getConfig().getDatabaseVersion()) {
+            case "mysql":
+                dbUrl = "jdbc:mysql://" + SystemConfig.getConfig().getDatabaseurl() + "/" +
+                        SystemConfig.getConfig().getDatabaseName() +
+                        "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                break;
+            case "postgresql":
+                dbUrl = "jdbc:postgresql://" + SystemConfig.getConfig().getDatabaseurl() + "/" +
+                        SystemConfig.getConfig().getDatabaseName();
+                break;
+            default:
+                System.out.println("配置文件错误");
+                System.exit(-1);
+        }
 
         // 数据库的用户名与密码
         String user = SystemConfig.getConfig().getDatabaseUser();
@@ -32,8 +50,8 @@ public class MysqlConnector {
     }
 
     public static void main(String[] args) throws SQLException {
-        MysqlConnector mysqlConnector = new MysqlConnector();
-        System.out.println(mysqlConnector.sumColumn(0, 1));
+        DatabaseConnector databaseConnector = new DatabaseConnector();
+        System.out.println(databaseConnector.sumColumn(0, 1));
     }
 
     //数据库标准操作
@@ -65,7 +83,7 @@ public class MysqlConnector {
     }
 
     public PreparedStatement getPrepareStatement(String sql) throws SQLException {
-        return conn.prepareStatement(sql);
+        return conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
     }
 
     public void executeSql(String sql) throws SQLException {
@@ -75,11 +93,28 @@ public class MysqlConnector {
     //表格相关操作
 
     void loadData(int tableIndex) throws SQLException {
-        executeSql("SET FOREIGN_KEY_CHECKS = 0;");
-        String sql = "load data CONCURRENT LOCAL INFILE 'data/t" + tableIndex +
-                ".csv' into table t" + tableIndex + " COLUMNS TERMINATED BY ',' ";
-        executeSql(sql);
-        executeSql("SET FOREIGN_KEY_CHECKS = 1;");
+        switch (SystemConfig.getConfig().getDatabaseVersion()) {
+            case "mysql":
+                executeSql("SET FOREIGN_KEY_CHECKS = 0;");
+                String sql = "load data CONCURRENT LOCAL INFILE 'data/t" + tableIndex +
+                        ".csv' into table t" + tableIndex + " COLUMNS TERMINATED BY ',' ";
+                executeSql(sql);
+                executeSql("SET FOREIGN_KEY_CHECKS = 1;");
+                break;
+            case "postgresql":
+                CopyManager copyManager = new CopyManager((BaseConnection) conn);
+                try {
+                    copyManager.copyIn("COPY t" + tableIndex + " FROM stdin DELIMITER as ',';",
+                            new FileReader(new File("data/t" + tableIndex+".csv")));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            default:
+                System.out.println("配置文件错误");
+                System.exit(-1);
+        }
+
     }
 
     /**

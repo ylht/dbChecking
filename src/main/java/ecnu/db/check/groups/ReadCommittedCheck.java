@@ -2,7 +2,7 @@ package ecnu.db.check.groups;
 
 import ecnu.db.check.BaseCheck;
 import ecnu.db.transaction.ReadCommitted;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 
 import java.sql.SQLException;
 
@@ -20,14 +20,14 @@ public class ReadCommittedCheck extends BaseCheck {
     }
 
     @Override
-    public void recordBeginStatus(MysqlConnector mysqlConnector) {
+    public void recordBeginStatus(DatabaseConnector databaseConnector) {
 
     }
 
     @Override
-    public void recordEndStatus(MysqlConnector mysqlConnector) throws SQLException {
+    public void recordEndStatus(DatabaseConnector databaseConnector) throws SQLException {
         String sql = "select count(*) from t" + checkNodes.get(0).getTableIndex() + " where checkReadCommitted<0";
-        errCount = mysqlConnector.getResult(sql);
+        errCount = databaseConnector.getResult(sql);
     }
 
 

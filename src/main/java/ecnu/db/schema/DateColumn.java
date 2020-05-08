@@ -1,5 +1,7 @@
 package ecnu.db.schema;
 
+import ecnu.db.config.SystemConfig;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Random;
@@ -16,7 +18,11 @@ public class DateColumn extends AbstractColumn {
 
     @Override
     public String getTableSQL() {
+        if ("postgresql".equals(SystemConfig.getConfig().getDatabaseVersion())) {
+            return "TIMESTAMP";
+        }
         return "DATETIME";
+
     }
 
     @Override

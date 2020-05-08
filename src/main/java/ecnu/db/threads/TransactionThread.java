@@ -1,11 +1,13 @@
 package ecnu.db.threads;
 
 import ecnu.db.transaction.BaseTransaction;
-import ecnu.db.utils.MysqlConnector;
+import ecnu.db.utils.DatabaseConnector;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -16,16 +18,18 @@ public class TransactionThread implements Runnable {
     private ArrayList<BaseTransaction> transactions = new ArrayList<>();
     private int runCount;
     private CountDownLatch count;
-    private MysqlConnector mysqlConnector;
+    private DatabaseConnector databaseConnector;
     private int threadID;
+
+
 
     public TransactionThread(int threadID, ArrayList<BaseTransaction> transactions,
                              int runCount, CountDownLatch count) {
         this.runCount = runCount;
         this.count = count;
         this.threadID = threadID;
-        mysqlConnector = new MysqlConnector();
-        mysqlConnector.beginTransaction();
+        databaseConnector = new DatabaseConnector();
+        databaseConnector.beginTransaction();
 
         for (BaseTransaction transaction : transactions) {
             try {
@@ -36,7 +40,7 @@ public class TransactionThread implements Runnable {
         }
         for (BaseTransaction transaction : this.transactions) {
             try {
-                transaction.makePrepareStatement(mysqlConnector);
+                transaction.makePrepareStatement(databaseConnector);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -54,7 +58,7 @@ public class TransactionThread implements Runnable {
                     e.printStackTrace();
                 }
                 try {
-                    mysqlConnector.rollback();
+                    databaseConnector.rollback();
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
@@ -64,6 +68,6 @@ public class TransactionThread implements Runnable {
             }
         }
         count.countDown();
-        mysqlConnector.close();
+        databaseConnector.close();
     }
 }
