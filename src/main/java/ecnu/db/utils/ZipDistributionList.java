@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class ZipDistributionList {
-    private ArrayList<Integer> list;
-    private ZipfDistribution zf;
+    private final ArrayList<Integer> list;
+    private final ZipfDistribution zf;
 
     public ZipDistributionList(ArrayList<Integer> list, boolean forTransaction) {
         this.list = new ArrayList<>(list);

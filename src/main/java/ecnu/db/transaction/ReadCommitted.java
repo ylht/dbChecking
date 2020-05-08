@@ -26,10 +26,10 @@ public class ReadCommitted extends BaseTransaction {
     private PreparedStatement updateRecordPreparedStatement;
     private PreparedStatement selectSQLPreparedStatement;
 
-    private ZipDistributionList key;
-    private long updateSleepMills;
-    private double readWriteRadio;
-    private int range;
+    private final ZipDistributionList key;
+    private final long updateSleepMills;
+    private final double readWriteRadio;
+    private final int range;
 
     public ReadCommitted(CheckNode checkNode, long updateSleepMills, double readWriteRadio) {
 

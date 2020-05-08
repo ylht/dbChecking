@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 public class DbChecking {
     private ArrayList<BaseCheck> checkGroups;
     private Table[] tables;
-    private BaseCheck.CheckKind checkKind;
+    private final BaseCheck.CheckKind checkKind;
 
     DbChecking(BaseCheck.CheckKind checkKind) {
         //初始化数据表

@@ -10,8 +10,8 @@ import java.util.concurrent.CountDownLatch;
  * 将数据生成到本地之后，调用mysql的命令将数据上传的服务器
  */
 public class LoadData implements Runnable {
-    private Table table;
-    private CountDownLatch count;
+    private final Table table;
+    private final CountDownLatch count;
 
     public LoadData(Table table, CountDownLatch count) {
         this.table = table;

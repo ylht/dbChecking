@@ -5,22 +5,19 @@ import ecnu.db.utils.DatabaseConnector;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * @author wangqingshuai
  */
 public class TransactionThread implements Runnable {
-    private Random r = new Random();
-    private ArrayList<BaseTransaction> transactions = new ArrayList<>();
-    private int runCount;
-    private CountDownLatch count;
-    private DatabaseConnector databaseConnector;
-    private int threadID;
-
+    private final Random r = new Random();
+    private final ArrayList<BaseTransaction> transactions = new ArrayList<>();
+    private final int runCount;
+    private final CountDownLatch count;
+    private final DatabaseConnector databaseConnector;
+    private final int threadID;
 
 
     public TransactionThread(int threadID, ArrayList<BaseTransaction> transactions,
@@ -29,7 +26,6 @@ public class TransactionThread implements Runnable {
         this.count = count;
         this.threadID = threadID;
         databaseConnector = new DatabaseConnector();
-        databaseConnector.beginTransaction();
 
         for (BaseTransaction transaction : transactions) {
             try {
@@ -52,6 +48,7 @@ public class TransactionThread implements Runnable {
         for (int i = 0; i < runCount; i++) {
             int randomIndex = r.nextInt(transactions.size());
             try {
+                databaseConnector.setAutoCommitFalse();
                 transactions.get(randomIndex).execute();
             } catch (Exception e) {
                 if (!"Deadlock found when trying to get lock; try restarting transaction".equals(e.getMessage())) {

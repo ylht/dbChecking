@@ -7,11 +7,11 @@ import java.util.ArrayList;
  * 用于计算的Node的基础类
  */
 public class CheckNode {
-    private int tableIndex;
-    private int columnIndex;
+    private final int tableIndex;
+    private final int columnIndex;
 
-    private ArrayList<Integer> keys;
-    private int range;
+    private final ArrayList<Integer> keys;
+    private final int range;
 
     /**
      * 该列开始计算之前的和

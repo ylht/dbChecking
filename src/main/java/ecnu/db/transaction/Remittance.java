@@ -27,12 +27,12 @@ public class Remittance extends BaseTransaction {
      * 事务在range范围内随机得到值时，range的大小，计算公式为
      * range= tupleRange/ rangeRandomCount
      */
-    private int rangeRandomCount;
-    private int[] range;
-    private ZipDistributionList[] addKeys;
-    private ZipDistributionList[] subKeys;
-    private String[] addSQLs;
-    private String[] subSQLs;
+    private final int rangeRandomCount;
+    private final int[] range;
+    private final ZipDistributionList[] addKeys;
+    private final ZipDistributionList[] subKeys;
+    private final String[] addSQLs;
+    private final String[] subSQLs;
     private PreparedStatement[] addPrepareStatements;
     private PreparedStatement[] subPrepareStatements;
     private String[] selectSQLs;

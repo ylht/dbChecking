@@ -16,12 +16,12 @@ public class WriteSkew extends BaseTransaction {
     private static final String UPDATE_SQL = "update t* set tp* = tp* - ? where tp0 =?";
 
     private String selectSQL;
-    private String[] updateSQLs;
+    private final String[] updateSQLs;
 
     private PreparedStatement selectPreparedStatement;
     private PreparedStatement[] updatePreparedStatements;
 
-    private ZipDistributionList key;
+    private final ZipDistributionList key;
 
     public WriteSkew(ArrayList<CheckNode> checkNodes) {
         assert checkNodes.size() == 2;
@@ -64,6 +64,6 @@ public class WriteSkew extends BaseTransaction {
             }
         }
         databaseConnector.commit();
-        System.out.println(selectPreparedStatement.toString()+"\n"+updatePreparedStatements[updateIndex].toString());
+//        System.out.println(selectPreparedStatement.toString() + "\n" + updatePreparedStatements[updateIndex].toString());
     }
 }

@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: ecnu.db.Main
+Multi-Release: true
+

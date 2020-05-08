@@ -28,13 +28,13 @@ public class Table {
     private final static String[] RECORD_COLUMNS =
             new String[]{"checkReadCommitted decimal(20,5) default 0", "checkRepeatableRead INT default 0"};
     private final Random R = new Random();
-    private int tableIndex;
-    private int tableSize;
-    private int foreignKeyNum;
-    private ArrayList<Integer> keys = new ArrayList<>();
+    private final int tableIndex;
+    private final int tableSize;
+    private final int foreignKeyNum;
+    private final ArrayList<Integer> keys = new ArrayList<>();
     private ArrayList<Integer> foreignKeys;
-    private ArrayList<AbstractColumn> columns = new ArrayList<>();
-    private AtomicInteger currentLineNum = new AtomicInteger();
+    private final ArrayList<AbstractColumn> columns = new ArrayList<>();
+    private final AtomicInteger currentLineNum = new AtomicInteger();
     private HashMap<AbstractColumn.ColumnType, ArrayList<CheckNode>> checkNodes =
             new HashMap<>(AbstractColumn.ColumnType.values().length);
 

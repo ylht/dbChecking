@@ -11,7 +11,7 @@ public abstract class AbstractColumn {
      * 在int,decimal,float,date中代表数值范围区间，在varchar中代表长度范围区间
      */
     int range;
-    private ColumnType columnType;
+    private final ColumnType columnType;
 
     AbstractColumn(int range, ColumnType columnType) {
         this.range = range;

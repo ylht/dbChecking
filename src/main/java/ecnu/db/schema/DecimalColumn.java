@@ -11,7 +11,7 @@ public class DecimalColumn extends AbstractColumn {
 
     private static DecimalFormat df;
     private static int allPointLength = -1;
-    private int decimalLength;
+    private final int decimalLength;
 
     DecimalColumn(int range, int pointLength) {
         super(range, ColumnType.DECIMAL);

@@ -56,7 +56,7 @@ public class DatabaseConnector {
 
     //数据库标准操作
 
-    public void beginTransaction() {
+    public void setAutoCommitFalse() {
         try {
             conn.setAutoCommit(false);
         } catch (SQLException e) {
@@ -65,6 +65,7 @@ public class DatabaseConnector {
             System.exit(-1);
         }
     }
+
 
     public void commit() throws SQLException {
         conn.commit();
@@ -83,7 +84,7 @@ public class DatabaseConnector {
     }
 
     public PreparedStatement getPrepareStatement(String sql) throws SQLException {
-        return conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        return conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
     }
 
     public void executeSql(String sql) throws SQLException {
@@ -105,7 +106,7 @@ public class DatabaseConnector {
                 CopyManager copyManager = new CopyManager((BaseConnection) conn);
                 try {
                     copyManager.copyIn("COPY t" + tableIndex + " FROM stdin DELIMITER as ',';",
-                            new FileReader(new File("data/t" + tableIndex+".csv")));
+                            new FileReader(new File("data/t" + tableIndex + ".csv")));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -13,7 +13,7 @@ public class Main {
         //初始化logger
         LogManager.getLogger();
         //项目执行的核心类
-        DbChecking dbChecking = new DbChecking(BaseCheck.CheckKind.Serializable);
+        DbChecking dbChecking = new DbChecking(BaseCheck.CheckKind.RepeatableRead);
         //初始化scheme
         dbChecking.createScheme();
         //载入数据

@@ -14,12 +14,12 @@ public class SystemConfig extends ReadConfig {
         return config;
     }
 
-    public String getDatabaseVersion() {
-        return document.valueOf("generator/database");
-    }
-
     public static void setConfig(String configFileName) {
         config = new SystemConfig(configFileName);
+    }
+
+    public String getDatabaseVersion() {
+        return document.valueOf("generator/database");
     }
 
     public String getDatabaseurl() {

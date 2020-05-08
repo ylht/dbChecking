@@ -26,11 +26,11 @@ public class RepeatableRead extends BaseTransaction {
     private PreparedStatement updateRepeatableReadPreparedStatement;
 
 
-    private ZipDistributionList key;
-    private int range;
+    private final ZipDistributionList key;
+    private final int range;
 
-    private long selectSleepMills;
-    private double readWriteRadio;
+    private final long selectSleepMills;
+    private final double readWriteRadio;
 
     public RepeatableRead(CheckNode checkNode, long selectSleepMills, double readWriteRadio) {
         updateInfluenceRead = UPDATE_INFLUENCE_READ;

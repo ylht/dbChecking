@@ -21,15 +21,15 @@ public class Order extends BaseTransaction {
 
 
     private String[] selectSQLS;
-    private String[] updateSQLs;
-    private String[] insertSQLs;
+    private final String[] updateSQLs;
+    private final String[] insertSQLs;
 
     private PreparedStatement[] selectPreparedStatements;
     private PreparedStatement[] updatePreparedStatements;
     private PreparedStatement[] insertPreparedStatements;
 
-    private int maxOrderItemCount;
-    private ZipDistributionList[] keys;
+    private final int maxOrderItemCount;
+    private final ZipDistributionList[] keys;
 
     public Order(ArrayList<CheckNode> checkNodes, boolean isSelect, boolean forUpdate, int maxOrderItemCount) {
         this.maxOrderItemCount = maxOrderItemCount;

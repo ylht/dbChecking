@@ -30,10 +30,10 @@ public class PhantomRead extends BaseTransaction {
     private PreparedStatement secondSelectSQLPreparedStatement;
     private PreparedStatement insertPhantomReadPreparedStatement;
 
-    private ZipDistributionList key;
-    private int range;
-    private long sleepMills;
-    private double readWriteRadio;
+    private final ZipDistributionList key;
+    private final int range;
+    private final long sleepMills;
+    private final double readWriteRadio;
 
     public PhantomRead(CheckNode checkNode, long sleepMills, double readWriteRadio) {
         insertSQL = INSERT_SQL;
